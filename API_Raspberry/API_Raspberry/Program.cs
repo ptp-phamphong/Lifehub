@@ -44,6 +44,6 @@ app.MapControllers();
 // ----------------------------
 // 4️⃣ Lắng nghe trên mọi IP và port 5000
 // ----------------------------
-app.Run();
-//app.Run("http://127.0.0.1:5000");
+//app.Run();
+app.Run("http://127.0.0.1:5000");
 
