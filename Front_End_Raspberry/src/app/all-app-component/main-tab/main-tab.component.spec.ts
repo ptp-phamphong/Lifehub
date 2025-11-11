@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CallApiComponent } from './call-api.component';
+import { MainTabComponent } from './main-tab.component';
 
-describe('CallApiComponent', () => {
-  let component: CallApiComponent;
-  let fixture: ComponentFixture<CallApiComponent>;
+describe('MainTabComponent', () => {
+  let component: MainTabComponent;
+  let fixture: ComponentFixture<MainTabComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [CallApiComponent]
+      declarations: [MainTabComponent]
     });
-    fixture = TestBed.createComponent(CallApiComponent);
+    fixture = TestBed.createComponent(MainTabComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
