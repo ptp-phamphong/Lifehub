@@ -17,12 +17,7 @@ namespace API_Raspberry.Controllers
         [Route("SystemInfo")]
         public SystemInfo Get()
         {
-            SystemInfo result = new SystemInfo();
-            result.CpuTemperature = "0";
-            result.RamAvailable = "0";
-            result.MemoryAvailabel = "0";
-            return result;
-            //return new CurrentInfoService().GetSystemStatus();
+            return new CurrentInfoService().GetSystemStatus();
         }
     }
 }
