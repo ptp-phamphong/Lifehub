@@ -1,0 +1,23 @@
+<div class="expense-form">
+  <h2>Thêm ghi chú chi tiêu</h2>
+
+  <div class="form-group">
+    <label for="reason">Lý do</label>
+    <input id="reason" type="text" [(ngModel)]="reason" placeholder="Nhập lý do..." />
+  </div>
+
+  <div class="form-group">
+    <label for="amount">Số tiền (VND)</label>
+    <input
+      id="amount"
+      type="text"
+      [value]="formatCurrency(amount)"
+      (input)="onAmountInput($event)"
+      placeholder="Nhập số tiền..."
+    />
+  </div>
+
+  <button (click)="submitForm()">Gửi</button>
+
+  <p class="message">{{ message }}</p>
+</div>

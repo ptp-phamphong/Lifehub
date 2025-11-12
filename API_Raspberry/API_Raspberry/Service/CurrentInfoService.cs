@@ -1,7 +1,7 @@
 ﻿using API_Raspberry.Model;
 using System.Diagnostics;
 
-namespace API_Raspberry
+namespace API_Raspberry.Service
 {
     public class CurrentInfoService
     {
@@ -34,7 +34,7 @@ namespace API_Raspberry
 
         private string RunCommand(string cmd)
         {
-            var psi = new System.Diagnostics.ProcessStartInfo
+            var psi = new ProcessStartInfo
             {
                 FileName = "/usr/bin/bash",
                 Arguments = $"-c \"{cmd.Replace("\"", "\\\"")}\"", // escape an toàn
@@ -44,7 +44,7 @@ namespace API_Raspberry
                 CreateNoWindow = true
             };
 
-            using var process = System.Diagnostics.Process.Start(psi);
+            using var process = Process.Start(psi);
             string output = process.StandardOutput.ReadToEnd().Trim();
             string error = process.StandardError.ReadToEnd().Trim();
             process.WaitForExit();

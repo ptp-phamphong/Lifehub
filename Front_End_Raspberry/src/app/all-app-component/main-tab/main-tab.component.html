@@ -12,12 +12,22 @@
       </ng-template>
     </li>
     <li [ngbNavItem]="2" class="nav-item">
-      <a ngbNavLink class="nav-link fw-semibold">📊 Báo cáo</a>
+      <a ngbNavLink class="nav-link fw-semibold">📊 Expense Record Form</a>
       <ng-template ngbNavContent>
-        <div class="p-3 border rounded bg-light">Báo cáo tài chính trong tuần.</div>
+        <div class="p-3 border rounded bg-light">
+          <app-expense-record></app-expense-record>
+        </div>
       </ng-template>
     </li>
     <li [ngbNavItem]="3" class="nav-item">
+      <a ngbNavLink class="nav-link fw-semibold">📊 Expense Record List</a>
+      <ng-template ngbNavContent>
+        <div class="p-3 border rounded bg-light">
+          <app-expense-record-list></app-expense-record-list>
+        </div>
+      </ng-template>
+    </li>
+    <li [ngbNavItem]="4" class="nav-item">
       <a ngbNavLink class="nav-link fw-semibold">⚙️ Cài đặt</a>
       <ng-template ngbNavContent>
         <div class="p-3 border rounded bg-light">Chỉnh sửa cấu hình hệ thống.</div>

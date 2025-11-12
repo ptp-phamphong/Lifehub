@@ -1,0 +1,27 @@
+<div class="expense-table-container">
+  <h2>Danh sách chi tiêu</h2>
+
+  <table class="expense-table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Ngày tháng</th>
+        <th>Lý do</th>
+        <th>Số tiền</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of expenseRecords">
+        <td>{{ item.id }}</td>
+        <td>{{ item.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td>{{ item.reason }}</td>
+        <td>{{ formatCurrency(item.amount) }}</td>
+        <td>
+          <button class="btn btn-edit" (click)="editRecord(item)">Sửa</button>
+          <button class="btn btn-delete" (click)="deleteRecord(item)">Xoá</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -1,4 +1,5 @@
 ﻿using API_Raspberry.Model;
+using API_Raspberry.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API_Raspberry.Controllers
