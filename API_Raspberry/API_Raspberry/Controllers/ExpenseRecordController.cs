@@ -6,28 +6,19 @@ namespace API_Raspberry.Controllers
 {
     public class ExpenseRecordController : ControllerBase
     {
-        private readonly ILogger<ExpenseRecordController> _logger;
 
-        public ExpenseRecordController(ILogger<ExpenseRecordController> logger)
+        public ExpenseRecordController()
         {
-            _logger = logger;
         }
 
         [HttpPost]
         [Route("ExpenseNote")]
         public bool ExpenseNote([FromBody] ExpenseRecord note)
         {
-            try
-            {
-                ExpenseService expenseService = new ExpenseService();
-                expenseService.AddExpense(note.Reason, note.Amount);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error while adding expense note");
-                return false;
-            }
+            
+            ExpenseService expenseService = new ExpenseService();
+            expenseService.AddExpense(note.Reason, note.Amount);
+            return true;
         }
 
         [HttpGet]
