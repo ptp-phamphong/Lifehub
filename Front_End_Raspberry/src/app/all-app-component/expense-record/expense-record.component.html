@@ -17,7 +17,11 @@
     />
   </div>
 
-  <button (click)="submitForm()">Gửi</button>
+  <button (click)="submitForm()">Lưu</button>
 
   <p class="message">{{ message }}</p>
+  
+<div>
+  <button mat-button color="warn" (click)="cancel()">Hủy</button>
+</div>
 </div>

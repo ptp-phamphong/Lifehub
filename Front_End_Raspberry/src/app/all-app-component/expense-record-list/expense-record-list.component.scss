@@ -43,3 +43,16 @@
     color: white;
   }
 }
+
+::ng-deep .cdk-overlay-pane {
+  z-index: 1001; // Đảm bảo dialog nằm trên backdrop
+}
+
+::ng-deep .cdk-overlay-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);  // Nền xám mờ
+  z-index: 1000;  // Đảm bảo backdrop hiển thị trên các thành phần khác
+}
+.custom-dialog-container {
+  animation: slide-down 0.5s ease-out;
+}
+

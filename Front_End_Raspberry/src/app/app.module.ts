@@ -10,6 +10,8 @@ import { SystemInfoTabComponent } from './all-app-component/system-info-tab/syst
 import { ExpenseRecordComponent } from './all-app-component/expense-record/expense-record.component';
 import { FormsModule } from '@angular/forms';
 import { ExpenseRecordListComponent } from './all-app-component/expense-record-list/expense-record-list.component';
+import { MatDialogModule } from '@angular/material/dialog';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -24,7 +26,9 @@ import { ExpenseRecordListComponent } from './all-app-component/expense-record-l
     AppRoutingModule,
     HttpClientModule,
     NgbModule,
-    FormsModule
+    FormsModule,
+    MatDialogModule,
+    BrowserAnimationsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

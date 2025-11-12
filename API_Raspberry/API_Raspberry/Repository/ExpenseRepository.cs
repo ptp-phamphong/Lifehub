@@ -80,5 +80,60 @@ namespace API_Raspberry.Repository
 
             return list;
         }
+
+        public ExpenseRecord GetExpenseById(int id)
+        {
+
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            string selectSql = $"SELECT Id, Reason, Amount, CreatedDate FROM expenseRecords Where Id = {id};";
+            using var command = new SqliteCommand(selectSql, connection);
+            using var reader = command.ExecuteReader();
+
+            if (reader.Read())
+            {
+                return new ExpenseRecord
+                {
+                    Id = reader.GetInt32(0),
+                    Reason = reader.GetString(1),
+                    Amount = reader.GetInt32(2),
+                    CreatedDate = reader.GetDateTime(3)
+                };  
+            }
+
+            return null;
+        }
+
+        public void UpdateExpense(int id, string reason, int amount)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            string insertSql = @"
+                Update expenseRecords
+                Set Reason = @reason, Amount = @amount
+                Where Id = @id;";
+
+            using var command = new SqliteCommand(insertSql, connection);
+            command.Parameters.AddWithValue("@reason", reason);
+            command.Parameters.AddWithValue("@amount", amount);
+            command.Parameters.AddWithValue("@id", id);
+            command.ExecuteNonQuery();
+        }
+
+        public void DeleteById(int id)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            string insertSql = @"
+                Delete from expenseRecords
+                Where Id = @id;";
+
+            using var command = new SqliteCommand(insertSql, connection);
+            command.Parameters.AddWithValue("@id", id);
+            command.ExecuteNonQuery();
+        }
     }
 }

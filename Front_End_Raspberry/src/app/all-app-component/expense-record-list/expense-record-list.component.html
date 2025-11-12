@@ -1,6 +1,8 @@
 <div class="expense-table-container">
   <h2>Danh sách chi tiêu</h2>
 
+  <button mat-button color="primary" (click)="openEditDialog(0)">Thêm mới</button>
+
   <table class="expense-table">
     <thead>
       <tr>
@@ -18,8 +20,11 @@
         <td>{{ item.reason }}</td>
         <td>{{ formatCurrency(item.amount) }}</td>
         <td>
-          <button class="btn btn-edit" (click)="editRecord(item)">Sửa</button>
-          <button class="btn btn-delete" (click)="deleteRecord(item)">Xoá</button>
+          <button mat-button color="primary" (click)="openEditDialog(item.id)">Sửa</button>
+          <button mat-button color="primary" (click)="deleteRecord(item)">Xoá</button>
+
+          <!-- <button class="btn btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
+          <button class="btn btn-delete" (click)="deleteRecord(item)">Xoá</button> -->
         </td>
       </tr>
     </tbody>

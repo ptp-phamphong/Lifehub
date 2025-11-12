@@ -1,4 +1,5 @@
-﻿using API_Raspberry.Repository;
+﻿using API_Raspberry.Model;
+using API_Raspberry.Repository;
 using System.Data.SQLite;
 
 namespace API_Raspberry.Service
@@ -16,6 +17,24 @@ namespace API_Raspberry.Service
         {
             ExpenseRepository expenseRepository = new ExpenseRepository();
             return expenseRepository.GetAllExpenses();
+        }
+
+        public Model.ExpenseRecord GetExpenseById(int id)
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            return expenseRepository.GetExpenseById(id);
+        }
+
+        public void UpdateExpense(int id, ExpenseRecord expense)
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            expenseRepository.UpdateExpense(id, expense.Reason, expense.Amount);
+        }
+
+        public void DeleteExpense(int id)
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            expenseRepository.DeleteById(id);
         }
     }
 }
