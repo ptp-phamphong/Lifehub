@@ -53,8 +53,12 @@ namespace API_Raspberry.Service
                             email: Environment.GetEnvironmentVariable("EMAIL_ADDRESS"),
                             appPassword: Environment.GetEnvironmentVariable("EMAIL_APP_PASSWORD") // App Password đã tạo
                         );
+                        //var emailService = new EmailService(
+                        //    email: "tpthanhphong111@gmail.com",
+                        //    appPassword: Environment.GetEnvironmentVariable("sehj pmvs qcjd qzfr") // App Password đã tạo
+                        //);
 
-                        foreach(string email in emails)
+                        foreach (string email in emails)
                         {
 
                             await emailService.SendEmailAsync(
