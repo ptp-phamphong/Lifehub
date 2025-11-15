@@ -54,5 +54,21 @@ namespace API_Raspberry.Controllers
             expenseService.DeleteExpense(id);
             return true;
         }
+
+        [HttpGet]
+        [Route("SumByCurrentMonth")]
+        public int SumByCurrentMonth()
+        {
+            ExpenseService expenseService = new ExpenseService();
+            return expenseService.SumByCurrentMonth();
+        }
+
+        [HttpGet]
+        [Route("SumByCurrentWeek")]
+        public int SumByCurrentWeek()
+        {
+            ExpenseService expenseService = new ExpenseService();
+            return expenseService.SumByCurrentWeek();
+        }
     }
 }
