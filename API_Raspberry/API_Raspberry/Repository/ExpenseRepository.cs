@@ -163,7 +163,7 @@ namespace API_Raspberry.Repository
             string selectSql = @"
                 Select SUM(Amount) 
                 From expenseRecords
-                Where CreatedDate > @startOfWeek
+                Where CreatedDate >= @startOfWeek
                   And CreatedDate < @endOfWeek;";
             using var command = new SqliteCommand(selectSql, connection);
             command.Parameters.AddWithValue("@startOfWeek", startOfWeek);

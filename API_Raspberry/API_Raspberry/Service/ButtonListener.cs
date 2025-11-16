@@ -18,6 +18,7 @@ namespace API_Raspberry.Service
         {
             "ptp.phamphong@gmail.com",
             "phong.phamthanh@hcmut.edu.vn",
+            "pvtoan66@gmail.com",
         };
 
         public ButtonListener()

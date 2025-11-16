@@ -55,9 +55,9 @@ namespace API_Raspberry.Service
             ExpenseRepository expenseRepository = new ExpenseRepository();
             var today = DateTime.Today;
             // Calculate Monday of the current week
-            int diff = (7 + (today.DayOfWeek - DayOfWeek.Sunday)) % 7;
+            int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
             var startOfWeek = today.AddDays(-diff).Date;
-            var endOfWeek = startOfWeek.AddDays(8).Date; // Next Monday (exclusive)
+            var endOfWeek = startOfWeek.AddDays(7).Date; // Next Monday (exclusive)
             return expenseRepository.SumByWeek(startOfWeek, endOfWeek);
         }
     }
