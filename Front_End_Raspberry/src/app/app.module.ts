@@ -12,6 +12,8 @@ import { FormsModule } from '@angular/forms';
 import { ExpenseRecordListComponent } from './all-app-component/expense-record-list/expense-record-list.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ReasonTypeListComponent } from './all-app-component/reason-type/reason-type-list/reason-type-list.component';
+import { ReasonTypeFormComponent } from './all-app-component/reason-type/reason-type-form/reason-type-form.component';
 
 @NgModule({
   declarations: [
@@ -20,6 +22,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     SystemInfoTabComponent,
     ExpenseRecordComponent,
     ExpenseRecordListComponent,
+    ReasonTypeListComponent,
+    ReasonTypeFormComponent,
   ],
   imports: [
     BrowserModule,

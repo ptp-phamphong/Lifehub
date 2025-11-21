@@ -3,13 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { MatDialog } from '@angular/material/dialog';
 import { ExpenseRecordComponent } from '../expense-record/expense-record.component';
+import { ExpenseRecord } from 'src/app/model/expense.model';
 
-interface ExpenseRecord {
-  id: number;
-  reason: string;
-  amount: number;
-  createdDate: string;
-}
 @Component({
   selector: 'app-expense-record-list',
   templateUrl: './expense-record-list.component.html',
@@ -56,7 +51,10 @@ export class ExpenseRecordListComponent implements OnInit {
     });
   }
 
-  formatCurrency(amount: number): string {
+  formatCurrency(amount?: number): string {
+    if(!amount){
+      return '0 VNĐ';
+    }
     return amount.toLocaleString('vi-VN') + ' VNĐ';
   }
 

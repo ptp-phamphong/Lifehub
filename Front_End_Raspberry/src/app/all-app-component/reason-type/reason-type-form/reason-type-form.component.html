@@ -1,0 +1,22 @@
+<div class="expense-form">
+  <h2>Thêm lý do</h2>
+  <form (ngSubmit)="submitForm()">
+    <div class="form-group">
+      <label for="reasonName">Tên</label>
+      <input id="reasonName" type="text" [(ngModel)]="reasonName" name="reasonName" placeholder="Nhập tên" />
+    </div>
+
+    <div class="form-group">
+      <label for="active">Trạng thái</label>
+      <input id="active" type="checkbox" [(ngModel)]="active" name="active" />
+    </div>
+
+    <button type="submit">Lưu</button>
+  </form>
+
+  <p class="message">{{ message }}</p>
+
+  <div>
+    <button mat-button color="warn" (click)="cancel()">Hủy</button>
+  </div>
+</div>

@@ -1,0 +1,94 @@
+import { HttpClient } from '@angular/common/http';
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { ReasonType } from 'src/app/model/reason-type.model';
+import { environment } from 'src/environments/environment';
+
+@Component({
+  selector: 'app-reason-type-form',
+  templateUrl: './reason-type-form.component.html',
+  styleUrls: ['./reason-type-form.component.scss']
+})
+export class ReasonTypeFormComponent {
+  reasonName: string = '';
+  active: boolean = true;
+  message: string = '';
+  id: number = 0;
+
+  constructor(private http: HttpClient,
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private dialogRef: MatDialogRef<ReasonTypeFormComponent>
+  ) { }
+
+
+  ngOnInit() {
+    this.id = this.data.id;
+    if (this.id > 0) {
+      this.loadReasonType();
+    }
+  }
+
+  loadReasonType() {
+    this.http.get(`${environment.apiBaseUrl}/GetReasonTypeById/${this.id}`)
+      .subscribe({
+        next: (res) => {
+          const record = Object.assign(new ReasonType(), res);
+          this.reasonName = record?.reasonName != null ? record.reasonName : '';
+          this.active = record?.active;
+          console.log(res);
+        },
+        error: (err) => {
+          console.error(err);
+          this.message = '❌ Gửi thất bại!';
+        }
+      });
+  }
+
+
+  submitForm() {
+    if (!this.reasonName) {
+      this.message = '⚠️ Vui lòng nhập đầy đủ thông tin.';
+      return;
+    }
+
+    const payload : ReasonType = {
+      reasonName: this.reasonName,
+      active: this.active
+    };
+    if (this.id > 0) {
+
+
+      this.http.put(`${environment.apiBaseUrl}/UpdateReasonTypeById/${this.id}`, payload)
+        .subscribe({
+          next: (res) => {
+            this.message = '✅ Gửi thành công!';
+            this.reasonName = '';
+            this.active = null;
+            this.dialogRef.close('saved');
+          },
+          error: (err) => {
+            console.error(err);
+          }
+        });
+    }
+    else {
+
+      this.http.post(`${environment.apiBaseUrl}/ReasonType`, payload)
+        .subscribe({
+          next: (res) => {
+            this.message = '✅ Gửi thành công!';
+            this.reasonName = '';
+            this.active = null;
+            this.dialogRef.close('saved');
+          },
+          error: (err) => {
+            console.error(err);
+          }
+        });
+    }
+  }
+
+  cancel() {
+    this.dialogRef.close();
+  }
+}
