@@ -40,18 +40,19 @@ namespace API_Raspberry.Repository
             command.ExecuteNonQuery();
         }
 
-        public void AddExpense(string reason, int amount)
+        public void AddExpense(ExpenseRecord expense)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             string insertSql = @"
-                INSERT INTO expenseRecords (Reason, Amount, CreatedDate)
-                VALUES (@reason, @amount, @createdDate);";
+                INSERT INTO expenseRecords (Reason, Amount, ReasonTypeId, CreatedDate)
+                VALUES (@reason, @amount, @reasonTypeId , @createdDate);";
 
             using var command = new SqliteCommand(insertSql, connection);
-            command.Parameters.AddWithValue("@reason", reason);
-            command.Parameters.AddWithValue("@amount", amount);
+            command.Parameters.AddWithValue("@reason", expense.Reason);
+            command.Parameters.AddWithValue("@amount", expense.Amount);
+            command.Parameters.AddWithValue("@reasonTypeId", expense.ReasonTypeId ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@createdDate", DateTime.Now);
             command.ExecuteNonQuery();
         }
@@ -63,7 +64,7 @@ namespace API_Raspberry.Repository
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
-            string selectSql = "SELECT Id, Reason, Amount, CreatedDate FROM expenseRecords ORDER BY CreatedDate DESC;";
+            string selectSql = "SELECT Id, Reason, Amount, ReasonTypeId, CreatedDate FROM expenseRecords ORDER BY CreatedDate DESC;";
             using var command = new SqliteCommand(selectSql, connection);
             using var reader = command.ExecuteReader();
 
@@ -74,7 +75,8 @@ namespace API_Raspberry.Repository
                     Id = reader.GetInt32(0),
                     Reason = reader.GetString(1),
                     Amount = reader.GetInt32(2),
-                    CreatedDate = reader.GetDateTime(3)
+                    ReasonTypeId = !reader.IsDBNull(3) ?  reader.GetInt32(3) : null,
+                    CreatedDate = reader.GetDateTime(4),
                 });
             }
 
@@ -87,7 +89,7 @@ namespace API_Raspberry.Repository
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
-            string selectSql = $"SELECT Id, Reason, Amount, CreatedDate FROM expenseRecords Where Id = {id};";
+            string selectSql = $"SELECT Id, Reason, Amount, ReasonTypeId, CreatedDate FROM expenseRecords Where Id = {id};";
             using var command = new SqliteCommand(selectSql, connection);
             using var reader = command.ExecuteReader();
 
@@ -98,26 +100,28 @@ namespace API_Raspberry.Repository
                     Id = reader.GetInt32(0),
                     Reason = reader.GetString(1),
                     Amount = reader.GetInt32(2),
-                    CreatedDate = reader.GetDateTime(3)
+                    ReasonTypeId = !reader.IsDBNull(3) ?  reader.GetInt32(3) : null,
+                    CreatedDate = reader.GetDateTime(4),
                 };  
             }
 
             return null;
         }
 
-        public void UpdateExpense(int id, string reason, int amount)
+        public void UpdateExpense(int id, ExpenseRecord expense)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             string insertSql = @"
                 Update expenseRecords
-                Set Reason = @reason, Amount = @amount
+                Set Reason = @reason, Amount = @amount, ReasonTypeId = @reasonTypeId
                 Where Id = @id;";
 
             using var command = new SqliteCommand(insertSql, connection);
-            command.Parameters.AddWithValue("@reason", reason);
-            command.Parameters.AddWithValue("@amount", amount);
+            command.Parameters.AddWithValue("@reason", expense.Reason);
+            command.Parameters.AddWithValue("@amount", expense.Amount);
+            command.Parameters.AddWithValue("@reasonTypeId", expense.ReasonTypeId ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@id", id);
             command.ExecuteNonQuery();
         }

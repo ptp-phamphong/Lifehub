@@ -51,3 +51,30 @@
     font-weight: 500;
   }
 }
+::ng-deep .ng-select {
+  width: 100%;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  background: white !important;
+}
+
+::ng-deep .ng-select .ng-select-container {
+  min-height: 40px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  background-color: white !important;
+}
+
+::ng-deep .ng-select .ng-select-container .ng-value-container {
+  padding: 8px 10px !important;
+}
+
+::ng-deep .ng-select .ng-select-container:hover {
+  border-color: #3f51b5 !important; /* màu xanh Angular Material */
+}
+
+::ng-deep .ng-dropdown-panel {
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background: white !important;
+}

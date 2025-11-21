@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ExpenseRecord } from 'src/app/model/expense.model';
+import { ReasonType } from 'src/app/model/reason-type.model';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -14,6 +15,8 @@ export class ExpenseRecordComponent {
   amount: number = 0;
   message: string = '';
   id: number = 0;
+  reasonTypes: ReasonType[] = [];
+  reasonTypeId?: number = null;
 
   constructor(private http: HttpClient,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -23,9 +26,19 @@ export class ExpenseRecordComponent {
 
   ngOnInit() {
     this.id = this.data.id;
+    this.loadAllReasonType();
     if(this.id > 0){
       this.loadExpense();
     }
+  }
+
+  loadAllReasonType(){
+    this.http.get<ReasonType[]>(`${environment.apiBaseUrl}/GetAllReasonType`).subscribe({
+        next: (data) => {
+          this.reasonTypes = data;
+        },
+        error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
+      });
   }
 
   loadExpense(){
@@ -35,6 +48,7 @@ export class ExpenseRecordComponent {
           const record = Object.assign(new ExpenseRecord(), res);
           this.reason = record?.reason != null ? record.reason : '';
           this.amount = record?.amount != null ? record.amount : 0;
+          this.reasonTypeId = record?.reasonTypeId;
           console.log(res);
         },
         error: (err) => {
@@ -51,9 +65,10 @@ export class ExpenseRecordComponent {
       return;
     }
 
-    const payload = {
+    const payload: ExpenseRecord = {
       reason: this.reason,
-      amount: this.amount
+      amount: this.amount,
+      reasonTypeId: this.reasonTypeId,
     };
 
     if(this.id > 0){

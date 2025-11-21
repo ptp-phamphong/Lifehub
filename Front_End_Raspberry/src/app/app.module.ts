@@ -14,6 +14,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ReasonTypeListComponent } from './all-app-component/reason-type/reason-type-list/reason-type-list.component';
 import { ReasonTypeFormComponent } from './all-app-component/reason-type/reason-type-form/reason-type-form.component';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import { ReasonTypeFormComponent } from './all-app-component/reason-type/reason-
     NgbModule,
     FormsModule,
     MatDialogModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    NgSelectModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

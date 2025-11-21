@@ -7,16 +7,28 @@ namespace API_Raspberry.Service
     public class ExpenseService
     {
 
-        public void AddExpense(string reason, int amount)
+        public void AddExpense(ExpenseRecord expense)
         {
             ExpenseRepository expenseRepository = new ExpenseRepository();
-            expenseRepository.AddExpense(reason, amount);
+            expenseRepository.AddExpense(expense);
         }
 
         public List<Model.ExpenseRecord> GetAllExpenses()
         {
             ExpenseRepository expenseRepository = new ExpenseRepository();
-            return expenseRepository.GetAllExpenses();
+            var result = expenseRepository.GetAllExpenses();
+
+            ReasonTypeRepository reasonTypeRepository = new ReasonTypeRepository();
+            List<ReasonType> reasonTypes = reasonTypeRepository.GetAllReasonType();
+            foreach (var expense in result)
+            {
+                if (expense.ReasonTypeId.HasValue)
+                {
+                    expense.ReasonType = reasonTypes.FirstOrDefault(rt => rt.Id == expense.ReasonTypeId.Value);
+                }
+            }
+
+            return result;
         }
 
         public Model.ExpenseRecord GetExpenseById(int id)
@@ -28,7 +40,7 @@ namespace API_Raspberry.Service
         public void UpdateExpense(int id, ExpenseRecord expense)
         {
             ExpenseRepository expenseRepository = new ExpenseRepository();
-            expenseRepository.UpdateExpense(id, expense.Reason, expense.Amount);
+            expenseRepository.UpdateExpense(id, expense);
         }
 
         public void DeleteExpense(int id)

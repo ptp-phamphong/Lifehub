@@ -12,6 +12,14 @@
         placeholder="Nhập số tiền..." />
     </div>
 
+    <div class="form-group">
+      <label for="reasonType">Loại lý do</label>
+
+      <ng-select [(ngModel)]="reasonTypeId" name="reasonTypeId" [items]="reasonTypes" bindLabel="reasonName"
+        bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true">
+      </ng-select>
+    </div>
+
     <button type="submit">Lưu</button>
   </form>
 

@@ -17,7 +17,7 @@ namespace API_Raspberry.Controllers
         {
             
             ExpenseService expenseService = new ExpenseService();
-            expenseService.AddExpense(note.Reason, note.Amount);
+            expenseService.AddExpense(note);
             return true;
         }
 
