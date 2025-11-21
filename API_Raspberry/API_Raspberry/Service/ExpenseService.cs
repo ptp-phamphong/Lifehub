@@ -36,5 +36,29 @@ namespace API_Raspberry.Service
             ExpenseRepository expenseRepository = new ExpenseRepository();
             expenseRepository.DeleteById(id);
         }
+
+        public int SumByMonth(int month, int year)
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            return expenseRepository.SumByMonth(month, year);
+        }
+
+        public int SumByCurrentMonth()
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            var now = DateTime.Now;
+            return expenseRepository.SumByMonth(now.Month, now.Year);
+        }
+
+        public int SumByCurrentWeek()
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            var today = DateTime.Today;
+            // Calculate Monday of the current week
+            int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+            var startOfWeek = today.AddDays(-diff).Date;
+            var endOfWeek = startOfWeek.AddDays(7).Date; // Next Monday (exclusive)
+            return expenseRepository.SumByWeek(startOfWeek, endOfWeek);
+        }
     }
 }

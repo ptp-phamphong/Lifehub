@@ -18,6 +18,10 @@ interface ExpenseRecord {
 export class ExpenseRecordListComponent implements OnInit {
   expenseRecords: ExpenseRecord[] = [];
   apiUrl = `${environment.apiBaseUrl}/GetAllExpenseNote`;
+  sumThisMonthUrl = `${environment.apiBaseUrl}/SumByCurrentMonth`;
+  sumThisMonth: number = 0;
+  sumThisWeekUrl = `${environment.apiBaseUrl}/SumByCurrentWeek`;
+  sumThisWeek: number = 0;
 
   constructor(private http: HttpClient,
     private dialog: MatDialog,
@@ -30,7 +34,24 @@ export class ExpenseRecordListComponent implements OnInit {
 
   loadExpenses() {
     this.http.get<ExpenseRecord[]>(this.apiUrl).subscribe({
-      next: (data) => this.expenseRecords = data,
+      next: (data) => {
+        this.expenseRecords = data;
+      },
+      error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
+    });
+
+    
+    this.http.get<number>(this.sumThisMonthUrl).subscribe({
+      next: (data) => {
+        this.sumThisMonth = data;
+      },
+      error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
+    });
+    
+    this.http.get<number>(this.sumThisWeekUrl).subscribe({
+      next: (data) => {
+        this.sumThisWeek = data;
+      },
       error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
     });
   }

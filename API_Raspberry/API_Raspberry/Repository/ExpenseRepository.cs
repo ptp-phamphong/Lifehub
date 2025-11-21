@@ -135,5 +135,45 @@ namespace API_Raspberry.Repository
             command.Parameters.AddWithValue("@id", id);
             command.ExecuteNonQuery();
         }
+
+        public int SumByMonth(int month, int year)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+            string selectSql = @"
+                Select SUM(Amount) 
+                From expenseRecords
+                Where strftime('%m', CreatedDate) = @month
+                  And strftime('%Y', CreatedDate) = @year;";
+            using var command = new SqliteCommand(selectSql, connection);
+            command.Parameters.AddWithValue("@month", month.ToString("D2"));
+            command.Parameters.AddWithValue("@year", year.ToString());
+            var result = command.ExecuteScalar();
+            if (result != DBNull.Value && result != null)
+            {
+                return Convert.ToInt32(result);
+            }
+            return 0;
+        }
+
+        public int SumByWeek(DateTime startOfWeek, DateTime endOfWeek)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+            string selectSql = @"
+                Select SUM(Amount) 
+                From expenseRecords
+                Where CreatedDate >= @startOfWeek
+                  And CreatedDate < @endOfWeek;";
+            using var command = new SqliteCommand(selectSql, connection);
+            command.Parameters.AddWithValue("@startOfWeek", startOfWeek);
+            command.Parameters.AddWithValue("@endOfWeek", endOfWeek);
+            var result = command.ExecuteScalar();
+            if (result != DBNull.Value && result != null)
+            {
+                return Convert.ToInt32(result);
+            }
+            return 0;
+        }
     }
 }

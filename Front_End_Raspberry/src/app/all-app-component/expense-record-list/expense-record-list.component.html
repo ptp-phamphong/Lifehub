@@ -1,6 +1,12 @@
 <div class="expense-table-container">
-  <h2>Danh sách chi tiêu</h2>
 
+  <h2>Danh sách chi tiêu</h2>
+  <div>
+    <span *ngIf="sumThisMonth > 0">Tổng tháng hiện tại: <b>{{formatCurrency(sumThisMonth)}}</b></span>
+    <br>
+    <span *ngIf="sumThisWeek > 0">Tổng tuần hiện tại: <b>{{formatCurrency(sumThisWeek)}}</b></span>
+  </div>
+  <br>
   <button mat-button color="primary" (click)="openEditDialog(0)">Thêm mới</button>
 
   <table class="expense-table">
