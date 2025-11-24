@@ -11,6 +11,7 @@ import { environment } from 'src/environments/environment';
 })
 export class ReasonTypeFormComponent {
   reasonName: string = '';
+  sortOrder?: number = 0;
   active: boolean = true;
   message: string = '';
   id: number = 0;
@@ -34,6 +35,7 @@ export class ReasonTypeFormComponent {
         next: (res) => {
           const record = Object.assign(new ReasonType(), res);
           this.reasonName = record?.reasonName != null ? record.reasonName : '';
+          this.sortOrder = record?.sortOrder != null ? record.sortOrder : null;
           this.active = record?.active;
           console.log(res);
         },
@@ -53,6 +55,7 @@ export class ReasonTypeFormComponent {
 
     const payload : ReasonType = {
       reasonName: this.reasonName,
+      sortOrder: this.sortOrder,
       active: this.active
     };
     if (this.id > 0) {
@@ -78,6 +81,7 @@ export class ReasonTypeFormComponent {
           next: (res) => {
             this.message = '✅ Gửi thành công!';
             this.reasonName = '';
+            this.sortOrder = null;
             this.active = null;
             this.dialogRef.close('saved');
           },

@@ -13,10 +13,10 @@ namespace API_Raspberry.Service
             expenseRepository.AddExpense(expense);
         }
 
-        public List<Model.ExpenseRecord> GetAllExpenses()
+        public List<Model.ExpenseRecord> GetAllExpenses(ParamFilter paramFilter)
         {
             ExpenseRepository expenseRepository = new ExpenseRepository();
-            var result = expenseRepository.GetAllExpenses();
+            var result = expenseRepository.GetAllExpenses(paramFilter);
 
             ReasonTypeRepository reasonTypeRepository = new ReasonTypeRepository();
             List<ReasonType> reasonTypes = reasonTypeRepository.GetAllReasonType();
@@ -49,20 +49,20 @@ namespace API_Raspberry.Service
             expenseRepository.DeleteById(id);
         }
 
-        public int SumByMonth(int month, int year)
-        {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            return expenseRepository.SumByMonth(month, year);
-        }
+        //public int SumByMonth(int month, int year)
+        //{
+        //    ExpenseRepository expenseRepository = new ExpenseRepository();
+        //    return expenseRepository.SumByMonth(paramFilter, month, year);
+        //}
 
-        public int SumByCurrentMonth()
+        public int SumByCurrentMonth(ParamFilter paramFilter)
         {
             ExpenseRepository expenseRepository = new ExpenseRepository();
             var now = DateTime.Now;
-            return expenseRepository.SumByMonth(now.Month, now.Year);
+            return expenseRepository.SumByMonth(paramFilter, now.Month, now.Year);
         }
 
-        public int SumByCurrentWeek()
+        public int SumByCurrentWeek(ParamFilter paramFilter)
         {
             ExpenseRepository expenseRepository = new ExpenseRepository();
             var today = DateTime.Today;
@@ -70,7 +70,7 @@ namespace API_Raspberry.Service
             int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
             var startOfWeek = today.AddDays(-diff).Date;
             var endOfWeek = startOfWeek.AddDays(7).Date; // Next Monday (exclusive)
-            return expenseRepository.SumByWeek(startOfWeek, endOfWeek);
+            return expenseRepository.SumByWeek(paramFilter, startOfWeek, endOfWeek);
         }
     }
 }

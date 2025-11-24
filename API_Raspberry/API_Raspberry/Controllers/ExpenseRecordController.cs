@@ -21,12 +21,12 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("GetAllExpenseNote")]
-        public List<Model.ExpenseRecord> GetAllExpenseNote()
+        public List<Model.ExpenseRecord> GetAllExpenseNote([FromBody] ParamFilter paramFilter)
         {
             ExpenseService expenseService = new ExpenseService();
-            return expenseService.GetAllExpenses();
+            return expenseService.GetAllExpenses(paramFilter);
         }
 
         [HttpGet]
@@ -55,20 +55,20 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("SumByCurrentMonth")]
-        public int SumByCurrentMonth()
+        public int SumByCurrentMonth([FromBody] ParamFilter paramFilter)
         {
             ExpenseService expenseService = new ExpenseService();
-            return expenseService.SumByCurrentMonth();
+            return expenseService.SumByCurrentMonth(paramFilter);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("SumByCurrentWeek")]
-        public int SumByCurrentWeek()
+        public int SumByCurrentWeek([FromBody] ParamFilter paramFilter)
         {
             ExpenseService expenseService = new ExpenseService();
-            return expenseService.SumByCurrentWeek();
+            return expenseService.SumByCurrentWeek(paramFilter);
         }
     }
 }

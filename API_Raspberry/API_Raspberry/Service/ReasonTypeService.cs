@@ -18,9 +18,9 @@ namespace API_Raspberry.Service
             return _reasonTypeRepository.GetAllReasonType();
         }
 
-        public void AddReasonType(string reasonName)
+        public void AddReasonType(ReasonType reasonType)
         {
-            _reasonTypeRepository.AddReasonType(reasonName);
+            _reasonTypeRepository.AddReasonType(reasonType);
         }
 
         public ReasonType GetReasonTypeById(int id)

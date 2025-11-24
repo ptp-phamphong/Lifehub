@@ -5,5 +5,6 @@
         public int Id { get; set; }
         public string ReasonName { get; set; }
         public bool Active { get; set; }
+        public int? SortOrder { get; set; }
     }
 }

@@ -13,7 +13,7 @@ namespace API_Raspberry.Controllers
         public bool AddReasonType([FromBody] ReasonType reasonType)
         {
             ReasonTypeService reasonTypeService = new ReasonTypeService();
-            reasonTypeService.AddReasonType(reasonType.ReasonName);
+            reasonTypeService.AddReasonType(reasonType);
             return true;
         }
 

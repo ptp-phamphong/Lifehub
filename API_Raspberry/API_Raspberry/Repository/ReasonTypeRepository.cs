@@ -28,7 +28,7 @@ namespace API_Raspberry.Repository
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
-            string selectSql = "SELECT id, reasonName, Active FROM ReasonType ORDER BY id DESC;";
+            string selectSql = "SELECT id, reasonName, sortOrder, Active FROM ReasonType ORDER BY sortOrder;";
             using var command = new SqliteCommand(selectSql, connection);
             using var reader = command.ExecuteReader();
 
@@ -38,24 +38,26 @@ namespace API_Raspberry.Repository
                 {
                     Id = reader.GetInt32(0),
                     ReasonName = reader.GetString(1),
-                    Active = reader.GetBoolean(2),
+                    SortOrder = !reader.IsDBNull(2) ? reader.GetInt32(2) : null,
+                    Active = reader.GetBoolean(3),
                 });
             }
 
             return list;
         }
 
-        public void AddReasonType(string reasonName)
+        public void AddReasonType(ReasonType reasonType)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             string insertSql = @"
-                INSERT INTO ReasonType (reasonName, active)
-                VALUES (@reasonName, @active);";
+                INSERT INTO ReasonType (reasonName, sortOrder, active)
+                VALUES (@reasonName, @sortOrder, @active);";
 
             using var command = new SqliteCommand(insertSql, connection);
-            command.Parameters.AddWithValue("@reasonName", reasonName);
+            command.Parameters.AddWithValue("@reasonName", reasonType.ReasonName);
+            command.Parameters.AddWithValue("@sortOrder", reasonType.SortOrder);
             command.Parameters.AddWithValue("@active", true);
             command.ExecuteNonQuery();
         }
@@ -67,7 +69,7 @@ namespace API_Raspberry.Repository
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
-            string selectSql = $"SELECT Id, reasonName, Active FROM ReasonType Where Id = {id};";
+            string selectSql = $"SELECT Id, reasonName, sortOrder, Active FROM ReasonType Where Id = {id};";
             using var command = new SqliteCommand(selectSql, connection);
             using var reader = command.ExecuteReader();
 
@@ -77,7 +79,8 @@ namespace API_Raspberry.Repository
                 {
                     Id = reader.GetInt32(0),
                     ReasonName = reader.GetString(1),
-                    Active = reader.GetBoolean(2),
+                    SortOrder = !reader.IsDBNull(2) ? reader.GetInt32(2) : null,
+                    Active = reader.GetBoolean(3),
                 };
             }
 
@@ -93,11 +96,12 @@ namespace API_Raspberry.Repository
 
             string insertSql = @"
                 Update ReasonType
-                Set reasonName = @reasonName, active = @active
+                Set reasonName = @reasonName, sortOrder = @sortOrder, active = @active
                 Where Id = @id;";
 
             using var command = new SqliteCommand(insertSql, connection);
             command.Parameters.AddWithValue("@reasonName", reasonType.ReasonName);
+            command.Parameters.AddWithValue("@sortOrder", reasonType.SortOrder);
             command.Parameters.AddWithValue("@active", reasonType.Active);
             command.Parameters.AddWithValue("@id", id);
             command.ExecuteNonQuery();

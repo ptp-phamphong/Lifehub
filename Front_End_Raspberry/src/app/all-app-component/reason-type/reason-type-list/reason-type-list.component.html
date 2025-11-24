@@ -9,6 +9,7 @@
       <tr>
         <th>Id</th>
         <th>Tên lý do</th>
+        <th>Thứ tự</th>
         <th>Trạng thái</th>
         <th>Hành động</th>
       </tr>
@@ -17,6 +18,7 @@
       <tr *ngFor="let item of reasonTypes">
         <td>{{ item.id }}</td>
         <td>{{ item.reasonName }}</td>
+        <td>{{ item.sortOrder }}</td>
         <td>{{ item.active }}</td>
         <td>
           <button mat-button color="primary" (click)="openEditDialog(item.id)">Sửa</button>

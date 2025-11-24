@@ -8,6 +8,15 @@
   </div>
   <br>
   <button mat-button color="primary" (click)="openEditDialog(0)">Thêm mới</button>
+  <br>
+
+  <div class="filter-section">
+    <ng-select [(ngModel)]="reasonTypeIds" name="reasonTypeIds" [items]="reasonTypes" bindLabel="reasonName"
+      bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
+      (change)="onChangeReasonType($event)">
+    </ng-select>
+  </div>
+  <br>
 
   <table class="expense-table">
     <thead>

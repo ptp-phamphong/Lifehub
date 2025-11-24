@@ -57,17 +57,67 @@ namespace API_Raspberry.Repository
             command.ExecuteNonQuery();
         }
 
-        public List<ExpenseRecord> GetAllExpenses()
+        public List<ExpenseRecord> GetAllExpenses(ParamFilter paramFilter)
         {
             var list = new List<ExpenseRecord>();
 
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
-            string selectSql = "SELECT Id, Reason, Amount, ReasonTypeId, CreatedDate FROM expenseRecords ORDER BY CreatedDate DESC;";
-            using var command = new SqliteCommand(selectSql, connection);
-            using var reader = command.ExecuteReader();
+            // Start SQL base
+            var selectSql = @"
+                            SELECT Id, Reason, Amount, ReasonTypeId, CreatedDate
+                            FROM expenseRecords
+                            WHERE 1=1
+                        ";
 
+            var command = new SqliteCommand();
+            command.Connection = connection;
+
+            // ===========================================
+            // 1. Filter tháng
+            // ===========================================
+            if (paramFilter.Month.HasValue)
+            {
+                selectSql += " AND strftime('%m', CreatedDate) = @month";
+                command.Parameters.AddWithValue("@month", paramFilter.Month.Value.ToString("D2"));
+            }
+
+            // ===========================================
+            // 2. Filter năm
+            // ===========================================
+            if (paramFilter.Year.HasValue)
+            {
+                selectSql += " AND strftime('%Y', CreatedDate) = @year";
+                command.Parameters.AddWithValue("@year", paramFilter.Year.Value.ToString());
+            }
+
+            // ===========================================
+            // 3. Filter ReasonTypeIds (List<int>)
+            // ===========================================
+            if (paramFilter.ReasonTypeIds != null && paramFilter.ReasonTypeIds.Any())
+            {
+                var idParams = paramFilter.ReasonTypeIds
+                    .Select((id, idx) => $"@rt{idx}")
+                    .ToList();
+
+                selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
+
+                for (int i = 0; i < paramFilter.ReasonTypeIds.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIds[i]);
+                }
+            }
+
+            // Cuối cùng thêm ORDER BY
+            selectSql += " ORDER BY CreatedDate DESC";
+
+            command.CommandText = selectSql;
+
+            // ===========================================
+            // 4. Execute
+            // ===========================================
+            using var reader = command.ExecuteReader();
             while (reader.Read())
             {
                 list.Add(new ExpenseRecord
@@ -75,7 +125,7 @@ namespace API_Raspberry.Repository
                     Id = reader.GetInt32(0),
                     Reason = reader.GetString(1),
                     Amount = reader.GetInt32(2),
-                    ReasonTypeId = !reader.IsDBNull(3) ?  reader.GetInt32(3) : null,
+                    ReasonTypeId = !reader.IsDBNull(3) ? reader.GetInt32(3) : null,
                     CreatedDate = reader.GetDateTime(4),
                 });
             }
@@ -100,9 +150,9 @@ namespace API_Raspberry.Repository
                     Id = reader.GetInt32(0),
                     Reason = reader.GetString(1),
                     Amount = reader.GetInt32(2),
-                    ReasonTypeId = !reader.IsDBNull(3) ?  reader.GetInt32(3) : null,
+                    ReasonTypeId = !reader.IsDBNull(3) ? reader.GetInt32(3) : null,
                     CreatedDate = reader.GetDateTime(4),
-                };  
+                };
             }
 
             return null;
@@ -140,38 +190,96 @@ namespace API_Raspberry.Repository
             command.ExecuteNonQuery();
         }
 
-        public int SumByMonth(int month, int year)
+        public int SumByMonth(ParamFilter paramFilter, int month, int year)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
+
+            // 1. Ưu tiên lấy month/year từ paramFilter nếu có
+            int finalMonth = paramFilter.Month ?? month;
+            int finalYear = paramFilter.Year ?? year;
+
+            // 2. SQL base
             string selectSql = @"
-                Select SUM(Amount) 
-                From expenseRecords
-                Where strftime('%m', CreatedDate) = @month
-                  And strftime('%Y', CreatedDate) = @year;";
-            using var command = new SqliteCommand(selectSql, connection);
-            command.Parameters.AddWithValue("@month", month.ToString("D2"));
-            command.Parameters.AddWithValue("@year", year.ToString());
-            var result = command.ExecuteScalar();
-            if (result != DBNull.Value && result != null)
+                                    SELECT SUM(Amount)
+                                    FROM expenseRecords
+                                    WHERE strftime('%m', CreatedDate) = @month
+                                      AND strftime('%Y', CreatedDate) = @year
+                                ";
+
+            var command = new SqliteCommand();
+            command.Connection = connection;
+
+            // 3. Gán month/year
+            command.Parameters.AddWithValue("@month", finalMonth.ToString("D2"));
+            command.Parameters.AddWithValue("@year", finalYear.ToString());
+
+            // 4. Nếu có ReasonTypeIds → thêm IN (...)
+            if (paramFilter.ReasonTypeIds != null && paramFilter.ReasonTypeIds.Any())
             {
-                return Convert.ToInt32(result);
+                var idParams = paramFilter.ReasonTypeIds
+                    .Select((id, idx) => $"@rt{idx}")
+                    .ToList();
+
+                selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
+
+                // Thêm parameter tương ứng
+                for (int i = 0; i < paramFilter.ReasonTypeIds.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIds[i]);
+                }
             }
-            return 0;
+
+            command.CommandText = selectSql;
+
+            // 5. Execute
+            var result = command.ExecuteScalar();
+
+            return (result != null && result != DBNull.Value)
+                ? Convert.ToInt32(result)
+                : 0;
         }
 
-        public int SumByWeek(DateTime startOfWeek, DateTime endOfWeek)
+        public int SumByWeek(ParamFilter paramFilter, DateTime startOfWeek, DateTime endOfWeek)
         {
             using var connection = new SqliteConnection(_connectionString);
             connection.Open();
+
+            // Base SQL
             string selectSql = @"
-                Select SUM(Amount) 
-                From expenseRecords
-                Where CreatedDate >= @startOfWeek
-                  And CreatedDate < @endOfWeek;";
-            using var command = new SqliteCommand(selectSql, connection);
+                                SELECT SUM(Amount)
+                                FROM expenseRecords
+                                WHERE CreatedDate >= @startOfWeek
+                                  AND CreatedDate <  @endOfWeek
+                            ";
+
+            var command = new SqliteCommand();
+            command.Connection = connection;
+
+            // Add date parameters
             command.Parameters.AddWithValue("@startOfWeek", startOfWeek);
             command.Parameters.AddWithValue("@endOfWeek", endOfWeek);
+
+            // -----------------------------------------
+            //  Thêm ReasonTypeIds nếu có
+            // -----------------------------------------
+            if (paramFilter.ReasonTypeIds != null && paramFilter.ReasonTypeIds.Any())
+            {
+                // Sinh @rt0, @rt1, ...
+                var idParams = paramFilter.ReasonTypeIds
+                    .Select((id, idx) => $"@rt{idx}")
+                    .ToList();
+
+                selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
+
+                // Gán giá trị ID
+                for (int i = 0; i < paramFilter.ReasonTypeIds.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIds[i]);
+                }
+            }
+            // Hoàn thiện SQL
+            command.CommandText = selectSql;
             var result = command.ExecuteScalar();
             if (result != DBNull.Value && result != null)
             {

@@ -4,6 +4,8 @@ import { environment } from 'src/environments/environment';
 import { MatDialog } from '@angular/material/dialog';
 import { ExpenseRecordComponent } from '../expense-record/expense-record.component';
 import { ExpenseRecord } from 'src/app/model/expense.model';
+import { ReasonType } from 'src/app/model/reason-type.model';
+import { ParamFilter } from 'src/app/model/paramFilter.model';
 
 @Component({
   selector: 'app-expense-record-list',
@@ -18,17 +20,25 @@ export class ExpenseRecordListComponent implements OnInit {
   sumThisWeekUrl = `${environment.apiBaseUrl}/SumByCurrentWeek`;
   sumThisWeek: number = 0;
 
+  reasonTypes: ReasonType[] = [];
+  reasonTypeIds?: number[] = [];
+  
   constructor(private http: HttpClient,
     private dialog: MatDialog,
     private viewContainerRef: ViewContainerRef
   ) {}
 
   ngOnInit() {
+    console.log(this.reasonTypeIds);
     this.loadExpenses();
+    this.loadAllReasonType();
   }
 
   loadExpenses() {
-    this.http.get<ExpenseRecord[]>(this.apiUrl).subscribe({
+    var paramFilter: ParamFilter = {
+      reasonTypeIds: this.reasonTypeIds,
+    };
+    this.http.post<ExpenseRecord[]>(this.apiUrl, paramFilter).subscribe({
       next: (data) => {
         this.expenseRecords = data;
       },
@@ -36,19 +46,28 @@ export class ExpenseRecordListComponent implements OnInit {
     });
 
     
-    this.http.get<number>(this.sumThisMonthUrl).subscribe({
+    this.http.post<number>(this.sumThisMonthUrl, paramFilter).subscribe({
       next: (data) => {
         this.sumThisMonth = data;
       },
       error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
     });
     
-    this.http.get<number>(this.sumThisWeekUrl).subscribe({
+    this.http.post<number>(this.sumThisWeekUrl, paramFilter).subscribe({
       next: (data) => {
         this.sumThisWeek = data;
       },
       error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
     });
+  }
+
+  loadAllReasonType(){
+    this.http.get<ReasonType[]>(`${environment.apiBaseUrl}/GetAllReasonType`).subscribe({
+        next: (data) => {
+          this.reasonTypes = data;
+        },
+        error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
+      });
   }
 
   formatCurrency(amount?: number): string {
@@ -89,5 +108,10 @@ export class ExpenseRecordListComponent implements OnInit {
           console.error(err);
         }
       });
+  }
+
+
+  onChangeReasonType(event: ReasonType[]){
+    this.loadExpenses();
   }
 }
