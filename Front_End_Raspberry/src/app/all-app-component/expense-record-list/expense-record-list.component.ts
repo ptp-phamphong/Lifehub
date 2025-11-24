@@ -60,7 +60,8 @@ export class ExpenseRecordListComponent implements OnInit {
 
   openEditDialog(id: number): void {
     const dialogRef = this.dialog.open(ExpenseRecordComponent, {
-      width: '420px',
+      width: '500px',
+      height: '800px',
       data: { id },
       viewContainerRef: this.viewContainerRef 
     });
