@@ -98,14 +98,14 @@ namespace API_Raspberry.Repository
             if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
                 var idParams = paramFilter.ReasonTypeIdsFilterIn
-                    .Select((id, idx) => $"@rt{idx}")
+                    .Select((id, idx) => $"@irt{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
 
                 for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
+                    command.Parameters.AddWithValue($"@irt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
                 }
             }
 
@@ -115,14 +115,14 @@ namespace API_Raspberry.Repository
             if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
             {
                 var idParams = paramFilter.ReasonTypeIdsFilterOut
-                    .Select((id, idx) => $"@rt{idx}")
+                    .Select((id, idx) => $"@ort{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
 
                 for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
+                    command.Parameters.AddWithValue($"@ort{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
                 }
             }
 
@@ -235,7 +235,7 @@ namespace API_Raspberry.Repository
             if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
                 var idParams = paramFilter.ReasonTypeIdsFilterIn
-                    .Select((id, idx) => $"@rt{idx}")
+                    .Select((id, idx) => $"@irt{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
@@ -243,7 +243,7 @@ namespace API_Raspberry.Repository
                 // Thêm parameter tương ứng
                 for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
+                    command.Parameters.AddWithValue($"@irt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
                 }
             }
 
@@ -251,7 +251,7 @@ namespace API_Raspberry.Repository
             if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
             {
                 var idParams = paramFilter.ReasonTypeIdsFilterOut
-                    .Select((id, idx) => $"@rt{idx}")
+                    .Select((id, idx) => $"@ort{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
@@ -259,7 +259,7 @@ namespace API_Raspberry.Repository
                 // Thêm parameter tương ứng
                 for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
+                    command.Parameters.AddWithValue($"@ort{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
                 }
             }
 
@@ -298,9 +298,8 @@ namespace API_Raspberry.Repository
             // -----------------------------------------
             if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
-                // Sinh @rt0, @rt1, ...
                 var idParams = paramFilter.ReasonTypeIdsFilterIn
-                    .Select((id, idx) => $"@rt{idx}")
+                    .Select((id, idx) => $"@irt{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
@@ -308,16 +307,15 @@ namespace API_Raspberry.Repository
                 // Gán giá trị ID
                 for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
+                    command.Parameters.AddWithValue($"@irt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
                 }
             }
 
 
             if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
             {
-                // Sinh @rt0, @rt1, ...
                 var idParams = paramFilter.ReasonTypeIdsFilterOut
-                    .Select((id, idx) => $"@rt{idx}")
+                    .Select((id, idx) => $"@ort{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
@@ -325,7 +323,7 @@ namespace API_Raspberry.Repository
                 // Gán giá trị ID
                 for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
+                    command.Parameters.AddWithValue($"@ort{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
                 }
             }
             // Hoàn thiện SQL
