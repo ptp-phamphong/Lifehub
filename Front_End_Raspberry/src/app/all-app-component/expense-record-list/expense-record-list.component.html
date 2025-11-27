@@ -11,9 +11,18 @@
   <br>
 
   <div class="filter-section">
-    <ng-select [(ngModel)]="reasonTypeIds" name="reasonTypeIds" [items]="reasonTypes" bindLabel="reasonName"
+    <span>Lọc theo lý do</span>
+    <ng-select [(ngModel)]="reasonTypeIdsFilterIn" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
       bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
-      (change)="onChangeReasonType($event)">
+      (change)="onChangeReasonTypeIn($event)">
+    </ng-select>
+  </div>
+  
+  <div class="filter-section">
+    <span>Lọc theo không phải lý do</span>
+    <ng-select [(ngModel)]="reasonTypeIdsFilterOut" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
+      bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
+      (change)="onChangeReasonTypeOut($event)">
     </ng-select>
   </div>
   <br>

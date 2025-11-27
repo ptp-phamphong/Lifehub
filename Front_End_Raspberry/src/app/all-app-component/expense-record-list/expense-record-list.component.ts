@@ -21,7 +21,8 @@ export class ExpenseRecordListComponent implements OnInit {
   sumThisWeek: number = 0;
 
   reasonTypes: ReasonType[] = [];
-  reasonTypeIds?: number[] = [];
+  reasonTypeIdsFilterIn?: number[] = [];
+  reasonTypeIdsFilterOut?: number[] = [];
   
   constructor(private http: HttpClient,
     private dialog: MatDialog,
@@ -29,14 +30,14 @@ export class ExpenseRecordListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log(this.reasonTypeIds);
     this.loadExpenses();
     this.loadAllReasonType();
   }
 
   loadExpenses() {
     var paramFilter: ParamFilter = {
-      reasonTypeIds: this.reasonTypeIds,
+      reasonTypeIdsFilterIn: this.reasonTypeIdsFilterIn,
+      reasonTypeIdsFilterOut: this.reasonTypeIdsFilterOut,
     };
     this.http.post<ExpenseRecord[]>(this.apiUrl, paramFilter).subscribe({
       next: (data) => {
@@ -111,7 +112,13 @@ export class ExpenseRecordListComponent implements OnInit {
   }
 
 
-  onChangeReasonType(event: ReasonType[]){
+  onChangeReasonTypeIn(event: ReasonType[]){
+    this.reasonTypeIdsFilterOut = this.reasonTypeIdsFilterOut.filter(r => this.reasonTypeIdsFilterIn.indexOf(r) < 0);
+    this.loadExpenses();
+  }
+
+  onChangeReasonTypeOut(event: ReasonType[]){
+    this.reasonTypeIdsFilterIn = this.reasonTypeIdsFilterIn.filter(r => this.reasonTypeIdsFilterOut.indexOf(r) < 0);
     this.loadExpenses();
   }
 }

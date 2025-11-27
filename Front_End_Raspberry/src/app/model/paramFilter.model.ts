@@ -1,5 +1,6 @@
 export class ParamFilter{
-    reasonTypeIds?: number[];
+    reasonTypeIdsFilterIn?: number[];
+    reasonTypeIdsFilterOut?: number[];
     month?: number;
     year?: number;
 }

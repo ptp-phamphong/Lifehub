@@ -95,17 +95,34 @@ namespace API_Raspberry.Repository
             // ===========================================
             // 3. Filter ReasonTypeIds (List<int>)
             // ===========================================
-            if (paramFilter.ReasonTypeIds != null && paramFilter.ReasonTypeIds.Any())
+            if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
-                var idParams = paramFilter.ReasonTypeIds
+                var idParams = paramFilter.ReasonTypeIdsFilterIn
                     .Select((id, idx) => $"@rt{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
 
-                for (int i = 0; i < paramFilter.ReasonTypeIds.Count; i++)
+                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIds[i]);
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
+                }
+            }
+
+            // ===========================================
+            // 4. Filter Out ReasonTypeIds (List<int>)
+            // ===========================================
+            if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
+            {
+                var idParams = paramFilter.ReasonTypeIdsFilterOut
+                    .Select((id, idx) => $"@rt{idx}")
+                    .ToList();
+
+                selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
+
+                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
                 }
             }
 
@@ -215,18 +232,34 @@ namespace API_Raspberry.Repository
             command.Parameters.AddWithValue("@year", finalYear.ToString());
 
             // 4. Nếu có ReasonTypeIds → thêm IN (...)
-            if (paramFilter.ReasonTypeIds != null && paramFilter.ReasonTypeIds.Any())
+            if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
-                var idParams = paramFilter.ReasonTypeIds
+                var idParams = paramFilter.ReasonTypeIdsFilterIn
                     .Select((id, idx) => $"@rt{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
 
                 // Thêm parameter tương ứng
-                for (int i = 0; i < paramFilter.ReasonTypeIds.Count; i++)
+                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIds[i]);
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
+                }
+            }
+
+            // 5. Nếu có ReasonTypeIdsOut → thêm NOT IN (...)
+            if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
+            {
+                var idParams = paramFilter.ReasonTypeIdsFilterOut
+                    .Select((id, idx) => $"@rt{idx}")
+                    .ToList();
+
+                selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
+
+                // Thêm parameter tương ứng
+                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
                 }
             }
 
@@ -263,19 +296,36 @@ namespace API_Raspberry.Repository
             // -----------------------------------------
             //  Thêm ReasonTypeIds nếu có
             // -----------------------------------------
-            if (paramFilter.ReasonTypeIds != null && paramFilter.ReasonTypeIds.Any())
+            if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
                 // Sinh @rt0, @rt1, ...
-                var idParams = paramFilter.ReasonTypeIds
+                var idParams = paramFilter.ReasonTypeIdsFilterIn
                     .Select((id, idx) => $"@rt{idx}")
                     .ToList();
 
                 selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
 
                 // Gán giá trị ID
-                for (int i = 0; i < paramFilter.ReasonTypeIds.Count; i++)
+                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
                 {
-                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIds[i]);
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
+                }
+            }
+
+
+            if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
+            {
+                // Sinh @rt0, @rt1, ...
+                var idParams = paramFilter.ReasonTypeIdsFilterOut
+                    .Select((id, idx) => $"@rt{idx}")
+                    .ToList();
+
+                selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
+
+                // Gán giá trị ID
+                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@rt{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
                 }
             }
             // Hoàn thiện SQL
