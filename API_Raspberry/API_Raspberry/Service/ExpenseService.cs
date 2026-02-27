@@ -49,11 +49,23 @@ namespace API_Raspberry.Service
             expenseRepository.DeleteById(id);
         }
 
-        //public int SumByMonth(int month, int year)
-        //{
-        //    ExpenseRepository expenseRepository = new ExpenseRepository();
-        //    return expenseRepository.SumByMonth(paramFilter, month, year);
-        //}
+        public int SumAll()
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            return expenseRepository.SumAll();
+        }
+
+        public List<Model.ExpenseRecord> GetExpensesByMonth(int month, int year)
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            return expenseRepository.GetExpensesByMonth(month, year);
+        }
+
+        public int SumByMonth(int month, int year)
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            return expenseRepository.SumByMonth(new ParamFilter(), month, year);
+        }
 
         public int SumByCurrentMonth(ParamFilter paramFilter)
         {

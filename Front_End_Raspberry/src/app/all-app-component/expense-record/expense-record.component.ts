@@ -17,6 +17,7 @@ export class ExpenseRecordComponent {
   id: number = 0;
   reasonTypes: ReasonType[] = [];
   reasonTypeId?: number = null;
+  expenseDate: Date = new Date();
 
   constructor(private http: HttpClient,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -49,6 +50,7 @@ export class ExpenseRecordComponent {
           this.reason = record?.reason != null ? record.reason : '';
           this.amount = record?.amount != null ? record.amount : 0;
           this.reasonTypeId = record?.reasonTypeId;
+          this.expenseDate = record?.createdDate != null ? new Date(record.createdDate) : new Date();
           console.log(res);
         },
         error: (err) => {
@@ -69,6 +71,7 @@ export class ExpenseRecordComponent {
       reason: this.reason,
       amount: this.amount,
       reasonTypeId: this.reasonTypeId,
+      createdDate: this.formatLocalDate(this.expenseDate)
     };
 
     if(this.id > 0){
@@ -117,5 +120,12 @@ export class ExpenseRecordComponent {
 
   cancel() {
     this.dialogRef.close();
+  }
+
+  formatLocalDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}T00:00:00`;
   }
 }

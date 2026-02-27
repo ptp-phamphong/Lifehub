@@ -53,7 +53,7 @@ namespace API_Raspberry.Repository
             command.Parameters.AddWithValue("@reason", expense.Reason);
             command.Parameters.AddWithValue("@amount", expense.Amount);
             command.Parameters.AddWithValue("@reasonTypeId", expense.ReasonTypeId ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@createdDate", DateTime.Now);
+            command.Parameters.AddWithValue("@createdDate", expense.CreatedDate ?? DateTime.Now);
             command.ExecuteNonQuery();
         }
 
@@ -182,13 +182,14 @@ namespace API_Raspberry.Repository
 
             string insertSql = @"
                 Update expenseRecords
-                Set Reason = @reason, Amount = @amount, ReasonTypeId = @reasonTypeId
+                Set Reason = @reason, Amount = @amount, ReasonTypeId = @reasonTypeId, CreatedDate = @createdDate
                 Where Id = @id;";
 
             using var command = new SqliteCommand(insertSql, connection);
             command.Parameters.AddWithValue("@reason", expense.Reason);
             command.Parameters.AddWithValue("@amount", expense.Amount);
             command.Parameters.AddWithValue("@reasonTypeId", expense.ReasonTypeId ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@createdDate", expense.CreatedDate ?? DateTime.Now);
             command.Parameters.AddWithValue("@id", id);
             command.ExecuteNonQuery();
         }
@@ -205,6 +206,52 @@ namespace API_Raspberry.Repository
             using var command = new SqliteCommand(insertSql, connection);
             command.Parameters.AddWithValue("@id", id);
             command.ExecuteNonQuery();
+        }
+
+        public int SumAll()
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+            string selectSql = "SELECT SUM(Amount) FROM expenseRecords;";
+            using var command = new SqliteCommand(selectSql, connection);
+            var result = command.ExecuteScalar();
+            if (result != DBNull.Value && result != null)
+            {
+                return Convert.ToInt32(result);
+            }
+            return 0;
+        }
+
+        public List<ExpenseRecord> GetExpensesByMonth(int month, int year)
+        {
+            var list = new List<ExpenseRecord>();
+
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            string selectSql = @"
+                SELECT Id, Reason, Amount, ReasonTypeId, CreatedDate FROM expenseRecords
+                WHERE strftime('%m', CreatedDate) = @month
+                  AND strftime('%Y', CreatedDate) = @year
+                ORDER BY CreatedDate DESC;";
+            using var command = new SqliteCommand(selectSql, connection);
+            command.Parameters.AddWithValue("@month", month.ToString("D2"));
+            command.Parameters.AddWithValue("@year", year.ToString());
+            using var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                list.Add(new ExpenseRecord
+                {
+                    Id = reader.GetInt32(0),
+                    Reason = reader.GetString(1),
+                    Amount = reader.GetInt32(2),
+                    ReasonTypeId = !reader.IsDBNull(3) ? reader.GetInt32(3) : null,
+                    CreatedDate = reader.GetDateTime(4)
+                });
+            }
+
+            return list;
         }
 
         public int SumByMonth(ParamFilter paramFilter, int month, int year)

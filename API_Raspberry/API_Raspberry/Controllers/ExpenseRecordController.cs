@@ -15,7 +15,6 @@ namespace API_Raspberry.Controllers
         [Route("ExpenseNote")]
         public bool ExpenseNote([FromBody] ExpenseRecord note)
         {
-            
             ExpenseService expenseService = new ExpenseService();
             expenseService.AddExpense(note);
             return true;
@@ -27,6 +26,14 @@ namespace API_Raspberry.Controllers
         {
             ExpenseService expenseService = new ExpenseService();
             return expenseService.GetAllExpenses(paramFilter);
+        }
+
+        [HttpGet]
+        [Route("SumAll")]
+        public int SumAll()
+        {
+            ExpenseService expenseService = new ExpenseService();
+            return expenseService.SumAll();
         }
 
         [HttpGet]
@@ -53,6 +60,22 @@ namespace API_Raspberry.Controllers
             ExpenseService expenseService = new ExpenseService();
             expenseService.DeleteExpense(id);
             return true;
+        }
+
+        [HttpGet]
+        [Route("GetExpensesByMonth/{month}/{year}")]
+        public List<Model.ExpenseRecord> GetExpensesByMonth(int month, int year)
+        {
+            ExpenseService expenseService = new ExpenseService();
+            return expenseService.GetExpensesByMonth(month, year);
+        }
+
+        [HttpGet]
+        [Route("SumByMonth/{month}/{year}")]
+        public int SumByMonth(int month, int year)
+        {
+            ExpenseService expenseService = new ExpenseService();
+            return expenseService.SumByMonth(month, year);
         }
 
         [HttpPost]

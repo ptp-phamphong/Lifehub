@@ -2,12 +2,19 @@
 
   <h2>Danh sách chi tiêu</h2>
   <div>
-    <span *ngIf="sumThisMonth > 0">Tổng tháng hiện tại: <b>{{formatCurrency(sumThisMonth)}}</b></span>
+    <span *ngIf="!showAll && sumThisMonth > 0">Tổng tháng {{selectedMonth}}/{{selectedYear}}: <b>{{formatCurrency(sumThisMonth)}}</b></span>
+    <span *ngIf="showAll && sumAll > 0">Tổng toàn bộ: <b>{{formatCurrency(sumAll)}}</b></span>
     <br>
     <span *ngIf="sumThisWeek > 0">Tổng tuần hiện tại: <b>{{formatCurrency(sumThisWeek)}}</b></span>
   </div>
   <br>
+  <label class="show-all-checkbox">
+    <input type="checkbox" [checked]="showAll" (change)="toggleShowAll()" />
+    Hiển thị toàn bộ lịch sử
+  </label>
+  <br>
   <button mat-button color="primary" (click)="openEditDialog(0)">Thêm mới</button>
+  <app-month-pagination *ngIf="!showAll" (monthChanged)="onMonthChanged($event)"></app-month-pagination>
   <br>
 
   <div class="filter-section">

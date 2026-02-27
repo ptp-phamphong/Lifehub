@@ -14,11 +14,12 @@ import { ParamFilter } from 'src/app/model/paramFilter.model';
 })
 export class ExpenseRecordListComponent implements OnInit {
   expenseRecords: ExpenseRecord[] = [];
-  apiUrl = `${environment.apiBaseUrl}/GetAllExpenseNote`;
-  sumThisMonthUrl = `${environment.apiBaseUrl}/SumByCurrentMonth`;
   sumThisMonth: number = 0;
-  sumThisWeekUrl = `${environment.apiBaseUrl}/SumByCurrentWeek`;
   sumThisWeek: number = 0;
+  sumAll: number = 0;
+  selectedMonth: number = new Date().getMonth() + 1;
+  selectedYear: number = new Date().getFullYear();
+  showAll: boolean = false;
 
   reasonTypes: ReasonType[] = [];
   reasonTypeIdsFilterIn?: number[] = [];
@@ -30,36 +31,81 @@ export class ExpenseRecordListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadExpenses();
+    this.loadExpensesByMonth(this.selectedMonth, this.selectedYear);
     this.loadAllReasonType();
   }
 
-  loadExpenses() {
-    var paramFilter: ParamFilter = {
+  onMonthChanged(event: { month: number, year: number }) {
+    this.selectedMonth = event.month;
+    this.selectedYear = event.year;
+    this.loadExpensesByMonth(event.month, event.year);
+  }
+
+  private buildParamFilter(month?: number, year?: number): ParamFilter {
+    return {
+      month: month,
+      year: year,
       reasonTypeIdsFilterIn: this.reasonTypeIdsFilterIn,
       reasonTypeIdsFilterOut: this.reasonTypeIdsFilterOut,
     };
-    this.http.post<ExpenseRecord[]>(this.apiUrl, paramFilter).subscribe({
+  }
+
+  loadExpensesByMonth(month: number, year: number) {
+    var paramFilter = this.buildParamFilter(month, year);
+    this.http.post<ExpenseRecord[]>(`${environment.apiBaseUrl}/GetAllExpenseNote`, paramFilter).subscribe({
       next: (data) => {
         this.expenseRecords = data;
       },
       error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
     });
 
-    
-    this.http.post<number>(this.sumThisMonthUrl, paramFilter).subscribe({
+    this.http.post<number>(`${environment.apiBaseUrl}/SumByCurrentMonth`, paramFilter).subscribe({
       next: (data) => {
         this.sumThisMonth = data;
       },
       error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
     });
-    
-    this.http.post<number>(this.sumThisWeekUrl, paramFilter).subscribe({
+
+    this.http.post<number>(`${environment.apiBaseUrl}/SumByCurrentWeek`, paramFilter).subscribe({
       next: (data) => {
         this.sumThisWeek = data;
       },
       error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
     });
+  }
+
+  toggleShowAll() {
+    this.showAll = !this.showAll;
+    if (this.showAll) {
+      this.loadAllExpenses();
+    } else {
+      this.loadExpensesByMonth(this.selectedMonth, this.selectedYear);
+    }
+  }
+
+  loadAllExpenses() {
+    var paramFilter = this.buildParamFilter();
+    this.http.post<ExpenseRecord[]>(`${environment.apiBaseUrl}/GetAllExpenseNote`, paramFilter).subscribe({
+      next: (data) => {
+        this.expenseRecords = data;
+      },
+      error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
+    });
+
+    this.http.get<number>(`${environment.apiBaseUrl}/SumAll`).subscribe({
+      next: (data) => {
+        this.sumAll = data;
+      },
+      error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
+    });
+  }
+
+  loadExpenses() {
+    if (this.showAll) {
+      this.loadAllExpenses();
+    } else {
+      this.loadExpensesByMonth(this.selectedMonth, this.selectedYear);
+    }
   }
 
   loadAllReasonType(){

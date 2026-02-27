@@ -1,0 +1,26 @@
+.month-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .nav-btn {
+    padding: 4px 8px;
+  }
+
+  .months {
+    display: flex;
+    gap: 12px;
+  }
+
+  .month {
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+
+    &.active {
+      background: #2c7be5;
+      color: white;
+      font-weight: bold;
+    }
+  }
+}

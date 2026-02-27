@@ -1,0 +1,14 @@
+<div class="month-pagination">
+  <button class="nav-btn" (click)="prev()">&lt;</button>
+
+  <div class="months">
+    <div *ngFor="let m of monthList"
+         class="month"
+         [class.active]="m.month === centerDate.getMonth() + 1 && m.year === centerDate.getFullYear()"
+         (click)="select(m)">
+      {{ m.month }}/{{ m.year }}
+    </div>
+  </div>
+
+  <button class="nav-btn" (click)="next()">&gt;</button>
+</div>
