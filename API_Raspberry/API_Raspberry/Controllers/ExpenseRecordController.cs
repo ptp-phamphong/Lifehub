@@ -36,6 +36,14 @@ namespace API_Raspberry.Controllers
             return expenseService.SumAll();
         }
 
+        [HttpPost]
+        [Route("SumAllWithFilter")]
+        public int SumAllWithFilter([FromBody] ParamFilter paramFilter)
+        {
+            ExpenseService expenseService = new ExpenseService();
+            return expenseService.SumAllWithFilter(paramFilter);
+        }
+
         [HttpGet]
         [Route("GetExpenseById/{id}")]
         public ExpenseRecord GetExpenseById(int id)

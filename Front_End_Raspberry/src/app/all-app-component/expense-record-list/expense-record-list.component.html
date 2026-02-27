@@ -5,6 +5,8 @@
     <span *ngIf="!showAll && sumThisMonth > 0">Tổng tháng {{selectedMonth}}/{{selectedYear}}: <b>{{formatCurrency(sumThisMonth)}}</b></span>
     <span *ngIf="showAll && sumAll > 0">Tổng toàn bộ: <b>{{formatCurrency(sumAll)}}</b></span>
     <br>
+    <span *ngIf="showAll && sumAllFiltered > 0">Toàn bộ lịch sử theo filter: <b>{{formatCurrency(sumAllFiltered)}}</b></span>
+    <br>
     <span *ngIf="sumThisWeek > 0">Tổng tuần hiện tại: <b>{{formatCurrency(sumThisWeek)}}</b></span>
   </div>
   <br>

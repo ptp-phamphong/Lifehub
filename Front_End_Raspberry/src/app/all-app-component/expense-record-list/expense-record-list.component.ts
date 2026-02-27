@@ -17,6 +17,7 @@ export class ExpenseRecordListComponent implements OnInit {
   sumThisMonth: number = 0;
   sumThisWeek: number = 0;
   sumAll: number = 0;
+  sumAllFiltered: number = 0;
   selectedMonth: number = new Date().getMonth() + 1;
   selectedYear: number = new Date().getFullYear();
   showAll: boolean = false;
@@ -95,6 +96,13 @@ export class ExpenseRecordListComponent implements OnInit {
     this.http.get<number>(`${environment.apiBaseUrl}/SumAll`).subscribe({
       next: (data) => {
         this.sumAll = data;
+      },
+      error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
+    });
+
+    this.http.post<number>(`${environment.apiBaseUrl}/SumAllWithFilter`, paramFilter).subscribe({
+      next: (data) => {
+        this.sumAllFiltered = data;
       },
       error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
     });

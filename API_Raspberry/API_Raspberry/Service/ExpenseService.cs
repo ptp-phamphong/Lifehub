@@ -55,6 +55,12 @@ namespace API_Raspberry.Service
             return expenseRepository.SumAll();
         }
 
+        public int SumAllWithFilter(ParamFilter paramFilter)
+        {
+            ExpenseRepository expenseRepository = new ExpenseRepository();
+            return expenseRepository.SumAllWithFilter(paramFilter);
+        }
+
         public List<Model.ExpenseRecord> GetExpensesByMonth(int month, int year)
         {
             ExpenseRepository expenseRepository = new ExpenseRepository();

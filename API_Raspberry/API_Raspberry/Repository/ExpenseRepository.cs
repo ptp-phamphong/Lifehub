@@ -222,6 +222,56 @@ namespace API_Raspberry.Repository
             return 0;
         }
 
+        public int SumAllWithFilter(ParamFilter paramFilter)
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            string selectSql = @"
+                SELECT SUM(Amount)
+                FROM expenseRecords
+                WHERE 1=1
+            ";
+
+            var command = new SqliteCommand();
+            command.Connection = connection;
+
+            if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
+            {
+                var idParams = paramFilter.ReasonTypeIdsFilterIn
+                    .Select((id, idx) => $"@irt{idx}")
+                    .ToList();
+
+                selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
+
+                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@irt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
+                }
+            }
+
+            if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
+            {
+                var idParams = paramFilter.ReasonTypeIdsFilterOut
+                    .Select((id, idx) => $"@ort{idx}")
+                    .ToList();
+
+                selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
+
+                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
+                {
+                    command.Parameters.AddWithValue($"@ort{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
+                }
+            }
+
+            command.CommandText = selectSql;
+            var result = command.ExecuteScalar();
+
+            return (result != null && result != DBNull.Value)
+                ? Convert.ToInt32(result)
+                : 0;
+        }
+
         public List<ExpenseRecord> GetExpensesByMonth(int month, int year)
         {
             var list = new List<ExpenseRecord>();
