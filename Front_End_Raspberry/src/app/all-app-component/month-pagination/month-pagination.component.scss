@@ -1,26 +1,63 @@
+$primary: #0ea5e9;
+$primary-light: #e0f2fe;
+$text-secondary: #64748b;
+$border: #e2e8f0;
+
 .month-pagination {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding: 8px 0;
 
   .nav-btn {
-    padding: 4px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1.5px solid $border;
+    border-radius: 8px;
+    background: #fff;
+    color: $text-secondary;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: $primary-light;
+      border-color: $primary;
+      color: $primary;
+    }
   }
 
   .months {
     display: flex;
-    gap: 12px;
+    gap: 4px;
   }
 
   .month {
-    padding: 4px 10px;
-    border-radius: 4px;
+    padding: 6px 14px;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: $text-secondary;
+    transition: all 0.2s ease;
+    border: 1.5px solid transparent;
+
+    &:hover {
+      background: $primary-light;
+      color: $primary;
+    }
 
     &.active {
-      background: #2c7be5;
-      color: white;
-      font-weight: bold;
+      background: $primary;
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
     }
   }
 }

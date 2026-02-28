@@ -1,41 +1,54 @@
 <div class="expense-table-container">
 
   <h2>Danh sách chi tiêu</h2>
-  <div>
-    <span *ngIf="!showAll && sumThisMonth > 0">Tổng tháng {{selectedMonth}}/{{selectedYear}}: <b>{{formatCurrency(sumThisMonth)}}</b></span>
-    <span *ngIf="showAll && sumAll > 0">Tổng toàn bộ: <b>{{formatCurrency(sumAll)}}</b></span>
-    <br>
-    <span *ngIf="showAll && sumAllFiltered > 0">Toàn bộ lịch sử theo filter: <b>{{formatCurrency(sumAllFiltered)}}</b></span>
-    <br>
-    <span *ngIf="sumThisWeek > 0">Tổng tuần hiện tại: <b>{{formatCurrency(sumThisWeek)}}</b></span>
+
+  <!-- Summary Cards -->
+  <div class="summary-section">
+    <div class="summary-card" *ngIf="!showAll && sumThisMonth > 0">
+      Tổng tháng {{selectedMonth}}/{{selectedYear}}: <b>{{formatCurrency(sumThisMonth)}}</b>
+    </div>
+    <div class="summary-card" *ngIf="showAll && sumAll > 0">
+      Tổng toàn bộ: <b>{{formatCurrency(sumAll)}}</b>
+    </div>
+    <div class="summary-card" *ngIf="showAll && sumAllFiltered > 0">
+      Lịch sử theo filter: <b>{{formatCurrency(sumAllFiltered)}}</b>
+    </div>
+    <div class="summary-card" *ngIf="sumThisWeek > 0">
+      Tổng tuần hiện tại: <b>{{formatCurrency(sumThisWeek)}}</b>
+    </div>
   </div>
-  <br>
-  <label class="show-all-checkbox">
-    <input type="checkbox" [checked]="showAll" (change)="toggleShowAll()" />
-    Hiển thị toàn bộ lịch sử
-  </label>
-  <br>
-  <button mat-button color="primary" (click)="openEditDialog(0)">Thêm mới</button>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm mới</button>
+    <label class="show-all-checkbox">
+      <input type="checkbox" [checked]="showAll" (change)="toggleShowAll()" />
+      Hiển thị toàn bộ lịch sử
+    </label>
+  </div>
+
   <app-month-pagination *ngIf="!showAll" (monthChanged)="onMonthChanged($event)"></app-month-pagination>
-  <br>
 
-  <div class="filter-section">
-    <span>Lọc theo lý do</span>
-    <ng-select [(ngModel)]="reasonTypeIdsFilterIn" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
-      bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
-      (change)="onChangeReasonTypeIn($event)">
-    </ng-select>
-  </div>
-  
-  <div class="filter-section">
-    <span>Lọc theo không phải lý do</span>
-    <ng-select [(ngModel)]="reasonTypeIdsFilterOut" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
-      bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
-      (change)="onChangeReasonTypeOut($event)">
-    </ng-select>
-  </div>
-  <br>
+  <!-- Filters -->
+  <div class="filters-wrapper">
+    <div class="filter-section">
+      <span>Lọc theo lý do</span>
+      <ng-select [(ngModel)]="reasonTypeIdsFilterIn" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
+        bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
+        (change)="onChangeReasonTypeIn($event)">
+      </ng-select>
+    </div>
 
+    <div class="filter-section">
+      <span>Lọc theo không phải lý do</span>
+      <ng-select [(ngModel)]="reasonTypeIdsFilterOut" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
+        bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
+        (change)="onChangeReasonTypeOut($event)">
+      </ng-select>
+    </div>
+  </div>
+
+  <!-- Table -->
   <table class="expense-table">
     <thead>
       <tr>
@@ -53,13 +66,10 @@
         <td>{{ item.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
         <td>{{ item.reason }}</td>
         <td>{{ item.reasonType?.reasonName }}</td>
-        <td>{{ formatCurrency(item.amount) }}</td>
-        <td>
-          <button mat-button color="primary" (click)="openEditDialog(item.id)">Sửa</button>
-          <button mat-button color="primary" (click)="deleteRecord(item)">Xoá</button>
-
-          <!-- <button class="btn btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
-          <button class="btn btn-delete" (click)="deleteRecord(item)">Xoá</button> -->
+        <td class="col-amount">{{ formatCurrency(item.amount) }}</td>
+        <td class="col-actions">
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoá</button>
         </td>
       </tr>
     </tbody>

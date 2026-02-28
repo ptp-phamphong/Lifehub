@@ -1,52 +1,122 @@
+// ── Color Variables ──
+$primary: #0ea5e9;
+$primary-light: #e0f2fe;
+$primary-hover: #0284c7;
+$danger: #ef4444;
+$surface: #ffffff;
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$border: #e2e8f0;
+$border-hover: #cbd5e1;
+$radius: 16px;
+$radius-sm: 10px;
+
 .expense-form {
-  max-width: 400px;
-  margin: 30px auto;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 32px 28px 24px;
+  background: $surface;
+  border-radius: $radius;
 
   h2 {
     text-align: center;
-    margin-bottom: 15px;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 24px 0;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f1f5f9;
   }
 
   .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
     display: flex;
     flex-direction: column;
 
     label {
       font-weight: 600;
-      margin-bottom: 5px;
+      font-size: 0.85rem;
+      color: $text-secondary;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
     input {
-      padding: 8px 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
+      padding: 10px 14px;
+      border: 1.5px solid $border;
+      border-radius: $radius-sm;
+      font-size: 15px;
+      color: $text-primary;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      outline: none;
+
+      &::placeholder {
+        color: #94a3b8;
+      }
+
+      &:focus {
+        border-color: $primary;
+        background: $surface;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+      }
     }
 
     .date-field {
       width: 100%;
-      font-size: 16px;
+      font-size: 15px;
     }
   }
 
-  button {
+  // Submit button
+  button[type='submit'] {
     width: 100%;
-    background-color: #007bff;
-    color: white;
-    padding: 10px;
+    background: $primary;
+    color: #fff;
+    padding: 12px;
     border: none;
-    border-radius: 6px;
-    font-size: 16px;
+    border-radius: $radius-sm;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    margin-top: 6px;
 
     &:hover {
-      background-color: #0056b3;
+      background: $primary-hover;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  // Cancel button
+  .cancel-row {
+    text-align: center;
+    margin-top: 8px;
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: $radius-sm;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fef2f2;
+      color: $danger;
+      border: 1.5px solid #fecaca;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: $danger;
+        color: #fff;
+        border-color: $danger;
+      }
     }
   }
 
@@ -54,32 +124,57 @@
     text-align: center;
     margin-top: 10px;
     font-weight: 500;
+    font-size: 0.9rem;
+    color: $text-secondary;
   }
 }
+
+// ── ng-select overrides ──
 ::ng-deep .ng-select {
   width: 100%;
-  border: 1px solid #ccc !important;
-  border-radius: 4px !important;
-  background: white !important;
-}
+  border: none !important;
+  background: transparent !important;
 
-::ng-deep .ng-select .ng-select-container {
-  min-height: 40px !important;
-  border: 1px solid #ccc !important;
-  border-radius: 4px !important;
-  background-color: white !important;
-}
+  .ng-select-container {
+    min-height: 42px !important;
+    border: 1.5px solid $border !important;
+    border-radius: $radius-sm !important;
+    background-color: #f8fafc !important;
+    transition: all 0.2s ease !important;
 
-::ng-deep .ng-select .ng-select-container .ng-value-container {
-  padding: 8px 10px !important;
-}
+    .ng-value-container {
+      padding: 8px 12px !important;
+    }
 
-::ng-deep .ng-select .ng-select-container:hover {
-  border-color: #3f51b5 !important; /* màu xanh Angular Material */
+    &:hover {
+      border-color: $border-hover !important;
+    }
+  }
+
+  &.ng-select-focused .ng-select-container {
+    border-color: $primary !important;
+    background-color: $surface !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+  }
 }
 
 ::ng-deep .ng-dropdown-panel {
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background: white !important;
+  border-radius: $radius-sm;
+  border: 1.5px solid $border;
+  background: $surface !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+  .ng-option {
+    padding: 10px 14px !important;
+    transition: background 0.15s ease;
+
+    &.ng-option-marked {
+      background: $primary-light !important;
+    }
+
+    &.ng-option-selected {
+      background: $primary !important;
+      color: #fff !important;
+    }
+  }
 }

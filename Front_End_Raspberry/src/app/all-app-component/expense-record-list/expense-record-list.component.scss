@@ -1,62 +1,269 @@
+// ── Color Variables ──
+$primary: #0ea5e9;
+$primary-light: #e0f2fe;
+$primary-hover: #0284c7;
+$danger: #ef4444;
+$danger-hover: #dc2626;
+$surface: #ffffff;
+$bg: #f8fafc;
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$border: #e2e8f0;
+$border-hover: #cbd5e1;
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.03);
+$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.04);
+$radius: 12px;
+$radius-sm: 8px;
+
+// ── Main Container ──
 .expense-table-container {
-  padding: 20px;
-  background: #fafafa;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 28px 32px;
+  background: $surface;
+  border-radius: $radius;
+  box-shadow: $shadow-lg;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 6px 0;
+  }
 }
 
+// ── Summary Cards ──
+.summary-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $primary-light;
+  color: $primary;
+  padding: 8px 16px;
+  border-radius: $radius-sm;
+  font-size: 0.9rem;
+  font-weight: 500;
+
+  b {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+}
+
+// ── Toolbar ──
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.show-all-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: $text-secondary;
+  cursor: pointer;
+  user-select: none;
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: $primary;
+    cursor: pointer;
+  }
+}
+
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: $radius-sm;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: $shadow-sm;
+
+  &:hover {
+    background: $primary-hover;
+    box-shadow: $shadow-md;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// ── Filter Section ──
+.filters-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filter-section {
+  span {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+}
+
+// ── Table ──
 .expense-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-
-  th, td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-  }
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  overflow: hidden;
 
   th {
-    background-color: #f0f0f0;
+    background: $bg;
+    color: $text-secondary;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 12px 16px;
+    border-bottom: 2px solid $border;
+    white-space: nowrap;
   }
 
-  tr:hover {
-    background-color: #f9f9f9;
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid $border;
+    color: $text-primary;
+    font-size: 0.9rem;
+    vertical-align: middle;
   }
 
-  .btn {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
+  tbody tr {
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: $primary-light;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
   }
 
-  .btn-edit {
-    background-color: #007bff;
-    color: white;
-    margin-right: 5px;
+  .col-amount {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 
-  .btn-delete {
-    background-color: #dc3545;
-    color: white;
+  .col-actions {
+    white-space: nowrap;
   }
 }
 
+// ── Table Action Buttons ──
+.btn-action {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 6px;
+
+  &.btn-edit {
+    background: #e0f2fe;
+    color: $primary;
+    border: 1px solid #7dd3fc;
+
+    &:hover {
+      background: $primary;
+      color: #fff;
+    }
+  }
+
+  &.btn-delete {
+    background: #fef2f2;
+    color: $danger;
+    border: 1px solid #fecaca;
+
+    &:hover {
+      background: $danger;
+      color: #fff;
+    }
+  }
+}
+
+// ── Dialog Overrides ──
 ::ng-deep .cdk-overlay-pane {
-  z-index: 1001; // Đảm bảo dialog nằm trên backdrop
+  z-index: 1001;
 }
 
 ::ng-deep .cdk-overlay-backdrop {
-  background-color: rgba(0, 0, 0, 0.5);  // Nền xám mờ
-  z-index: 1000;  // Đảm bảo backdrop hiển thị trên các thành phần khác
-}
-.custom-dialog-container {
-  animation: slide-down 0.5s ease-out;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
 }
 
-.filter-section{
-  margin-top: 10px;
+.custom-dialog-container {
+  animation: slide-down 0.3s ease-out;
+}
+
+// ── ng-select overrides ──
+::ng-deep .ng-select {
+  .ng-select-container {
+    border-radius: $radius-sm !important;
+    border-color: $border !important;
+    min-height: 40px !important;
+    transition: border-color 0.2s ease !important;
+
+    &:hover {
+      border-color: $border-hover !important;
+    }
+  }
+
+  &.ng-select-focused .ng-select-container {
+    border-color: $primary !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+  }
+}
+
+// ── Responsive ──
+@media (max-width: 640px) {
+  .expense-table-container {
+    padding: 16px;
+  }
+
+  .expense-table {
+    th, td {
+      padding: 10px 10px;
+      font-size: 0.82rem;
+    }
+  }
 }
 
