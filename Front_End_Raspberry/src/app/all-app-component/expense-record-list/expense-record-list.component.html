@@ -52,11 +52,11 @@
   <table class="expense-table">
     <thead>
       <tr>
-        <th>Id</th>
-        <th>Ngày tháng</th>
-        <th>Lý do</th>
-        <th>Loại lý do</th>
-        <th>Số tiền</th>
+        <th class="sortable" (click)="onSort('id')">Id <span class="sort-icon">{{getSortIcon('id')}}</span></th>
+        <th class="sortable" (click)="onSort('createdDate')">Ngày tháng <span class="sort-icon">{{getSortIcon('createdDate')}}</span></th>
+        <th class="sortable" (click)="onSort('reason')">Lý do <span class="sort-icon">{{getSortIcon('reason')}}</span></th>
+        <th class="sortable" (click)="onSort('reasonType')">Loại lý do <span class="sort-icon">{{getSortIcon('reasonType')}}</span></th>
+        <th class="sortable" (click)="onSort('amount')">Số tiền <span class="sort-icon">{{getSortIcon('amount')}}</span></th>
         <th>Hành động</th>
       </tr>
     </thead>

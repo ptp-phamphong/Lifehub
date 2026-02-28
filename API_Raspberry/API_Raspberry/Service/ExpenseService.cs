@@ -28,6 +28,32 @@ namespace API_Raspberry.Service
                 }
             }
 
+            // LINQ sorting
+            if (!string.IsNullOrEmpty(paramFilter.SortColumn))
+            {
+                bool isDesc = string.Equals(paramFilter.SortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+
+                result = paramFilter.SortColumn.ToLower() switch
+                {
+                    "id" => isDesc
+                        ? result.OrderByDescending(e => e.Id).ToList()
+                        : result.OrderBy(e => e.Id).ToList(),
+                    "createddate" => isDesc
+                        ? result.OrderByDescending(e => e.CreatedDate).ToList()
+                        : result.OrderBy(e => e.CreatedDate).ToList(),
+                    "reason" => isDesc
+                        ? result.OrderByDescending(e => e.Reason).ToList()
+                        : result.OrderBy(e => e.Reason).ToList(),
+                    "reasontype" => isDesc
+                        ? result.OrderByDescending(e => e.ReasonType?.ReasonName ?? "").ToList()
+                        : result.OrderBy(e => e.ReasonType?.ReasonName ?? "").ToList(),
+                    "amount" => isDesc
+                        ? result.OrderByDescending(e => e.Amount).ToList()
+                        : result.OrderBy(e => e.Amount).ToList(),
+                    _ => result
+                };
+            }
+
             return result;
         }
 

@@ -25,6 +25,9 @@ export class ExpenseRecordListComponent implements OnInit {
   reasonTypes: ReasonType[] = [];
   reasonTypeIdsFilterIn?: number[] = [];
   reasonTypeIdsFilterOut?: number[] = [];
+
+  sortColumn: string = 'createdDate';
+  sortDirection: string = 'desc';
   
   constructor(private http: HttpClient,
     private dialog: MatDialog,
@@ -48,7 +51,24 @@ export class ExpenseRecordListComponent implements OnInit {
       year: year,
       reasonTypeIdsFilterIn: this.reasonTypeIdsFilterIn,
       reasonTypeIdsFilterOut: this.reasonTypeIdsFilterOut,
+      sortColumn: this.sortColumn,
+      sortDirection: this.sortDirection,
     };
+  }
+
+  onSort(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.loadExpenses();
+  }
+
+  getSortIcon(column: string): string {
+    if (this.sortColumn !== column) return '';
+    return this.sortDirection === 'asc' ? '▲' : '▼';
   }
 
   loadExpensesByMonth(month: number, year: number) {

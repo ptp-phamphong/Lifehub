@@ -3,4 +3,6 @@ export class ParamFilter{
     reasonTypeIdsFilterOut?: number[];
     month?: number;
     year?: number;
+    sortColumn?: string;
+    sortDirection?: string;
 }

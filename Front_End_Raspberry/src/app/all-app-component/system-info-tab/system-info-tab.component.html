@@ -1,4 +1,48 @@
-<h2>Show Info</h2>
-<button (click)="callApi()">Show Info</button>
+<div class="system-info-container">
+  <div class="header">
+    <h2>Thông tin hệ thống</h2>
+    <div class="header-actions">
+      <span class="last-updated" *ngIf="lastUpdated">
+        Cập nhật: {{ lastUpdated | date:'HH:mm:ss' }}
+      </span>
+      <button class="btn-refresh" (click)="callApi()" [disabled]="loading">
+        <span class="refresh-icon" [class.spinning]="loading">↻</span>
+        {{ loading ? 'Đang tải...' : 'Làm mới' }}
+      </button>
+    </div>
+  </div>
 
-<pre>{{ result | json }}</pre>
+  <div class="cards-grid" *ngIf="result && !result.error">
+    <!-- CPU Temperature -->
+    <div class="info-card card-cpu">
+      <div class="card-icon">🌡️</div>
+      <div class="card-content">
+        <span class="card-label">Nhiệt độ CPU</span>
+        <span class="card-value">{{ result.cpuTemperature }}°C</span>
+      </div>
+    </div>
+
+    <!-- RAM -->
+    <div class="info-card card-ram">
+      <div class="card-icon">🖥️</div>
+      <div class="card-content">
+        <span class="card-label">RAM khả dụng</span>
+        <span class="card-value">{{ result.ramAvailable }}</span>
+      </div>
+    </div>
+
+    <!-- Storage -->
+    <div class="info-card card-storage">
+      <div class="card-icon">💾</div>
+      <div class="card-content">
+        <span class="card-label">Bộ nhớ trống</span>
+        <span class="card-value">{{ result.memoryAvailabel }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="error-card" *ngIf="result?.error">
+    <span class="error-icon">⚠️</span>
+    <span>Không thể kết nối: {{ result.error }}</span>
+  </div>
+</div>

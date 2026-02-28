@@ -3,4 +3,6 @@ export interface ParamFilter {
   year?: number;
   reasonTypeIdsFilterIn?: number[];
   reasonTypeIdsFilterOut?: number[];
+  sortColumn?: string;
+  sortDirection?: string;
 }
