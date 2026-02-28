@@ -15,6 +15,7 @@ import { ReasonType } from '../models/reasonType.model';
 import { ExpenseRecord } from '../models/expense.model';
 import { getExpenseById, addExpense, updateExpense } from '../services/expenseService';
 import { getAllReasonTypes } from '../services/reasonTypeService';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 interface Props {
   visible: boolean;
@@ -28,6 +29,8 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
   const [reasonTypeId, setReasonTypeId] = useState<number | undefined>(undefined);
   const [reasonTypes, setReasonTypes] = useState<ReasonType[]>([]);
   const [showReasonPicker, setShowReasonPicker] = useState(false);
+  const [expenseDate, setExpenseDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
     setReason('');
     setAmount(0);
     setReasonTypeId(undefined);
+    setExpenseDate(new Date());
     loadReasonTypes();
     if (expenseId > 0) {
       loadExpense(expenseId);
@@ -57,6 +61,9 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
       setReason(record.reason ?? '');
       setAmount(record.amount ?? 0);
       setReasonTypeId(record.reasonTypeId);
+      if (record.createdDate) {
+        setExpenseDate(new Date(record.createdDate));
+      }
     } catch (err) {
       console.error('Lỗi khi tải expense:', err);
     }
@@ -79,7 +86,7 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
       reason,
       amount,
       reasonTypeId,
-      createdDate: formatLocalDate(new Date()),
+      createdDate: formatLocalDate(expenseDate),
     };
 
     setLoading(true);
@@ -109,6 +116,22 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
   };
 
   const selectedReasonName = reasonTypes.find(r => r.id === reasonTypeId)?.reasonName;
+
+  const formatDisplayDate = (date: Date): string => {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
+
+  const onDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (event.type === 'set' && selectedDate) {
+      setExpenseDate(selectedDate);
+    }
+  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -148,6 +171,37 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
                 {selectedReasonName ?? 'Chọn loại lý do...'}
               </Text>
             </TouchableOpacity>
+
+            {/* Ngày chi tiêu */}
+            <Text style={styles.label}>Ngày chi tiêu</Text>
+            <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
+              <Text style={styles.pickerText}>{formatDisplayDate(expenseDate)}</Text>
+            </TouchableOpacity>
+
+            {/* Native date picker */}
+            {showDatePicker && (
+              Platform.OS === 'ios' ? (
+                <View style={styles.iosPickerWrapper}>
+                  <DateTimePicker
+                    value={expenseDate}
+                    mode="date"
+                    display="spinner"
+                    onChange={onDateChange}
+                    locale="vi-VN"
+                  />
+                  <TouchableOpacity style={styles.iosPickerDone} onPress={() => setShowDatePicker(false)}>
+                    <Text style={styles.iosPickerDoneText}>Xong</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <DateTimePicker
+                  value={expenseDate}
+                  mode="date"
+                  display="default"
+                  onChange={onDateChange}
+                />
+              )
+            )}
 
             {/* Reason type picker modal */}
             <Modal visible={showReasonPicker} transparent animationType="fade">
@@ -288,4 +342,20 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   pickerCloseText: { color: '#6c757d', fontSize: 14 },
+  // iOS date picker
+  iosPickerWrapper: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    marginTop: 8,
+    paddingBottom: 8,
+  },
+  iosPickerDone: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  iosPickerDoneText: {
+    color: '#0d6efd',
+    fontSize: 15,
+    fontWeight: '600',
+  },
 });

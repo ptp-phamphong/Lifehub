@@ -46,6 +46,10 @@ export default function ExpenseListScreen() {
   const [filterIn, setFilterIn] = useState<number[]>([]);
   const [filterOut, setFilterOut] = useState<number[]>([]);
 
+  // Sort
+  const [sortColumn, setSortColumn] = useState<string>('createdDate');
+  const [sortDirection, setSortDirection] = useState<string>('desc');
+
   // Form modal
   const [formVisible, setFormVisible] = useState(false);
   const [editingId, setEditingId] = useState(0);
@@ -57,8 +61,10 @@ export default function ExpenseListScreen() {
       year,
       reasonTypeIdsFilterIn: filterIn.length > 0 ? filterIn : undefined,
       reasonTypeIdsFilterOut: filterOut.length > 0 ? filterOut : undefined,
+      sortColumn,
+      sortDirection,
     }),
-    [filterIn, filterOut],
+    [filterIn, filterOut, sortColumn, sortDirection],
   );
 
   const formatCurrency = (amount?: number): string => {
@@ -154,6 +160,20 @@ export default function ExpenseListScreen() {
   const onFilterOutChange = (ids: number[]) => {
     setFilterOut(ids);
     setFilterIn(prev => prev.filter(id => !ids.includes(id)));
+  };
+
+  const onSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column: string): string => {
+    if (sortColumn !== column) return '';
+    return sortDirection === 'asc' ? ' ▲' : ' ▼';
   };
 
   const openAdd = () => {
@@ -276,6 +296,27 @@ export default function ExpenseListScreen() {
         onSelectionChange={onFilterOutChange}
       />
 
+      {/* Sort Bar */}
+      <View style={styles.sortBar}>
+        <Text style={styles.sortLabel}>Sắp xếp:</Text>
+        {[
+          { key: 'createdDate', label: 'Ngày' },
+          { key: 'amount', label: 'Số tiền' },
+          { key: 'reason', label: 'Lý do' },
+          { key: 'reasonType', label: 'Loại' },
+        ].map(col => (
+          <TouchableOpacity
+            key={col.key}
+            style={[styles.sortChip, sortColumn === col.key && styles.sortChipActive]}
+            onPress={() => onSort(col.key)}
+          >
+            <Text style={[styles.sortChipText, sortColumn === col.key && styles.sortChipTextActive]}>
+              {col.label}{getSortIcon(col.key)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* List */}
       {loading ? (
         <ActivityIndicator size="large" color="#0d6efd" style={styles.loader} />
@@ -375,4 +416,40 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   deleteBtnText: { color: '#dc3545', fontSize: 13, fontWeight: '600' },
+  // Sort bar
+  sortBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  sortLabel: {
+    fontSize: 13,
+    color: '#6c757d',
+    fontWeight: '600',
+    marginRight: 2,
+  },
+  sortChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  sortChipActive: {
+    backgroundColor: '#e0f2fe',
+    borderColor: '#0ea5e9',
+  },
+  sortChipText: {
+    fontSize: 12,
+    color: '#6c757d',
+    fontWeight: '500',
+  },
+  sortChipTextActive: {
+    color: '#0ea5e9',
+    fontWeight: '700',
+  },
 });
