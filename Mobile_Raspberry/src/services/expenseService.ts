@@ -1,10 +1,10 @@
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 import { ExpenseRecord } from '../models/expense.model';
 import { ParamFilter } from '../models/paramFilter.model';
 
 // POST helper
 async function postJson<T>(endpoint: string, body: any): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -14,7 +14,7 @@ async function postJson<T>(endpoint: string, body: any): Promise<T> {
 }
 
 async function getJson<T>(endpoint: string): Promise<T> {
-  const res = await fetch(`${API_BASE_URL}${endpoint}`);
+  const res = await fetch(`${getApiBaseUrl()}${endpoint}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
   return res.json();
 }
@@ -56,7 +56,7 @@ export async function addExpense(record: ExpenseRecord): Promise<boolean> {
 
 /** Cập nhật chi tiêu */
 export async function updateExpense(id: number, record: ExpenseRecord): Promise<boolean> {
-  const res = await fetch(`${API_BASE_URL}/UpdateById/${id}`, {
+  const res = await fetch(`${getApiBaseUrl()}/UpdateById/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(record),
@@ -67,6 +67,6 @@ export async function updateExpense(id: number, record: ExpenseRecord): Promise<
 
 /** Xoá chi tiêu theo Id */
 export async function deleteExpenseById(id: number): Promise<void> {
-  const res = await fetch(`${API_BASE_URL}/DeleteById/${id}`, { method: 'DELETE' });
+  const res = await fetch(`${getApiBaseUrl()}/DeleteById/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 }

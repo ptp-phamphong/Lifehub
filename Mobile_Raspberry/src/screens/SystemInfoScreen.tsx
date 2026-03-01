@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { API_BASE_URL } from '../config';
+import { getApiBaseUrl } from '../config';
 
 interface SystemInfo {
   cpuTemperature: string;
@@ -17,7 +17,7 @@ export default function SystemInfoScreen() {
   const callApi = async () => {
     setLoading(true);
     setError(null);
-    const url = `${API_BASE_URL}/SystemInfo`;
+    const url = `${getApiBaseUrl()}/SystemInfo`;
     try {
       const response = await fetch(url);
       if (!response.ok) {

@@ -6,6 +6,7 @@ import SystemInfoScreen from './src/screens/SystemInfoScreen';
 import ExpenseListScreen from './src/screens/ExpenseListScreen';
 import ReasonTypeScreen from './src/screens/ReasonTypeScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import SpeechToTextScreen from './src/screens/SpeechToTextScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -52,6 +53,14 @@ export default function App() {
           options={{
             title: 'Cài đặt',
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>⚙️</Text>,
+          }}
+        />
+        <Tab.Screen
+          name="SpeechToText"
+          component={SpeechToTextScreen}
+          options={{
+            title: 'Speech to Text',
+            tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🎤</Text>,
           }}
         />
       </Tab.Navigator>
