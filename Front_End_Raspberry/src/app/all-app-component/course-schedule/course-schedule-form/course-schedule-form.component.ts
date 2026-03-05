@@ -65,8 +65,8 @@ export class CourseScheduleFormComponent {
     const payload: CourseSchedule = {
       courseName: this.courseName,
       courseCode: this.courseCode,
-      startDate: this.startDate ? this.startDate.toISOString() : undefined,
-      endDate: this.endDate ? this.endDate.toISOString() : undefined,
+      startDate: this.startDate ? this.toLocalDateString(this.startDate) : undefined,
+      endDate: this.endDate ? this.toLocalDateString(this.endDate) : undefined,
       startTime: this.startTime || undefined,
       endTime: this.endTime || undefined,
       room: this.room,
@@ -103,5 +103,12 @@ export class CourseScheduleFormComponent {
 
   cancel() {
     this.dialogRef.close();
+  }
+
+  private toLocalDateString(date: Date): string {
+    const y = date.getFullYear();
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 }
