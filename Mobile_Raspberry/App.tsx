@@ -7,6 +7,7 @@ import ExpenseListScreen from './src/screens/ExpenseListScreen';
 import ReasonTypeScreen from './src/screens/ReasonTypeScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import SpeechToTextScreen from './src/screens/SpeechToTextScreen';
+import CourseScheduleScreen from './src/screens/CourseScheduleScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -47,22 +48,30 @@ export default function App() {
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text>,
           }}
         />
-        <Tab.Screen
+        {/* <Tab.Screen
           name="Settings"
           component={SettingsScreen}
           options={{
             title: 'Cài đặt',
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>⚙️</Text>,
           }}
-        />
+        /> */}
         <Tab.Screen
+          name="CourseSchedule"
+          component={CourseScheduleScreen}
+          options={{
+            title: 'Thời khóa biểu',
+            tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📅</Text>,
+          }}
+        />
+        {/* <Tab.Screen
           name="SpeechToText"
           component={SpeechToTextScreen}
           options={{
             title: 'Speech to Text',
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🎤</Text>,
           }}
-        />
+        /> */}
       </Tab.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>
