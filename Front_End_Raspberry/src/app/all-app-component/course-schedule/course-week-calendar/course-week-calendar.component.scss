@@ -1,0 +1,373 @@
+// ── Variables ──
+$primary: #0ea5e9;
+$primary-light: #e0f2fe;
+$surface: #ffffff;
+$bg: #f8fafc;
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$text-muted: #94a3b8;
+$border: #e2e8f0;
+$today-bg: #eff6ff;
+$today-header-bg: #3b82f6;
+$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+$radius: 12px;
+$radius-sm: 8px;
+$time-gutter-width: 60px;
+
+// ── Container ──
+.week-calendar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: $surface;
+  border-radius: $radius;
+  box-shadow: $shadow-lg;
+  padding: 20px;
+}
+
+// ── Header ──
+.week-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.week-label {
+  cursor: pointer;
+  text-align: center;
+  min-width: 260px;
+  transition: color 0.2s;
+
+  &:hover .week-title {
+    color: $primary;
+  }
+}
+
+.week-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.btn-nav {
+  background: $bg;
+  border: 1px solid $border;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: $text-primary;
+
+  &:hover {
+    background: $primary;
+    color: #fff;
+    border-color: $primary;
+  }
+}
+
+// ── Timetable Wrapper ──
+.timetable-wrapper {
+  overflow-x: auto;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+}
+
+.timetable {
+  min-width: 700px;
+}
+
+// ── Timetable Header ──
+.timetable-header {
+  display: grid;
+  grid-template-columns: $time-gutter-width repeat(7, 1fr);
+  border-bottom: 2px solid $border;
+  background: $bg;
+}
+
+.time-gutter-header {
+  border-right: 1px solid $border;
+}
+
+.day-col-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  border-right: 1px solid $border;
+  transition: background 0.2s;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &.today {
+    background: $today-header-bg;
+
+    .day-name, .day-date {
+      color: #fff;
+    }
+  }
+}
+
+.day-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: $text-primary;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.day-date {
+  font-size: 0.75rem;
+  color: $text-secondary;
+  margin-top: 2px;
+}
+
+// ── Timetable Body ──
+.timetable-body {
+  display: grid;
+  grid-template-columns: $time-gutter-width repeat(7, 1fr);
+  position: relative;
+}
+
+// ── Time Gutter (left) ──
+.time-gutter {
+  border-right: 1px solid $border;
+  background: $bg;
+}
+
+.time-slot {
+  position: relative;
+  border-bottom: 1px solid $border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.time-label {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: $text-muted;
+  background: $bg;
+  padding: 0 2px;
+}
+
+// ── Day Columns ──
+.day-column {
+  position: relative;
+  border-right: 1px solid $border;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  &.today-col {
+    background: $today-bg;
+  }
+}
+
+.hour-line {
+  border-bottom: 1px solid $border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+// ── Course Blocks ──
+.course-block {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-radius: 6px;
+  border-left: 4px solid;
+  padding: 4px 6px;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 2;
+  transition: transform 0.1s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.2;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    z-index: 3;
+  }
+}
+
+.block-time {
+  font-size: 0.65rem;
+  font-weight: 700;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.block-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.block-room {
+  font-size: 0.62rem;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Current Time Line ──
+.current-time-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ef4444;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.time-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+}
+
+// ── Detail Panel (overlay) ──
+.detail-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.detail-card {
+  background: $surface;
+  border-radius: $radius;
+  padding: 28px 32px;
+  min-width: 380px;
+  max-width: 500px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  position: relative;
+  animation: slideUp 0.2s ease-out;
+
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 16px 0;
+    padding-right: 30px;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.btn-close-detail {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: $text-muted;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #fee2e2;
+    color: #ef4444;
+  }
+}
+
+.detail-table {
+  width: 100%;
+
+  tr {
+    border-bottom: 1px solid $border;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    padding: 8px 4px;
+    font-size: 0.9rem;
+    color: $text-primary;
+  }
+
+  .label {
+    font-weight: 600;
+    color: $text-secondary;
+    white-space: nowrap;
+    width: 120px;
+  }
+}
+
+// ── Responsive ──
+@media (max-width: 768px) {
+  .week-calendar-container {
+    padding: 12px;
+  }
+
+  .week-title {
+    font-size: 1rem;
+  }
+
+  .day-col-header {
+    padding: 6px 2px;
+  }
+
+  .day-name {
+    font-size: 0.75rem;
+  }
+
+  .day-date {
+    font-size: 0.65rem;
+  }
+
+  .detail-card {
+    min-width: 280px;
+    padding: 20px;
+  }
+}

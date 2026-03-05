@@ -1,0 +1,108 @@
+<div class="calendar-container">
+
+  <!-- Header: Navigation -->
+  <div class="calendar-header">
+    <button class="btn-nav" (click)="prevMonth()">◀</button>
+    <h2 class="month-label" (click)="goToToday()">{{ monthYearLabel }}</h2>
+    <button class="btn-nav" (click)="nextMonth()">▶</button>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="calendar-grid">
+    <!-- Weekday headers -->
+    <div class="weekday-header" *ngFor="let wd of weekDays">{{ wd }}</div>
+
+    <!-- Day cells -->
+    <ng-container *ngFor="let week of weeks">
+      <div
+        *ngFor="let day of week"
+        class="day-cell"
+        [class.other-month]="!day.isCurrentMonth"
+        [class.today]="day.isToday"
+        [class.has-courses]="day.courses.length > 0"
+      >
+        <div class="day-number">{{ day.day }}</div>
+        <div class="day-courses">
+          <div
+            class="course-chip"
+            *ngFor="let course of day.courses | slice:0:maxVisibleCourses"
+            (click)="selectCourse(course, $event)"
+            [title]="course.courseName"
+            [style.background]="getChipColor(course).bg"
+            [style.border-left-color]="getChipColor(course).border"
+          >
+            <span class="chip-time" [style.color]="getChipColor(course).border">{{ course.startTime }}-{{ course.endTime }}</span>
+            <span class="chip-name" [style.color]="getChipColor(course).text">{{ truncate(course.courseName, 20) }}</span>
+            <span class="chip-room">{{ truncate(course.room, 15) }}</span>
+          </div>
+          <div
+            class="more-chip"
+            *ngIf="day.courses.length > maxVisibleCourses"
+            (click)="openDayDetail(day, $event)"
+          >
+            +{{ day.courses.length - maxVisibleCourses }} khác
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Day Detail Panel (all courses for a day) -->
+  <div class="detail-panel" *ngIf="selectedDay" (click)="closeDayDetail()">
+    <div class="detail-card day-detail-card" (click)="$event.stopPropagation()">
+      <button class="btn-close-detail" (click)="closeDayDetail()">✕</button>
+      <h3>{{ selectedDay.date | date:'EEEE, dd/MM/yyyy' }}</h3>
+      <div class="day-detail-list">
+        <div
+          class="day-detail-item"
+          *ngFor="let course of selectedDay.courses"
+          (click)="selectCourse(course, $event)"
+          [style.background]="getChipColor(course).bg"
+          [style.border-left-color]="getChipColor(course).border"
+        >
+          <div class="day-detail-time" [style.color]="getChipColor(course).border">{{ course.startTime }} - {{ course.endTime }}</div>
+          <div class="day-detail-name" [style.color]="getChipColor(course).text">{{ course.courseName }}</div>
+          <div class="day-detail-room">{{ course.room }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Course Detail Panel -->
+  <div class="detail-panel" *ngIf="selectedCourse" (click)="closeDetail()">
+    <div class="detail-card" (click)="$event.stopPropagation()">
+      <button class="btn-close-detail" (click)="closeDetail()">✕</button>
+      <h3>{{ selectedCourse.courseName }}</h3>
+      <table class="detail-table">
+        <tr>
+          <td class="label">Mã môn:</td>
+          <td>{{ selectedCourse.courseCode }}</td>
+        </tr>
+        <tr>
+          <td class="label">Thứ:</td>
+          <td>{{ dayOfWeekLabel(selectedCourse.dayOfWeek) }}</td>
+        </tr>
+        <tr>
+          <td class="label">Giờ học:</td>
+          <td>{{ selectedCourse.startTime }} - {{ selectedCourse.endTime }}</td>
+        </tr>
+        <tr>
+          <td class="label">Ngày bắt đầu:</td>
+          <td>{{ selectedCourse.startDate | date:'dd/MM/yyyy' }}</td>
+        </tr>
+        <tr>
+          <td class="label">Ngày kết thúc:</td>
+          <td>{{ selectedCourse.endDate | date:'dd/MM/yyyy' }}</td>
+        </tr>
+        <tr>
+          <td class="label">Phòng:</td>
+          <td>{{ selectedCourse.room }}</td>
+        </tr>
+        <tr>
+          <td class="label">Học kỳ:</td>
+          <td>{{ selectedCourse.semester }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>

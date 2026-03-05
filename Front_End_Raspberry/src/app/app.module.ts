@@ -54,6 +54,11 @@ import { ReasonTypeListComponent } from './all-app-component/reason-type/reason-
 import { ReasonTypeFormComponent } from './all-app-component/reason-type/reason-type-form/reason-type-form.component';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { MonthPaginationComponent } from './all-app-component/month-pagination/month-pagination.component';
+import { CourseScheduleListComponent } from './all-app-component/course-schedule/course-schedule-list/course-schedule-list.component';
+import { CourseScheduleFormComponent } from './all-app-component/course-schedule/course-schedule-form/course-schedule-form.component';
+import { CourseCalendarComponent } from './all-app-component/course-schedule/course-calendar/course-calendar.component';
+import { CourseWeekCalendarComponent } from './all-app-component/course-schedule/course-week-calendar/course-week-calendar.component';
+import { CourseMonthCalendarComponent } from './all-app-component/course-schedule/course-month-calendar/course-month-calendar.component';
 
 @NgModule({
   declarations: [
@@ -65,6 +70,11 @@ import { MonthPaginationComponent } from './all-app-component/month-pagination/m
     ReasonTypeListComponent,
     ReasonTypeFormComponent,
     MonthPaginationComponent,
+    CourseScheduleListComponent,
+    CourseScheduleFormComponent,
+    CourseCalendarComponent,
+    CourseWeekCalendarComponent,
+    CourseMonthCalendarComponent,
   ],
   imports: [
     BrowserModule,

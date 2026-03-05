@@ -1,0 +1,79 @@
+<div class="course-form">
+  <h2>{{ id > 0 ? 'Sửa môn học' : 'Thêm môn học' }}</h2>
+  <form (ngSubmit)="submitForm()">
+
+    <div class="form-group">
+      <label for="courseCode">Mã môn <span class="required">*</span></label>
+      <input id="courseCode" type="text" [(ngModel)]="courseCode" name="courseCode" placeholder="VD: 26D1INF50900301" />
+    </div>
+
+    <div class="form-group">
+      <label for="courseName">Tên môn <span class="required">*</span></label>
+      <input id="courseName" type="text" [(ngModel)]="courseName" name="courseName" placeholder="VD: Thống kê máy tính" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="startDate">Ngày bắt đầu</label>
+        <mat-form-field appearance="outline" class="date-field">
+          <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" name="startDate" placeholder="Chọn ngày..." />
+          <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">Ngày kết thúc</label>
+        <mat-form-field appearance="outline" class="date-field">
+          <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" name="endDate" placeholder="Chọn ngày..." />
+          <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="startTime">Giờ bắt đầu</label>
+        <input id="startTime" type="time" [(ngModel)]="startTime" name="startTime" />
+      </div>
+
+      <div class="form-group">
+        <label for="endTime">Giờ kết thúc</label>
+        <input id="endTime" type="time" [(ngModel)]="endTime" name="endTime" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="room">Phòng / Địa chỉ</label>
+      <input id="room" type="text" [(ngModel)]="room" name="room" placeholder="VD: E401 - 279 Nguyễn Tri Phương" />
+    </div>
+
+    <div class="form-group">
+      <label for="semester">Học kỳ</label>
+      <input id="semester" type="text" [(ngModel)]="semester" name="semester" placeholder="VD: HK3 2025-2026" />
+    </div>
+
+    <div class="form-group">
+      <label for="dayOfWeek">Thứ trong tuần <span class="required">*</span></label>
+      <select id="dayOfWeek" [(ngModel)]="dayOfWeek" name="dayOfWeek">
+        <option [ngValue]="null" disabled>Chọn thứ...</option>
+        <option [ngValue]="2">Thứ 2</option>
+        <option [ngValue]="3">Thứ 3</option>
+        <option [ngValue]="4">Thứ 4</option>
+        <option [ngValue]="5">Thứ 5</option>
+        <option [ngValue]="6">Thứ 6</option>
+        <option [ngValue]="7">Thứ 7</option>
+        <option [ngValue]="8">Chủ nhật</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn-submit">Lưu</button>
+  </form>
+
+  <p class="message" *ngIf="message">{{ message }}</p>
+
+  <div class="btn-cancel-wrapper">
+    <button class="btn-cancel" (click)="cancel()">Hủy</button>
+  </div>
+</div>

@@ -36,6 +36,22 @@
       </ng-template>
     </li>
     <li [ngbNavItem]="4" class="nav-item">
+      <a ngbNavLink class="nav-link fw-semibold">📅 Cài đặt TKB & Môn học</a>
+      <ng-template ngbNavContent>
+        <div class="p-3 border rounded bg-light">
+          <app-course-schedule-list></app-course-schedule-list>
+        </div>
+      </ng-template>
+    </li>
+    <li [ngbNavItem]="5" class="nav-item">
+      <a ngbNavLink class="nav-link fw-semibold">🗓️ Thời khóa biểu</a>
+      <ng-template ngbNavContent>
+        <div class="p-3 border rounded bg-light">
+          <app-course-calendar></app-course-calendar>
+        </div>
+      </ng-template>
+    </li>
+    <li [ngbNavItem]="7" class="nav-item">
       <a ngbNavLink class="nav-link fw-semibold">⚙️ Cài đặt</a>
       <ng-template ngbNavContent>
         <div class="p-3 border rounded bg-light">Chỉnh sửa cấu hình hệ thống.</div>

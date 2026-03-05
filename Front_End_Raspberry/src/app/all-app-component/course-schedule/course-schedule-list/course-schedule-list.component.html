@@ -1,0 +1,45 @@
+<div class="course-table-container">
+
+  <h2>Cài đặt thời khóa biểu & Môn học</h2>
+
+  <div class="toolbar">
+    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm môn mới</button>
+  </div>
+
+  <table class="course-table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Mã môn</th>
+        <th>Tên môn</th>
+        <th>Ngày bắt đầu</th>
+        <th>Ngày kết thúc</th>
+        <th>Giờ học</th>
+        <th>Thứ</th>
+        <th>Phòng / Địa chỉ</th>
+        <th>Học kỳ</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of courses">
+        <td>{{ item.id }}</td>
+        <td><span class="course-code">{{ item.courseCode }}</span></td>
+        <td>{{ item.courseName }}</td>
+        <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
+        <td>{{ item.endDate | date:'dd/MM/yyyy' }}</td>
+        <td>{{ item.startTime && item.endTime ? item.startTime + ' - ' + item.endTime : '' }}</td>
+        <td>{{ dayOfWeekLabel(item.dayOfWeek) }}</td>
+        <td>{{ item.room }}</td>
+        <td><span class="semester-badge">{{ item.semester }}</span></td>
+        <td class="col-actions">
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoá</button>
+        </td>
+      </tr>
+      <tr *ngIf="courses.length === 0">
+        <td colspan="10" class="empty-row">Chưa có môn học nào.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

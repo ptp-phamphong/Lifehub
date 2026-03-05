@@ -1,0 +1,17 @@
+
+<div class="view-toggle-bar">
+  <span class="toggle-label" [class.active]="!showMonth">Tuần</span>
+  <label class="toggle-switch">
+    <input type="checkbox" [(ngModel)]="showMonth" name="showMonth" />
+    <span class="toggle-slider"></span>
+  </label>
+  <span class="toggle-label" [class.active]="showMonth">Tháng</span>
+</div>
+
+<ng-container *ngIf="showMonth">
+  <app-course-month-calendar></app-course-month-calendar>
+</ng-container>
+
+<ng-container *ngIf="!showMonth">
+  <app-course-week-calendar></app-course-week-calendar>
+</ng-container>

@@ -1,0 +1,165 @@
+// ── Color Variables ──
+$primary: #0ea5e9;
+$primary-light: #e0f2fe;
+$primary-hover: #0284c7;
+$danger: #ef4444;
+$danger-hover: #dc2626;
+$surface: #ffffff;
+$bg: #f8fafc;
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$border: #e2e8f0;
+$border-hover: #cbd5e1;
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.03);
+$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.04);
+$radius: 12px;
+$radius-sm: 8px;
+
+.course-table-container {
+  padding: 28px 32px;
+  background: $surface;
+  border-radius: $radius;
+  box-shadow: $shadow-lg;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 20px 0;
+  }
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.btn-add {
+  background: $primary;
+  color: #fff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: $radius-sm;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $primary-hover;
+  }
+}
+
+.course-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  overflow: hidden;
+
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid $border;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: $bg;
+    color: $text-secondary;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  tbody tr {
+    transition: background 0.15s;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+.course-code {
+  background: $primary-light;
+  color: $primary;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.semester-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.col-actions {
+  white-space: nowrap;
+  display: flex;
+  gap: 6px;
+}
+
+.btn-action {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.btn-edit {
+  background: $primary;
+  color: #fff;
+
+  &:hover {
+    background: $primary-hover;
+  }
+}
+
+.btn-delete {
+  background: $danger;
+  color: #fff;
+
+  &:hover {
+    background: $danger-hover;
+  }
+}
+
+.empty-row {
+  text-align: center;
+  color: $text-secondary;
+  padding: 30px 0 !important;
+  font-style: italic;
+}
+
+::ng-deep .cdk-overlay-pane {
+  z-index: 1001;
+}
+
+::ng-deep .cdk-overlay-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}

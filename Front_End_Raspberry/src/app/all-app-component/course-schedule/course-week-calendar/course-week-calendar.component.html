@@ -1,0 +1,123 @@
+<div class="week-calendar-container" (click)="closeDetail()">
+
+  <!-- Header: Week Navigation -->
+  <div class="week-header">
+    <button class="btn-nav" (click)="prevWeek()">◀</button>
+    <div class="week-label" (click)="goToCurrentWeek(); $event.stopPropagation()">
+      <span class="week-title">{{ weekRangeLabel }}</span>
+    </div>
+    <button class="btn-nav" (click)="nextWeek()">▶</button>
+  </div>
+
+  <!-- Timetable Grid -->
+  <div class="timetable-wrapper">
+    <div class="timetable">
+
+      <!-- Column Headers (time gutter + 7 days) -->
+      <div class="timetable-header">
+        <div class="time-gutter-header"></div>
+        <div
+          *ngFor="let day of weekDays"
+          class="day-col-header"
+          [class.today]="isToday(day)"
+        >
+          <span class="day-name">{{ day.label }}</span>
+          <span class="day-date">{{ day.dateLabel }}</span>
+        </div>
+      </div>
+
+      <!-- Body: hours + day columns -->
+      <div class="timetable-body" [style.height.px]="gridHeight">
+
+        <!-- Time gutter (left column with hours) -->
+        <div class="time-gutter">
+          <div
+            *ngFor="let h of hours"
+            class="time-slot"
+            [style.height.px]="hourHeight"
+          >
+            <span class="time-label">{{ formatHour(h) }}</span>
+          </div>
+        </div>
+
+        <!-- Day columns -->
+        <div
+          *ngFor="let day of weekDays"
+          class="day-column"
+          [class.today-col]="isToday(day)"
+        >
+          <!-- Hour grid lines -->
+          <div
+            *ngFor="let h of hours"
+            class="hour-line"
+            [style.height.px]="hourHeight"
+          ></div>
+
+          <!-- Course blocks -->
+          <div
+            *ngFor="let block of getCoursesForDay(day)"
+            class="course-block"
+            [style.top.px]="block.top"
+            [style.height.px]="block.height"
+            [style.background]="block.color"
+            [style.color]="block.textColor"
+            [style.border-left-color]="getBorderColor(block)"
+            (click)="selectCourse(block, $event)"
+            [title]="block.course.courseName"
+          >
+            <span class="block-time">{{ block.course.startTime }} - {{ block.course.endTime }}</span>
+            <span class="block-name">{{ block.course.courseName }}</span>
+            <span class="block-room" *ngIf="block.height > 40">{{ block.course.room }}</span>
+          </div>
+
+          <!-- Current time indicator -->
+          <div
+            *ngIf="isToday(day) && isCurrentWeek() && currentTimeTop() !== null"
+            class="current-time-line"
+            [style.top.px]="currentTimeTop()"
+          >
+            <div class="time-dot"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Course Detail Panel (overlay) -->
+  <div class="detail-panel" *ngIf="selectedCourse" (click)="closeDetail(); $event.stopPropagation()">
+    <div class="detail-card" (click)="$event.stopPropagation()">
+      <button class="btn-close-detail" (click)="closeDetail()">✕</button>
+      <h3>{{ selectedCourse.courseName }}</h3>
+      <table class="detail-table">
+        <tr>
+          <td class="label">Mã môn:</td>
+          <td>{{ selectedCourse.courseCode }}</td>
+        </tr>
+        <tr>
+          <td class="label">Thứ:</td>
+          <td>{{ dayOfWeekLabel(selectedCourse.dayOfWeek) }}</td>
+        </tr>
+        <tr>
+          <td class="label">Giờ học:</td>
+          <td>{{ selectedCourse.startTime }} - {{ selectedCourse.endTime }}</td>
+        </tr>
+        <tr>
+          <td class="label">Ngày bắt đầu:</td>
+          <td>{{ selectedCourse.startDate | date:'dd/MM/yyyy' }}</td>
+        </tr>
+        <tr>
+          <td class="label">Ngày kết thúc:</td>
+          <td>{{ selectedCourse.endDate | date:'dd/MM/yyyy' }}</td>
+        </tr>
+        <tr>
+          <td class="label">Phòng:</td>
+          <td>{{ selectedCourse.room }}</td>
+        </tr>
+        <tr>
+          <td class="label">Học kỳ:</td>
+          <td>{{ selectedCourse.semester }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
