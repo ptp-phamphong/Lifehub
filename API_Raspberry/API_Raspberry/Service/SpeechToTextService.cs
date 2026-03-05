@@ -14,16 +14,22 @@ namespace API_Raspberry.Service
 
         public SpeechToTextService()
         {
-            _endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT") ?? "";
-            _apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY") ?? "";
-            _deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_WHISPER_DEPLOYMENT") ?? "whisper";
+            _endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT");
+            _apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY");
+            _deploymentName = Environment.GetEnvironmentVariable("AZURE_OPENAI_WHISPER_DEPLOYMENT");
         }
 
         /// <summary>
         /// Nhận file audio (byte[]) và gửi đến Azure OpenAI Whisper để chuyển thành text.
+        /// Tự động convert sang WAV (16kHz mono) bằng ffmpeg để đảm bảo tương thích.
         /// </summary>
         public async Task<string> TranscribeAudioAsync(byte[] audioData, string fileName)
         {
+            if (audioData == null || audioData.Length == 0)
+            {
+                throw new ArgumentException("Audio data rỗng.");
+            }
+
             if (string.IsNullOrEmpty(_endpoint) || string.IsNullOrEmpty(_apiKey))
             {
                 throw new InvalidOperationException(
@@ -36,19 +42,80 @@ namespace API_Raspberry.Service
 
             AudioClient audioClient = azureClient.GetAudioClient(_deploymentName);
 
-            // Tạo stream từ byte array
-            using MemoryStream audioStream = new MemoryStream(audioData);
-
             AudioTranscriptionOptions options = new AudioTranscriptionOptions
             {
                 Language = "vi", // Tiếng Việt
                 ResponseFormat = AudioTranscriptionFormat.Text
             };
 
+            // Convert sang WAV bằng ffmpeg để tránh lỗi "Audio file might be corrupted or unsupported"
+            // do file m4a từ mobile có thể không đúng format mà API yêu cầu
+            byte[] processedData = audioData;
+            string processedFileName = fileName;
+
+            try
+            {
+                var (wavData, wavName) = await ConvertToWavAsync(audioData, fileName);
+                processedData = wavData;
+                processedFileName = wavName;
+                Console.WriteLine($"[SpeechToText] Đã convert {fileName} ({audioData.Length} bytes) -> WAV ({wavData.Length} bytes)");
+            }
+            catch (Exception ex)
+            {
+                // ffmpeg không có hoặc convert thất bại -> gửi file gốc
+                Console.WriteLine($"[SpeechToText] Không thể convert sang WAV: {ex.Message}. Gửi file gốc.");
+            }
+
+            using MemoryStream audioStream = new MemoryStream(processedData);
+
             AudioTranscription transcription = await audioClient.TranscribeAudioAsync(
-                audioStream, fileName, options);
+                audioStream, processedFileName, options);
 
             return transcription.Text ?? "";
+        }
+
+        /// <summary>
+        /// Convert audio sang WAV (PCM 16-bit, 16kHz, mono) bằng ffmpeg.
+        /// </summary>
+        private async Task<(byte[] data, string fileName)> ConvertToWavAsync(byte[] audioData, string fileName)
+        {
+            string inputPath = Path.Combine(Path.GetTempPath(), $"stt_in_{Guid.NewGuid()}{Path.GetExtension(fileName)}");
+            string outputPath = Path.Combine(Path.GetTempPath(), $"stt_out_{Guid.NewGuid()}.wav");
+
+            try
+            {
+                await File.WriteAllBytesAsync(inputPath, audioData);
+
+                var process = new System.Diagnostics.Process
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "ffmpeg",
+                        Arguments = $"-i \"{inputPath}\" -ar 16000 -ac 1 -sample_fmt s16 \"{outputPath}\" -y",
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+
+                process.Start();
+                string stderr = await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                if (process.ExitCode != 0 || !File.Exists(outputPath))
+                {
+                    throw new InvalidOperationException(
+                        $"ffmpeg convert thất bại (exit code: {process.ExitCode}).\n{stderr}");
+                }
+
+                byte[] wavData = await File.ReadAllBytesAsync(outputPath);
+                return (wavData, "audio.wav");
+            }
+            finally
+            {
+                if (File.Exists(inputPath)) File.Delete(inputPath);
+                if (File.Exists(outputPath)) File.Delete(outputPath);
+            }
         }
 
         #region Whisper.net Local (commented out - model thiếu chính xác)
