@@ -36,20 +36,20 @@ namespace API_Raspberry.Service
                 result = paramFilter.SortColumn.ToLower() switch
                 {
                     "id" => isDesc
-                        ? result.OrderByDescending(e => e.Id).ToList()
-                        : result.OrderBy(e => e.Id).ToList(),
+                        ? result.OrderByDescending(e => e.Id).ThenByDescending(e => e.Id).ToList()
+                        : result.OrderBy(e => e.Id).ThenBy(e => e.Id).ToList(),
                     "createddate" => isDesc
-                        ? result.OrderByDescending(e => e.CreatedDate).ToList()
-                        : result.OrderBy(e => e.CreatedDate).ToList(),
+                        ? result.OrderByDescending(e => e.CreatedDate).ThenByDescending(e => e.Id).ToList()
+                        : result.OrderBy(e => e.CreatedDate).ThenBy(e => e.Id).ToList(),
                     "reason" => isDesc
-                        ? result.OrderByDescending(e => e.Reason).ToList()
-                        : result.OrderBy(e => e.Reason).ToList(),
+                        ? result.OrderByDescending(e => e.Reason).ThenByDescending(e => e.Id).ToList()
+                        : result.OrderBy(e => e.Reason).ThenBy(e => e.Id).ToList(),
                     "reasontype" => isDesc
-                        ? result.OrderByDescending(e => e.ReasonType?.ReasonName ?? "").ToList()
-                        : result.OrderBy(e => e.ReasonType?.ReasonName ?? "").ToList(),
+                        ? result.OrderByDescending(e => e.ReasonType?.ReasonName ?? "").ThenByDescending(e => e.Id).ToList()
+                        : result.OrderBy(e => e.ReasonType?.ReasonName ?? "").ThenBy(e => e.Id).ToList(),
                     "amount" => isDesc
-                        ? result.OrderByDescending(e => e.Amount).ToList()
-                        : result.OrderBy(e => e.Amount).ToList(),
+                        ? result.OrderByDescending(e => e.Amount).ThenByDescending(e => e.Id).ToList()
+                        : result.OrderBy(e => e.Amount).ThenBy(e => e.Id).ToList(),
                     _ => result
                 };
             }
