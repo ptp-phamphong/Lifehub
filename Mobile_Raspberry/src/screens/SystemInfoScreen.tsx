@@ -5,7 +5,7 @@ import { getApiBaseUrl } from '../config';
 interface SystemInfo {
   cpuTemperature: string;
   ramAvailable: string;
-  memoryAvailabel: string;
+  memoryAvailable: string;
 }
 
 export default function SystemInfoScreen() {
@@ -88,7 +88,7 @@ export default function SystemInfoScreen() {
             <Text style={styles.cardIcon}>💾</Text>
             <View style={styles.cardContent}>
               <Text style={styles.cardLabel}>BỘ NHỚ TRỐNG</Text>
-              <Text style={[styles.cardValue, styles.cardValueStorage]}>{result.memoryAvailabel}</Text>
+              <Text style={[styles.cardValue, styles.cardValueStorage]}>{result.memoryAvailable}</Text>
             </View>
           </View>
         </View>
