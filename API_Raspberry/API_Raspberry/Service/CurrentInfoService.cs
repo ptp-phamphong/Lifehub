@@ -3,7 +3,12 @@ using System.Diagnostics;
 
 namespace API_Raspberry.Service
 {
-    public class CurrentInfoService
+    public interface ICurrentInfoService
+    {
+        SystemInfo GetSystemStatus();
+    }
+
+    public class CurrentInfoService : ICurrentInfoService
     {
 
         public CurrentInfoService()
@@ -23,7 +28,7 @@ namespace API_Raspberry.Service
                 {
                     CpuTemperature = cpu,
                     RamAvailable = ram,
-                    MemoryAvailabel = disk
+                    MemoryAvailable = disk
                 };
             }
             catch (Exception ex)

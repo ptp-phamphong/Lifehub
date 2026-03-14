@@ -1,110 +1,56 @@
-﻿using API_Raspberry.Model;
-using Microsoft.Data.Sqlite;
+﻿using API_Raspberry.Data;
+using API_Raspberry.Dto;
+using API_Raspberry.Mapper;
+using API_Raspberry.Model;
 
 namespace API_Raspberry.Repository
 {
-    public class ReasonTypeRepository
+    public interface IReasonTypeRepository
     {
+        List<ReasonType> GetAllReasonType();
+        void AddReasonType(ReasonTypeCreateDto dto);
+        ReasonType GetReasonTypeById(int id);
+        void UpdateReasonType(int id, ReasonTypeUpdateDto dto);
+    }
 
-        private readonly string _dbPath;
-        private readonly string _connectionString;
+    public class ReasonTypeRepository : IReasonTypeRepository
+    {
+        private readonly AppDbContext _context;
+        private readonly IReasonTypeMapper _reasonTypeMapper;
 
-        public ReasonTypeRepository()
+        public ReasonTypeRepository(AppDbContext context, IReasonTypeMapper reasonTypeMapper)
         {
-            string baseDir = AppContext.BaseDirectory;
-            string dbDir = Path.Combine(baseDir, "../Database");
-            _dbPath = Path.GetFullPath(Path.Combine(dbDir, "raspberry.db"));
-
-            // Tạo thư mục nếu chưa có
-            Directory.CreateDirectory(Path.GetDirectoryName(_dbPath)!);
-
-            _connectionString = $"Data Source={_dbPath};";
+            _context = context;
+            _reasonTypeMapper = reasonTypeMapper;
         }
 
         public List<ReasonType> GetAllReasonType()
         {
-            var list = new List<ReasonType>();
-
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string selectSql = "SELECT id, reasonName, sortOrder, Active FROM ReasonType ORDER BY sortOrder;";
-            using var command = new SqliteCommand(selectSql, connection);
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                list.Add(new ReasonType
-                {
-                    Id = reader.GetInt32(0),
-                    ReasonName = reader.GetString(1),
-                    SortOrder = !reader.IsDBNull(2) ? reader.GetInt32(2) : null,
-                    Active = reader.GetBoolean(3),
-                });
-            }
-
-            return list;
+            return _context.ReasonTypes
+                .OrderBy(r => r.SortOrder)
+                .ToList();
         }
 
-        public void AddReasonType(ReasonType reasonType)
+        public void AddReasonType(ReasonTypeCreateDto dto)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string insertSql = @"
-                INSERT INTO ReasonType (reasonName, sortOrder, active)
-                VALUES (@reasonName, @sortOrder, @active);";
-
-            using var command = new SqliteCommand(insertSql, connection);
-            command.Parameters.AddWithValue("@reasonName", reasonType.ReasonName);
-            command.Parameters.AddWithValue("@sortOrder", reasonType.SortOrder);
-            command.Parameters.AddWithValue("@active", true);
-            command.ExecuteNonQuery();
+            var entity = _reasonTypeMapper.ToEntity(dto);
+            _context.ReasonTypes.Add(entity);
+            _context.SaveChanges();
         }
-
 
         public ReasonType GetReasonTypeById(int id)
         {
-
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string selectSql = $"SELECT Id, reasonName, sortOrder, Active FROM ReasonType Where Id = {id};";
-            using var command = new SqliteCommand(selectSql, connection);
-            using var reader = command.ExecuteReader();
-
-            if (reader.Read())
-            {
-                return new ReasonType
-                {
-                    Id = reader.GetInt32(0),
-                    ReasonName = reader.GetString(1),
-                    SortOrder = !reader.IsDBNull(2) ? reader.GetInt32(2) : null,
-                    Active = reader.GetBoolean(3),
-                };
-            }
-
-            return null;
+            return _context.ReasonTypes.FirstOrDefault(r => r.Id == id);
         }
 
-
-
-        public void UpdateReasonType(int id, ReasonType reasonType)
+        public void UpdateReasonType(int id, ReasonTypeUpdateDto dto)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string insertSql = @"
-                Update ReasonType
-                Set reasonName = @reasonName, sortOrder = @sortOrder, active = @active
-                Where Id = @id;";
-
-            using var command = new SqliteCommand(insertSql, connection);
-            command.Parameters.AddWithValue("@reasonName", reasonType.ReasonName);
-            command.Parameters.AddWithValue("@sortOrder", reasonType.SortOrder);
-            command.Parameters.AddWithValue("@active", reasonType.Active);
-            command.Parameters.AddWithValue("@id", id);
-            command.ExecuteNonQuery();
+            var existing = _context.ReasonTypes.Find(id);
+            if (existing != null)
+            {
+                _reasonTypeMapper.UpdateEntity(existing, dto);
+                _context.SaveChanges();
+            }
         }
     }
 }

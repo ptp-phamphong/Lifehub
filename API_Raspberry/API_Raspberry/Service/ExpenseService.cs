@@ -1,25 +1,49 @@
-﻿using API_Raspberry.Model;
+﻿using API_Raspberry.Dto;
+using API_Raspberry.Mapper;
+using API_Raspberry.Model;
 using API_Raspberry.Repository;
-using System.Data.SQLite;
 
 namespace API_Raspberry.Service
 {
-    public class ExpenseService
+    public interface IExpenseService
     {
+        void AddExpense(ExpenseRecordCreateDto dto);
+        List<ExpenseRecordDto> GetAllExpenses(ParamFilter paramFilter);
+        ExpenseRecordDto GetExpenseById(int id);
+        void UpdateExpense(int id, ExpenseRecordUpdateDto dto);
+        void DeleteExpense(int id);
+        int SumAll();
+        int SumAllWithFilter(ParamFilter paramFilter);
+        List<ExpenseRecordDto> GetExpensesByMonth(int month, int year);
+        int SumByMonth(int month, int year);
+        int SumByCurrentMonth(ParamFilter paramFilter);
+        int SumByCurrentWeek(ParamFilter paramFilter);
+    }
 
-        public void AddExpense(ExpenseRecord expense)
+    public class ExpenseService : IExpenseService
+    {
+        private readonly IExpenseRepository _expenseRepository;
+        private readonly IReasonTypeRepository _reasonTypeRepository;
+        private readonly IExpenseRecordMapper _expenseRecordMapper;
+
+        public ExpenseService(IExpenseRepository expenseRepository, IReasonTypeRepository reasonTypeRepository, IExpenseRecordMapper expenseRecordMapper)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            expenseRepository.AddExpense(expense);
+            _expenseRepository = expenseRepository;
+            _reasonTypeRepository = reasonTypeRepository;
+            _expenseRecordMapper = expenseRecordMapper;
         }
 
-        public List<Model.ExpenseRecord> GetAllExpenses(ParamFilter paramFilter)
+        public void AddExpense(ExpenseRecordCreateDto dto)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            var result = expenseRepository.GetAllExpenses(paramFilter);
+            var entity = _expenseRecordMapper.ToEntity(dto);
+            _expenseRepository.AddExpense(entity);
+        }
 
-            ReasonTypeRepository reasonTypeRepository = new ReasonTypeRepository();
-            List<ReasonType> reasonTypes = reasonTypeRepository.GetAllReasonType();
+        public List<ExpenseRecordDto> GetAllExpenses(ParamFilter paramFilter)
+        {
+            var result = _expenseRepository.GetAllExpenses(paramFilter);
+
+            List<ReasonType> reasonTypes = _reasonTypeRepository.GetAllReasonType();
             foreach (var expense in result)
             {
                 if (expense.ReasonTypeId.HasValue)
@@ -54,67 +78,59 @@ namespace API_Raspberry.Service
                 };
             }
 
-            return result;
+            return _expenseRecordMapper.ToDtoList(result);
         }
 
-        public Model.ExpenseRecord GetExpenseById(int id)
+        public ExpenseRecordDto GetExpenseById(int id)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            return expenseRepository.GetExpenseById(id);
+            var entity = _expenseRepository.GetExpenseById(id);
+            return _expenseRecordMapper.ToDto(entity);
         }
 
-        public void UpdateExpense(int id, ExpenseRecord expense)
+        public void UpdateExpense(int id, ExpenseRecordUpdateDto dto)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            expenseRepository.UpdateExpense(id, expense);
+            _expenseRepository.UpdateExpense(id, dto);
         }
 
         public void DeleteExpense(int id)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            expenseRepository.DeleteById(id);
+            _expenseRepository.DeleteById(id);
         }
 
         public int SumAll()
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            return expenseRepository.SumAll();
+            return _expenseRepository.SumAll();
         }
 
         public int SumAllWithFilter(ParamFilter paramFilter)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            return expenseRepository.SumAllWithFilter(paramFilter);
+            return _expenseRepository.SumAllWithFilter(paramFilter);
         }
 
-        public List<Model.ExpenseRecord> GetExpensesByMonth(int month, int year)
+        public List<ExpenseRecordDto> GetExpensesByMonth(int month, int year)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            return expenseRepository.GetExpensesByMonth(month, year);
+            var entities = _expenseRepository.GetExpensesByMonth(month, year);
+            return _expenseRecordMapper.ToDtoList(entities);
         }
 
         public int SumByMonth(int month, int year)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
-            return expenseRepository.SumByMonth(new ParamFilter(), month, year);
+            return _expenseRepository.SumByMonth(new ParamFilter(), month, year);
         }
 
         public int SumByCurrentMonth(ParamFilter paramFilter)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
             var now = DateTime.Now;
-            return expenseRepository.SumByMonth(paramFilter, now.Month, now.Year);
+            return _expenseRepository.SumByMonth(paramFilter, now.Month, now.Year);
         }
 
         public int SumByCurrentWeek(ParamFilter paramFilter)
         {
-            ExpenseRepository expenseRepository = new ExpenseRepository();
             var today = DateTime.Today;
-            // Calculate Monday of the current week
             int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
             var startOfWeek = today.AddDays(-diff).Date;
-            var endOfWeek = startOfWeek.AddDays(7).Date; // Next Monday (exclusive)
-            return expenseRepository.SumByWeek(paramFilter, startOfWeek, endOfWeek);
+            var endOfWeek = startOfWeek.AddDays(7).Date;
+            return _expenseRepository.SumByWeek(paramFilter, startOfWeek, endOfWeek);
         }
     }
 }

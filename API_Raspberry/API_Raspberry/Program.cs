@@ -1,5 +1,14 @@
+using API_Raspberry.Data;
+using API_Raspberry.Mapper;
+using API_Raspberry.Repository;
 using API_Raspberry.Service;
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.EntityFrameworkCore;
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
 
 // ----------------------------
 // 1️⃣ Thêm cấu hình CORS
@@ -16,7 +25,38 @@ builder.Services.AddCors(options =>
 });
 
 // ----------------------------
-// 2️⃣ Các service mặc định
+// 2️⃣ Database - Entity Framework + MySQL
+// ----------------------------
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+// ----------------------------
+// 3️⃣ Dependency Injection - Mappers
+// ----------------------------
+builder.Services.AddScoped<IReasonTypeMapper, ReasonTypeMapper>();
+builder.Services.AddScoped<IExpenseRecordMapper, ExpenseRecordMapper>();
+builder.Services.AddScoped<ICourseScheduleMapper, CourseScheduleMapper>();
+builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
+
+// ----------------------------
+// 4️⃣ Dependency Injection - Repositories
+// ----------------------------
+builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<IReasonTypeRepository, ReasonTypeRepository>();
+builder.Services.AddScoped<ICourseScheduleRepository, CourseScheduleRepository>();
+
+// ----------------------------
+// 5️⃣ Dependency Injection - Services
+// ----------------------------
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IReasonTypeService, ReasonTypeService>();
+builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
+builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
+builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();
+
+// ----------------------------
+// 5️⃣ Các service mặc định
 // ----------------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -26,7 +66,21 @@ builder.Services.AddHostedService<ButtonListener>();
 var app = builder.Build();
 
 // ----------------------------
-// 3️⃣ Middleware
+// Auto-apply EF Core migrations khi khởi động
+// ----------------------------
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️ Migration failed: {ex.Message}");
+}
+
+// ----------------------------
+// 6️⃣ Middleware
 // ----------------------------
 if (app.Environment.IsDevelopment())
 {
@@ -44,7 +98,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 // ----------------------------
-// 4️⃣ Lắng nghe trên mọi IP và port 5000
+// 7️⃣ Lắng nghe trên mọi IP và port 5000
 // ----------------------------
  app.Run();
 //app.Run("http://127.0.0.1:5000");

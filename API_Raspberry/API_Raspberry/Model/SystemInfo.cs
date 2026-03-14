@@ -4,6 +4,6 @@
     {
         public string? CpuTemperature { get; set; }
         public string? RamAvailable { get; set; }
-        public string? MemoryAvailabel { get; set; }
+        public string? MemoryAvailable { get; set; }
     }
 }

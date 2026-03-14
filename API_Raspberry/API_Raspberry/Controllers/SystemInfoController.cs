@@ -1,4 +1,5 @@
-﻿using API_Raspberry.Model;
+﻿using API_Raspberry.Dto;
+using API_Raspberry.Mapper;
 using API_Raspberry.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,19 +7,21 @@ namespace API_Raspberry.Controllers
 {
     public class SystemInfoController : ControllerBase
     {
+        private readonly ICurrentInfoService _currentInfoService;
+        private readonly ISystemInfoMapper _systemInfoMapper;
 
-        private readonly ILogger<SystemInfoController> _logger;
-
-        public SystemInfoController(ILogger<SystemInfoController> logger)
+        public SystemInfoController(ICurrentInfoService currentInfoService, ISystemInfoMapper systemInfoMapper)
         {
-            _logger = logger;
+            _currentInfoService = currentInfoService;
+            _systemInfoMapper = systemInfoMapper;
         }
 
         [HttpGet]
         [Route("SystemInfo")]
-        public SystemInfo Get()
+        public SystemInfoDto Get()
         {
-            return new CurrentInfoService().GetSystemStatus();
+            var entity = _currentInfoService.GetSystemStatus();
+            return _systemInfoMapper.ToDto(entity);
         }
     }
 }

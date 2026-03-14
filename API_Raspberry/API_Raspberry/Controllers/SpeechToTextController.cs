@@ -5,19 +5,17 @@ namespace API_Raspberry.Controllers
 {
     public class SpeechToTextController : ControllerBase
     {
-        public SpeechToTextController()
+        private readonly ISpeechToTextService _speechToTextService;
+
+        public SpeechToTextController(ISpeechToTextService speechToTextService)
         {
+            _speechToTextService = speechToTextService;
         }
 
-        /// <summary>
-        /// Nhận file audio upload từ mobile, gửi đến Azure OpenAI Whisper,
-        /// trả về text đã transcribe.
-        /// </summary>
         [HttpPost]
         [Route("SpeechToText")]
         public async Task<IActionResult> SpeechToText([FromForm] IFormFile audioFile)
         {
-
             if (audioFile == null || audioFile.Length == 0)
             {
                 return BadRequest(new { error = "Không có file audio." });
@@ -25,14 +23,11 @@ namespace API_Raspberry.Controllers
 
             try
             {
-                // Đọc file thành byte array
                 using var memoryStream = new MemoryStream();
                 await audioFile.CopyToAsync(memoryStream);
                 byte[] audioData = memoryStream.ToArray();
 
-                // Gọi Azure OpenAI Whisper
-                SpeechToTextService service = new SpeechToTextService();
-                string transcribedText = await service.TranscribeAudioAsync(audioData, audioFile.FileName);
+                string transcribedText = await _speechToTextService.TranscribeAudioAsync(audioData, audioFile.FileName);
 
                 return Ok(new { text = transcribedText });
             }

@@ -1,36 +1,48 @@
-﻿using API_Raspberry.Model;
+﻿using API_Raspberry.Dto;
+using API_Raspberry.Mapper;
 using API_Raspberry.Repository;
 
 namespace API_Raspberry.Service
 {
-    public class ReasonTypeService
+    public interface IReasonTypeService
     {
-        private readonly ReasonTypeRepository _reasonTypeRepository;
+        List<ReasonTypeDto> GetAllReasonType();
+        void AddReasonType(ReasonTypeCreateDto dto);
+        ReasonTypeDto GetReasonTypeById(int id);
+        void UpdateReasonType(int id, ReasonTypeUpdateDto dto);
+    }
 
-        public ReasonTypeService()
+    public class ReasonTypeService : IReasonTypeService
+    {
+        private readonly IReasonTypeRepository _reasonTypeRepository;
+        private readonly IReasonTypeMapper _reasonTypeMapper;
+
+        public ReasonTypeService(IReasonTypeRepository reasonTypeRepository, IReasonTypeMapper reasonTypeMapper)
         {
-            _reasonTypeRepository = new ReasonTypeRepository();
+            _reasonTypeRepository = reasonTypeRepository;
+            _reasonTypeMapper = reasonTypeMapper;
         }
 
-        // Wrapper methods delegating to repository
-        public List<ReasonType> GetAllReasonType()
+        public List<ReasonTypeDto> GetAllReasonType()
         {
-            return _reasonTypeRepository.GetAllReasonType();
+            var entities = _reasonTypeRepository.GetAllReasonType();
+            return _reasonTypeMapper.ToDtoList(entities);
         }
 
-        public void AddReasonType(ReasonType reasonType)
+        public void AddReasonType(ReasonTypeCreateDto dto)
         {
-            _reasonTypeRepository.AddReasonType(reasonType);
+            _reasonTypeRepository.AddReasonType(dto);
         }
 
-        public ReasonType GetReasonTypeById(int id)
+        public ReasonTypeDto GetReasonTypeById(int id)
         {
-            return _reasonTypeRepository.GetReasonTypeById(id);
+            var entity = _reasonTypeRepository.GetReasonTypeById(id);
+            return _reasonTypeMapper.ToDto(entity);
         }
 
-        public void UpdateReasonType(int id, ReasonType reasonType)
+        public void UpdateReasonType(int id, ReasonTypeUpdateDto dto)
         {
-            _reasonTypeRepository.UpdateReasonType(id, reasonType);
+            _reasonTypeRepository.UpdateReasonType(id, dto);
         }
     }
 }

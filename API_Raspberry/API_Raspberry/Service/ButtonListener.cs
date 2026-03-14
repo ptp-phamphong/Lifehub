@@ -25,8 +25,15 @@ namespace API_Raspberry.Service
         {
             _controller = new GpioController();
 
-            // GIỐNG PYTHON: pull_up=False -> dùng PULL-DOWN
-            _controller.OpenPin(_pin, PinMode.InputPullDown);
+            try
+            {
+                // GIỐNG PYTHON: pull_up=False -> dùng PULL-DOWN
+                _controller.OpenPin(_pin, PinMode.InputPullDown);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"⚠️ GPIO pin {_pin} could not be opened: {ex.Message}");
+            }
 
             // Tạo file nếu chưa có
             if (!File.Exists(_logFile))
@@ -37,6 +44,12 @@ namespace API_Raspberry.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            if (!_controller.IsPinOpen(_pin))
+            {
+                WriteLog("GPIO pin 27 is not available. ButtonListener disabled.");
+                return;
+            }
+
             WriteLog("Start listen gipo 27");
 
             PinValue prev = _controller.Read(_pin);  // trạng thái ban đầu

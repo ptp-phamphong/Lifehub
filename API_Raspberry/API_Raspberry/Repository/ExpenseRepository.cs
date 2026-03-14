@@ -1,436 +1,171 @@
-﻿using API_Raspberry.Model;
-using Microsoft.Data.Sqlite;
-using System.Data;
-using System.Data.SQLite;
+﻿using API_Raspberry.Data;
+using API_Raspberry.Dto;
+using API_Raspberry.Mapper;
+using API_Raspberry.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace API_Raspberry.Repository
 {
-    public class ExpenseRepository
+    public interface IExpenseRepository
     {
-        private readonly string _dbPath;
-        private readonly string _connectionString;
+        void AddExpense(ExpenseRecord expense);
+        List<ExpenseRecord> GetAllExpenses(ParamFilter paramFilter);
+        ExpenseRecord GetExpenseById(int id);
+        void UpdateExpense(int id, ExpenseRecordUpdateDto dto);
+        void DeleteById(int id);
+        int SumAll();
+        int SumAllWithFilter(ParamFilter paramFilter);
+        List<ExpenseRecord> GetExpensesByMonth(int month, int year);
+        int SumByMonth(ParamFilter paramFilter, int month, int year);
+        int SumByWeek(ParamFilter paramFilter, DateTime startOfWeek, DateTime endOfWeek);
+    }
 
-        public ExpenseRepository()
+    public class ExpenseRepository : IExpenseRepository
+    {
+        private readonly AppDbContext _context;
+        private readonly IExpenseRecordMapper _expenseRecordMapper;
+
+        public ExpenseRepository(AppDbContext context, IExpenseRecordMapper expenseRecordMapper)
         {
-            string baseDir = AppContext.BaseDirectory;
-            string dbDir = Path.Combine(baseDir, "../Database");
-            _dbPath = Path.GetFullPath(Path.Combine(dbDir, "raspberry.db"));
-
-            // Tạo thư mục nếu chưa có
-            Directory.CreateDirectory(Path.GetDirectoryName(_dbPath)!);
-
-            _connectionString = $"Data Source={_dbPath};";
-            EnsureDatabase();
-        }
-
-        private void EnsureDatabase()
-        {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string createTableSql = @"
-                CREATE TABLE IF NOT EXISTS expenseRecords (
-                    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    Reason TEXT NOT NULL,
-                    Amount INTEGER NOT NULL,
-                    CreatedDate DATETIME NOT NULL
-                );";
-
-            using var command = new SqliteCommand(createTableSql, connection);
-            command.ExecuteNonQuery();
+            _context = context;
+            _expenseRecordMapper = expenseRecordMapper;
         }
 
         public void AddExpense(ExpenseRecord expense)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string insertSql = @"
-                INSERT INTO expenseRecords (Reason, Amount, ReasonTypeId, CreatedDate)
-                VALUES (@reason, @amount, @reasonTypeId , @createdDate);";
-
-            using var command = new SqliteCommand(insertSql, connection);
-            command.Parameters.AddWithValue("@reason", expense.Reason);
-            command.Parameters.AddWithValue("@amount", expense.Amount);
-            command.Parameters.AddWithValue("@reasonTypeId", expense.ReasonTypeId ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@createdDate", expense.CreatedDate ?? DateTime.Now);
-            command.ExecuteNonQuery();
+            _context.ExpenseRecords.Add(expense);
+            _context.SaveChanges();
         }
 
         public List<ExpenseRecord> GetAllExpenses(ParamFilter paramFilter)
         {
-            var list = new List<ExpenseRecord>();
+            IQueryable<ExpenseRecord> query = _context.ExpenseRecords.AsQueryable();
 
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            // Start SQL base
-            var selectSql = @"
-                            SELECT Id, Reason, Amount, ReasonTypeId, CreatedDate
-                            FROM expenseRecords
-                            WHERE 1=1
-                        ";
-
-            var command = new SqliteCommand();
-            command.Connection = connection;
-
-            // ===========================================
             // 1. Filter tháng
-            // ===========================================
             if (paramFilter.Month.HasValue)
             {
-                selectSql += " AND strftime('%m', CreatedDate) = @month";
-                command.Parameters.AddWithValue("@month", paramFilter.Month.Value.ToString("D2"));
+                query = query.Where(e => e.CreatedDate.HasValue && e.CreatedDate.Value.Month == paramFilter.Month.Value);
             }
 
-            // ===========================================
             // 2. Filter năm
-            // ===========================================
             if (paramFilter.Year.HasValue)
             {
-                selectSql += " AND strftime('%Y', CreatedDate) = @year";
-                command.Parameters.AddWithValue("@year", paramFilter.Year.Value.ToString());
+                query = query.Where(e => e.CreatedDate.HasValue && e.CreatedDate.Value.Year == paramFilter.Year.Value);
             }
 
-            // ===========================================
-            // 3. Filter ReasonTypeIds (List<int>)
-            // ===========================================
+            // 3. Filter ReasonTypeIds IN
             if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
-                var idParams = paramFilter.ReasonTypeIdsFilterIn
-                    .Select((id, idx) => $"@irt{idx}")
-                    .ToList();
-
-                selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
-
-                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
-                {
-                    command.Parameters.AddWithValue($"@irt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
-                }
+                query = query.Where(e => e.ReasonTypeId.HasValue && paramFilter.ReasonTypeIdsFilterIn.Contains(e.ReasonTypeId.Value));
             }
 
-            // ===========================================
-            // 4. Filter Out ReasonTypeIds (List<int>)
-            // ===========================================
+            // 4. Filter ReasonTypeIds NOT IN
             if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
             {
-                var idParams = paramFilter.ReasonTypeIdsFilterOut
-                    .Select((id, idx) => $"@ort{idx}")
-                    .ToList();
-
-                selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
-
-                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
-                {
-                    command.Parameters.AddWithValue($"@ort{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
-                }
+                query = query.Where(e => !e.ReasonTypeId.HasValue || !paramFilter.ReasonTypeIdsFilterOut.Contains(e.ReasonTypeId.Value));
             }
 
-            // Cuối cùng thêm ORDER BY
-            selectSql += " ORDER BY CreatedDate DESC";
-
-            command.CommandText = selectSql;
-
-            // ===========================================
-            // 4. Execute
-            // ===========================================
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                list.Add(new ExpenseRecord
-                {
-                    Id = reader.GetInt32(0),
-                    Reason = reader.GetString(1),
-                    Amount = reader.GetInt32(2),
-                    ReasonTypeId = !reader.IsDBNull(3) ? reader.GetInt32(3) : null,
-                    CreatedDate = reader.GetDateTime(4),
-                });
-            }
-
-            return list;
+            return query.OrderByDescending(e => e.CreatedDate).ToList();
         }
 
         public ExpenseRecord GetExpenseById(int id)
         {
-
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string selectSql = $"SELECT Id, Reason, Amount, ReasonTypeId, CreatedDate FROM expenseRecords Where Id = {id};";
-            using var command = new SqliteCommand(selectSql, connection);
-            using var reader = command.ExecuteReader();
-
-            if (reader.Read())
-            {
-                return new ExpenseRecord
-                {
-                    Id = reader.GetInt32(0),
-                    Reason = reader.GetString(1),
-                    Amount = reader.GetInt32(2),
-                    ReasonTypeId = !reader.IsDBNull(3) ? reader.GetInt32(3) : null,
-                    CreatedDate = reader.GetDateTime(4),
-                };
-            }
-
-            return null;
+            return _context.ExpenseRecords.FirstOrDefault(e => e.Id == id);
         }
 
-        public void UpdateExpense(int id, ExpenseRecord expense)
+        public void UpdateExpense(int id, ExpenseRecordUpdateDto dto)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string insertSql = @"
-                Update expenseRecords
-                Set Reason = @reason, Amount = @amount, ReasonTypeId = @reasonTypeId, CreatedDate = @createdDate
-                Where Id = @id;";
-
-            using var command = new SqliteCommand(insertSql, connection);
-            command.Parameters.AddWithValue("@reason", expense.Reason);
-            command.Parameters.AddWithValue("@amount", expense.Amount);
-            command.Parameters.AddWithValue("@reasonTypeId", expense.ReasonTypeId ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@createdDate", expense.CreatedDate ?? DateTime.Now);
-            command.Parameters.AddWithValue("@id", id);
-            command.ExecuteNonQuery();
+            var existing = _context.ExpenseRecords.Find(id);
+            if (existing != null)
+            {
+                _expenseRecordMapper.UpdateEntity(existing, dto);
+                _context.SaveChanges();
+            }
         }
 
         public void DeleteById(int id)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string insertSql = @"
-                Delete from expenseRecords
-                Where Id = @id;";
-
-            using var command = new SqliteCommand(insertSql, connection);
-            command.Parameters.AddWithValue("@id", id);
-            command.ExecuteNonQuery();
+            var existing = _context.ExpenseRecords.Find(id);
+            if (existing != null)
+            {
+                _context.ExpenseRecords.Remove(existing);
+                _context.SaveChanges();
+            }
         }
 
         public int SumAll()
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-            string selectSql = "SELECT SUM(Amount) FROM expenseRecords;";
-            using var command = new SqliteCommand(selectSql, connection);
-            var result = command.ExecuteScalar();
-            if (result != DBNull.Value && result != null)
-            {
-                return Convert.ToInt32(result);
-            }
-            return 0;
+            return _context.ExpenseRecords.Sum(e => e.Amount);
         }
 
         public int SumAllWithFilter(ParamFilter paramFilter)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string selectSql = @"
-                SELECT SUM(Amount)
-                FROM expenseRecords
-                WHERE 1=1
-            ";
-
-            var command = new SqliteCommand();
-            command.Connection = connection;
+            IQueryable<ExpenseRecord> query = _context.ExpenseRecords.AsQueryable();
 
             if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
-                var idParams = paramFilter.ReasonTypeIdsFilterIn
-                    .Select((id, idx) => $"@irt{idx}")
-                    .ToList();
-
-                selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
-
-                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
-                {
-                    command.Parameters.AddWithValue($"@irt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
-                }
+                query = query.Where(e => e.ReasonTypeId.HasValue && paramFilter.ReasonTypeIdsFilterIn.Contains(e.ReasonTypeId.Value));
             }
 
             if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
             {
-                var idParams = paramFilter.ReasonTypeIdsFilterOut
-                    .Select((id, idx) => $"@ort{idx}")
-                    .ToList();
-
-                selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
-
-                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
-                {
-                    command.Parameters.AddWithValue($"@ort{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
-                }
+                query = query.Where(e => !e.ReasonTypeId.HasValue || !paramFilter.ReasonTypeIdsFilterOut.Contains(e.ReasonTypeId.Value));
             }
 
-            command.CommandText = selectSql;
-            var result = command.ExecuteScalar();
-
-            return (result != null && result != DBNull.Value)
-                ? Convert.ToInt32(result)
-                : 0;
+            return query.Sum(e => e.Amount);
         }
 
         public List<ExpenseRecord> GetExpensesByMonth(int month, int year)
         {
-            var list = new List<ExpenseRecord>();
-
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            string selectSql = @"
-                SELECT Id, Reason, Amount, ReasonTypeId, CreatedDate FROM expenseRecords
-                WHERE strftime('%m', CreatedDate) = @month
-                  AND strftime('%Y', CreatedDate) = @year
-                ORDER BY CreatedDate DESC;";
-            using var command = new SqliteCommand(selectSql, connection);
-            command.Parameters.AddWithValue("@month", month.ToString("D2"));
-            command.Parameters.AddWithValue("@year", year.ToString());
-            using var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                list.Add(new ExpenseRecord
-                {
-                    Id = reader.GetInt32(0),
-                    Reason = reader.GetString(1),
-                    Amount = reader.GetInt32(2),
-                    ReasonTypeId = !reader.IsDBNull(3) ? reader.GetInt32(3) : null,
-                    CreatedDate = reader.GetDateTime(4)
-                });
-            }
-
-            return list;
+            return _context.ExpenseRecords
+                .Where(e => e.CreatedDate.HasValue
+                         && e.CreatedDate.Value.Month == month
+                         && e.CreatedDate.Value.Year == year)
+                .OrderByDescending(e => e.CreatedDate)
+                .ToList();
         }
 
         public int SumByMonth(ParamFilter paramFilter, int month, int year)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
-
-            // 1. Ưu tiên lấy month/year từ paramFilter nếu có
             int finalMonth = paramFilter.Month ?? month;
             int finalYear = paramFilter.Year ?? year;
 
-            // 2. SQL base
-            string selectSql = @"
-                                    SELECT SUM(Amount)
-                                    FROM expenseRecords
-                                    WHERE strftime('%m', CreatedDate) = @month
-                                      AND strftime('%Y', CreatedDate) = @year
-                                ";
+            IQueryable<ExpenseRecord> query = _context.ExpenseRecords
+                .Where(e => e.CreatedDate.HasValue
+                         && e.CreatedDate.Value.Month == finalMonth
+                         && e.CreatedDate.Value.Year == finalYear);
 
-            var command = new SqliteCommand();
-            command.Connection = connection;
-
-            // 3. Gán month/year
-            command.Parameters.AddWithValue("@month", finalMonth.ToString("D2"));
-            command.Parameters.AddWithValue("@year", finalYear.ToString());
-
-            // 4. Nếu có ReasonTypeIds → thêm IN (...)
             if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
-                var idParams = paramFilter.ReasonTypeIdsFilterIn
-                    .Select((id, idx) => $"@irt{idx}")
-                    .ToList();
-
-                selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
-
-                // Thêm parameter tương ứng
-                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
-                {
-                    command.Parameters.AddWithValue($"@irt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
-                }
+                query = query.Where(e => e.ReasonTypeId.HasValue && paramFilter.ReasonTypeIdsFilterIn.Contains(e.ReasonTypeId.Value));
             }
 
-            // 5. Nếu có ReasonTypeIdsOut → thêm NOT IN (...)
             if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
             {
-                var idParams = paramFilter.ReasonTypeIdsFilterOut
-                    .Select((id, idx) => $"@ort{idx}")
-                    .ToList();
-
-                selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
-
-                // Thêm parameter tương ứng
-                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
-                {
-                    command.Parameters.AddWithValue($"@ort{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
-                }
+                query = query.Where(e => !e.ReasonTypeId.HasValue || !paramFilter.ReasonTypeIdsFilterOut.Contains(e.ReasonTypeId.Value));
             }
 
-            command.CommandText = selectSql;
-
-            // 5. Execute
-            var result = command.ExecuteScalar();
-
-            return (result != null && result != DBNull.Value)
-                ? Convert.ToInt32(result)
-                : 0;
+            return query.Sum(e => e.Amount);
         }
 
         public int SumByWeek(ParamFilter paramFilter, DateTime startOfWeek, DateTime endOfWeek)
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
+            IQueryable<ExpenseRecord> query = _context.ExpenseRecords
+                .Where(e => e.CreatedDate.HasValue
+                         && e.CreatedDate.Value >= startOfWeek
+                         && e.CreatedDate.Value < endOfWeek);
 
-            // Base SQL
-            string selectSql = @"
-                                SELECT SUM(Amount)
-                                FROM expenseRecords
-                                WHERE CreatedDate >= @startOfWeek
-                                  AND CreatedDate <  @endOfWeek
-                            ";
-
-            var command = new SqliteCommand();
-            command.Connection = connection;
-
-            // Add date parameters
-            command.Parameters.AddWithValue("@startOfWeek", startOfWeek);
-            command.Parameters.AddWithValue("@endOfWeek", endOfWeek);
-
-            // -----------------------------------------
-            //  Thêm ReasonTypeIds nếu có
-            // -----------------------------------------
             if (paramFilter.ReasonTypeIdsFilterIn != null && paramFilter.ReasonTypeIdsFilterIn.Any())
             {
-                var idParams = paramFilter.ReasonTypeIdsFilterIn
-                    .Select((id, idx) => $"@irt{idx}")
-                    .ToList();
-
-                selectSql += $" AND ReasonTypeId IN ({string.Join(", ", idParams)})";
-
-                // Gán giá trị ID
-                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterIn.Count; i++)
-                {
-                    command.Parameters.AddWithValue($"@irt{i}", paramFilter.ReasonTypeIdsFilterIn[i]);
-                }
+                query = query.Where(e => e.ReasonTypeId.HasValue && paramFilter.ReasonTypeIdsFilterIn.Contains(e.ReasonTypeId.Value));
             }
-
 
             if (paramFilter.ReasonTypeIdsFilterOut != null && paramFilter.ReasonTypeIdsFilterOut.Any())
             {
-                var idParams = paramFilter.ReasonTypeIdsFilterOut
-                    .Select((id, idx) => $"@ort{idx}")
-                    .ToList();
-
-                selectSql += $" AND ReasonTypeId NOT IN ({string.Join(", ", idParams)})";
-
-                // Gán giá trị ID
-                for (int i = 0; i < paramFilter.ReasonTypeIdsFilterOut.Count; i++)
-                {
-                    command.Parameters.AddWithValue($"@ort{i}", paramFilter.ReasonTypeIdsFilterOut[i]);
-                }
+                query = query.Where(e => !e.ReasonTypeId.HasValue || !paramFilter.ReasonTypeIdsFilterOut.Contains(e.ReasonTypeId.Value));
             }
-            // Hoàn thiện SQL
-            command.CommandText = selectSql;
-            var result = command.ExecuteScalar();
-            if (result != DBNull.Value && result != null)
-            {
-                return Convert.ToInt32(result);
-            }
-            return 0;
+
+            return query.Sum(e => e.Amount);
         }
     }
 }

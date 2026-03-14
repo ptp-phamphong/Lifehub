@@ -6,7 +6,12 @@ using System.ClientModel;
 
 namespace API_Raspberry.Service
 {
-    public class SpeechToTextService
+    public interface ISpeechToTextService
+    {
+        Task<string> TranscribeAudioAsync(byte[] audioData, string fileName);
+    }
+
+    public class SpeechToTextService : ISpeechToTextService
     {
         private readonly string _endpoint;
         private readonly string _apiKey;

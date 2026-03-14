@@ -1,4 +1,4 @@
-﻿using API_Raspberry.Model;
+﻿using API_Raspberry.Dto;
 using API_Raspberry.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,39 +6,40 @@ namespace API_Raspberry.Controllers
 {
     public class ReasonTypeController : ControllerBase
     {
-        public ReasonTypeController() { }
+        private readonly IReasonTypeService _reasonTypeService;
+
+        public ReasonTypeController(IReasonTypeService reasonTypeService)
+        {
+            _reasonTypeService = reasonTypeService;
+        }
 
         [HttpPost]
         [Route("ReasonType")]
-        public bool AddReasonType([FromBody] ReasonType reasonType)
+        public bool AddReasonType([FromBody] ReasonTypeCreateDto reasonType)
         {
-            ReasonTypeService reasonTypeService = new ReasonTypeService();
-            reasonTypeService.AddReasonType(reasonType);
+            _reasonTypeService.AddReasonType(reasonType);
             return true;
         }
 
         [HttpGet]
         [Route("GetAllReasonType")]
-        public List<ReasonType> GetAllReasonType()
+        public List<ReasonTypeDto> GetAllReasonType()
         {
-            ReasonTypeService reasonTypeService = new ReasonTypeService();
-            return reasonTypeService.GetAllReasonType();
+            return _reasonTypeService.GetAllReasonType();
         }
 
         [HttpGet]
         [Route("GetReasonTypeById/{id}")]
-        public ReasonType GetReasonTypeById(int id)
+        public ReasonTypeDto GetReasonTypeById(int id)
         {
-            ReasonTypeService reasonTypeService = new ReasonTypeService();
-            return reasonTypeService.GetReasonTypeById(id);
+            return _reasonTypeService.GetReasonTypeById(id);
         }
 
         [HttpPut]
         [Route("UpdateReasonTypeById/{id}")]
-        public bool UpdateReasonTypeById(int id, [FromBody] ReasonType reasonType)
+        public bool UpdateReasonTypeById(int id, [FromBody] ReasonTypeUpdateDto reasonType)
         {
-            ReasonTypeService reasonTypeService = new ReasonTypeService();
-            reasonTypeService.UpdateReasonType(id, reasonType);
+            _reasonTypeService.UpdateReasonType(id, reasonType);
             return true;
         }
     }

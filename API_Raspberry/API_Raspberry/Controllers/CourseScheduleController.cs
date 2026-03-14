@@ -1,4 +1,4 @@
-using API_Raspberry.Model;
+using API_Raspberry.Dto;
 using API_Raspberry.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,56 +6,55 @@ namespace API_Raspberry.Controllers
 {
     public class CourseScheduleController : ControllerBase
     {
-        public CourseScheduleController() { }
+        private readonly ICourseScheduleService _courseScheduleService;
+
+        public CourseScheduleController(ICourseScheduleService courseScheduleService)
+        {
+            _courseScheduleService = courseScheduleService;
+        }
 
         [HttpGet]
         [Route("GetAllCourseSchedule")]
-        public List<CourseSchedule> GetAll()
+        public List<CourseScheduleDto> GetAll()
         {
-            CourseScheduleService service = new CourseScheduleService();
-            return service.GetAll();
+            return _courseScheduleService.GetAll();
         }
 
         [HttpGet]
         [Route("GetCourseScheduleById/{id}")]
-        public CourseSchedule GetById(int id)
+        public CourseScheduleDto GetById(int id)
         {
-            CourseScheduleService service = new CourseScheduleService();
-            return service.GetById(id);
+            return _courseScheduleService.GetById(id);
         }
 
         [HttpPost]
         [Route("AddCourseSchedule")]
-        public bool Add([FromBody] CourseSchedule course)
+        public bool Add([FromBody] CourseScheduleCreateDto course)
         {
-            CourseScheduleService service = new CourseScheduleService();
-            service.Add(course);
+            _courseScheduleService.Add(course);
             return true;
         }
 
         [HttpPut]
         [Route("UpdateCourseSchedule/{id}")]
-        public bool Update(int id, [FromBody] CourseSchedule course)
+        public bool Update(int id, [FromBody] CourseScheduleUpdateDto course)
         {
-            CourseScheduleService service = new CourseScheduleService();
-            service.Update(id, course);
+            _courseScheduleService.Update(id, course);
             return true;
         }
 
         [HttpGet]
         [Route("GetCourseScheduleByMonth/{month}/{year}")]
-        public List<CourseSchedule> GetByMonth(int month, int year)
+        public List<CourseScheduleDto> GetByMonth(int month, int year)
         {
-            CourseScheduleService service = new CourseScheduleService();
-            return service.GetByMonth(month, year);
+            return _courseScheduleService.GetByMonth(month, year);
         }
 
         [HttpDelete]
         [Route("DeleteCourseSchedule/{id}")]
         public bool Delete(int id)
         {
-            CourseScheduleService service = new CourseScheduleService();
-            service.Delete(id);
+            _courseScheduleService.Delete(id);
             return true;
         }
     }

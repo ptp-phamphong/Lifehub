@@ -1,44 +1,61 @@
-using API_Raspberry.Model;
+using API_Raspberry.Dto;
+using API_Raspberry.Mapper;
 using API_Raspberry.Repository;
 
 namespace API_Raspberry.Service
 {
-    public class CourseScheduleService
+    public interface ICourseScheduleService
     {
-        public List<CourseSchedule> GetAll()
+        List<CourseScheduleDto> GetAll();
+        CourseScheduleDto GetById(int id);
+        void Add(CourseScheduleCreateDto dto);
+        void Update(int id, CourseScheduleUpdateDto dto);
+        List<CourseScheduleDto> GetByMonth(int month, int year);
+        void Delete(int id);
+    }
+
+    public class CourseScheduleService : ICourseScheduleService
+    {
+        private readonly ICourseScheduleRepository _courseScheduleRepository;
+        private readonly ICourseScheduleMapper _courseScheduleMapper;
+
+        public CourseScheduleService(ICourseScheduleRepository courseScheduleRepository, ICourseScheduleMapper courseScheduleMapper)
         {
-            CourseScheduleRepository repo = new CourseScheduleRepository();
-            return repo.GetAll();
+            _courseScheduleRepository = courseScheduleRepository;
+            _courseScheduleMapper = courseScheduleMapper;
         }
 
-        public CourseSchedule GetById(int id)
+        public List<CourseScheduleDto> GetAll()
         {
-            CourseScheduleRepository repo = new CourseScheduleRepository();
-            return repo.GetById(id);
+            var entities = _courseScheduleRepository.GetAll();
+            return _courseScheduleMapper.ToDtoList(entities);
         }
 
-        public void Add(CourseSchedule course)
+        public CourseScheduleDto GetById(int id)
         {
-            CourseScheduleRepository repo = new CourseScheduleRepository();
-            repo.Add(course);
+            var entity = _courseScheduleRepository.GetById(id);
+            return _courseScheduleMapper.ToDto(entity);
         }
 
-        public void Update(int id, CourseSchedule course)
+        public void Add(CourseScheduleCreateDto dto)
         {
-            CourseScheduleRepository repo = new CourseScheduleRepository();
-            repo.Update(id, course);
+            _courseScheduleRepository.Add(dto);
         }
 
-        public List<CourseSchedule> GetByMonth(int month, int year)
+        public void Update(int id, CourseScheduleUpdateDto dto)
         {
-            CourseScheduleRepository repo = new CourseScheduleRepository();
-            return repo.GetByMonth(month, year);
+            _courseScheduleRepository.Update(id, dto);
+        }
+
+        public List<CourseScheduleDto> GetByMonth(int month, int year)
+        {
+            var entities = _courseScheduleRepository.GetByMonth(month, year);
+            return _courseScheduleMapper.ToDtoList(entities);
         }
 
         public void Delete(int id)
         {
-            CourseScheduleRepository repo = new CourseScheduleRepository();
-            repo.Delete(id);
+            _courseScheduleRepository.Delete(id);
         }
     }
 }
