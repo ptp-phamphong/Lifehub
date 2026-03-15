@@ -8,7 +8,7 @@ namespace API_Raspberry.Repository
 {
     public interface IExpenseRepository
     {
-        void AddExpense(ExpenseRecord expense);
+        int AddExpense(ExpenseRecord expense);
         List<ExpenseRecord> GetAllExpenses(ParamFilter paramFilter);
         ExpenseRecord GetExpenseById(int id);
         void UpdateExpense(int id, ExpenseRecordUpdateDto dto);
@@ -31,10 +31,11 @@ namespace API_Raspberry.Repository
             _expenseRecordMapper = expenseRecordMapper;
         }
 
-        public void AddExpense(ExpenseRecord expense)
+        public int AddExpense(ExpenseRecord expense)
         {
             _context.ExpenseRecords.Add(expense);
             _context.SaveChanges();
+            return expense.Id;
         }
 
         public List<ExpenseRecord> GetAllExpenses(ParamFilter paramFilter)

@@ -54,14 +54,29 @@ builder.Services.AddScoped<IReasonTypeService, ReasonTypeService>();
 builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
 builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
 builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();
+// AI Provider: đọc từ config để chọn Gemini hoặc Ollama
+var aiProvider = builder.Configuration.GetValue<string>("AiProvider") ?? "Gemini";
+if (string.Equals(aiProvider, "Ollama", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<IAiExpenseService, OllamaExpenseService>();
+}
+else
+{
+    builder.Services.AddScoped<IAiExpenseService, GeminiExpenseService>();
+}
 
 // ----------------------------
-// 5️⃣ Các service mặc định
+// 6️⃣ HttpClientFactory (cho Ollama/Gemini)
+// ----------------------------
+builder.Services.AddHttpClient();
+
+// ----------------------------
+// 7️⃣ Các service mặc định
 // ----------------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHostedService<ButtonListener>();
+// builder.Services.AddHostedService<ButtonListener>();
 
 var app = builder.Build();
 

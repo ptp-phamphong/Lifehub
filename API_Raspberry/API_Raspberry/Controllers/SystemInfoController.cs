@@ -20,6 +20,7 @@ namespace API_Raspberry.Controllers
         [Route("SystemInfo")]
         public SystemInfoDto Get()
         {
+            return null;
             var entity = _currentInfoService.GetSystemStatus();
             return _systemInfoMapper.ToDto(entity);
         }

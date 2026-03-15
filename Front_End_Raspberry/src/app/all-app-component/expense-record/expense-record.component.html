@@ -1,6 +1,34 @@
 <div class="expense-form">
-  <h2>Thêm ghi chú chi tiêu</h2>
-  <form (ngSubmit)="submitForm()">
+  <h2>{{ isEditMode ? 'Chỉnh sửa chi tiêu' : 'Thêm ghi chú chi tiêu' }}</h2>
+
+  <!-- Toggle AI / Manual - only show for add mode -->
+  <div class="ai-toggle" *ngIf="!isEditMode">
+    <span [class.active]="!aiMode">Nhập thủ công</span>
+    <label class="switch">
+      <input type="checkbox" [(ngModel)]="aiMode" />
+      <span class="slider"></span>
+    </label>
+    <span [class.active]="aiMode">Nhập bằng AI</span>
+  </div>
+
+  <!-- AI Input Mode -->
+  <div *ngIf="aiMode && !isEditMode" class="ai-input-section">
+    <div class="form-group">
+      <label for="aiPrompt">Mô tả chi tiêu</label>
+      <textarea id="aiPrompt" [(ngModel)]="aiPrompt" name="aiPrompt" rows="3"
+        placeholder='VD: "Ngày 17/07 ăn cơm trưa 15k"'></textarea>
+    </div>
+    <button type="button" (click)="submitAi()" [disabled]="aiLoading">
+      {{ aiLoading ? 'Đang xử lý...' : 'Gửi cho AI' }}
+    </button>
+    <div class="ai-loading" *ngIf="aiLoading">
+      <div class="spinner"></div>
+      <span>AI đang phân tích...</span>
+    </div>
+  </div>
+
+  <!-- Manual Input Mode -->
+  <form (ngSubmit)="submitForm()" *ngIf="!aiMode || isEditMode">
     <div class="form-group">
       <label for="reason">Lý do</label>
       <input id="reason" type="text" [(ngModel)]="reason" name="reason" placeholder="Nhập lý do..." />

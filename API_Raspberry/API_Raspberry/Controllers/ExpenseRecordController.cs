@@ -16,10 +16,9 @@ namespace API_Raspberry.Controllers
 
         [HttpPost]
         [Route("ExpenseNote")]
-        public bool ExpenseNote([FromBody] ExpenseRecordCreateDto note)
+        public int ExpenseNote([FromBody] ExpenseRecordCreateDto note)
         {
-            _expenseService.AddExpense(note);
-            return true;
+            return _expenseService.AddExpense(note);
         }
 
         [HttpPost]

@@ -5,6 +5,13 @@ import { ExpenseRecord } from 'src/app/model/expense.model';
 import { ReasonType } from 'src/app/model/reason-type.model';
 import { environment } from 'src/environments/environment';
 
+interface AiExpenseResponse {
+  success: boolean;
+  expenseId?: number;
+  message: string;
+  parsedExpense?: ExpenseRecord;
+}
+
 @Component({
   selector: 'app-expense-record',
   templateUrl: './expense-record.component.html',
@@ -19,6 +26,11 @@ export class ExpenseRecordComponent {
   reasonTypeId?: number = null;
   expenseDate: Date = new Date();
 
+  // AI mode
+  aiMode: boolean = false;
+  aiPrompt: string = '';
+  aiLoading: boolean = false;
+
   constructor(private http: HttpClient,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private dialogRef: MatDialogRef<ExpenseRecordComponent>
@@ -31,6 +43,10 @@ export class ExpenseRecordComponent {
     if(this.id > 0){
       this.loadExpense();
     }
+  }
+
+  get isEditMode(): boolean {
+    return this.id > 0;
   }
 
   loadAllReasonType(){
@@ -127,5 +143,37 @@ export class ExpenseRecordComponent {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}T00:00:00`;
+  }
+
+  submitAi() {
+    if (!this.aiPrompt.trim()) {
+      this.message = '⚠️ Vui lòng nhập mô tả chi tiêu.';
+      return;
+    }
+
+    this.aiLoading = true;
+    this.message = '';
+
+    this.http.post<AiExpenseResponse>(`${environment.apiBaseUrl}/AiExpense`, { prompt: this.aiPrompt })
+      .subscribe({
+        next: (res) => {
+          this.aiLoading = false;
+          if (res.success && res.expenseId) {
+            this.message = '✅ ' + res.message;
+            this.aiPrompt = '';
+            this.aiMode = false;
+            // Switch to edit mode with new ID
+            this.id = res.expenseId;
+            this.loadExpense();
+          } else {
+            this.message = '❌ ' + (res.message || 'AI không thể xử lý.');
+          }
+        },
+        error: (err) => {
+          this.aiLoading = false;
+          console.error(err);
+          this.message = '❌ Lỗi khi gọi AI.';
+        }
+      });
   }
 }
