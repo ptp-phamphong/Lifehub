@@ -76,7 +76,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// builder.Services.AddHostedService<ButtonListener>();
+builder.Services.AddHostedService<ButtonListener>();
 
 var app = builder.Build();
 

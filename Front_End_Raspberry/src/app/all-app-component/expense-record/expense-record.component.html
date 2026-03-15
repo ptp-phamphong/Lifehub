@@ -2,17 +2,17 @@
   <h2>{{ isEditMode ? 'Chỉnh sửa chi tiêu' : 'Thêm ghi chú chi tiêu' }}</h2>
 
   <!-- Toggle AI / Manual - only show for add mode -->
-  <div class="ai-toggle" *ngIf="!isEditMode">
+  <!-- <div class="ai-toggle" *ngIf="!isEditMode">
     <span [class.active]="!aiMode">Nhập thủ công</span>
     <label class="switch">
       <input type="checkbox" [(ngModel)]="aiMode" />
       <span class="slider"></span>
     </label>
     <span [class.active]="aiMode">Nhập bằng AI</span>
-  </div>
+  </div> -->
 
   <!-- AI Input Mode -->
-  <div *ngIf="aiMode && !isEditMode" class="ai-input-section">
+  <!-- <div *ngIf="aiMode && !isEditMode" class="ai-input-section">
     <div class="form-group">
       <label for="aiPrompt">Mô tả chi tiêu</label>
       <textarea id="aiPrompt" [(ngModel)]="aiPrompt" name="aiPrompt" rows="3"
@@ -25,7 +25,7 @@
       <div class="spinner"></div>
       <span>AI đang phân tích...</span>
     </div>
-  </div>
+  </div> -->
 
   <!-- Manual Input Mode -->
   <form (ngSubmit)="submitForm()" *ngIf="!aiMode || isEditMode">
