@@ -65,8 +65,8 @@ namespace API_Raspberry.Controllers
         
 
         [HttpDelete]
-        [Route("DeleteAll/{semesterName}")]
-        public bool DeleteAll(string semesterName)
+        [Route("DeleteBySemesterName/{semesterName}")]
+        public bool DeleteBySemesterName(string semesterName)
         {
             _courseScheduleService.DeleteBySemesterName(semesterName);
             return true;

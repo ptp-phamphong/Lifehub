@@ -20,7 +20,7 @@ export class CourseScheduleListComponent {
     private http: HttpClient,
     private dialog: MatDialog,
     private viewContainerRef: ViewContainerRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.loadCourses();
@@ -108,7 +108,7 @@ export class CourseScheduleListComponent {
     input.value = '';
   }
 
-  deleteAll(){
+  deleteAll() {
     const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa toàn bộ không?`);
     if (!confirmed) {
       return;
@@ -117,5 +117,16 @@ export class CourseScheduleListComponent {
     if (!confirmed2) {
       return;
     }
+    const semester = prompt('Nhập tên học kỳ muốn xóa toàn bộ (VD: HK1 2026):') || '';
+
+    this.http.delete(`${environment.apiBaseUrl}/DeleteBySemesterName/${semester}`)
+      .subscribe({
+        next: () => {
+          this.loadCourses();
+        },
+        error: (err) => {
+          console.error(err);
+        }
+      });
   }
 }
