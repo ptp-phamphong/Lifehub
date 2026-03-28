@@ -54,6 +54,7 @@ builder.Services.AddScoped<IPhoneNotificationRepository, PhoneNotificationReposi
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IReasonTypeService, ReasonTypeService>();
 builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
+builder.Services.AddScoped<ICourseScheduleImportService, CourseScheduleImportService>();
 builder.Services.AddScoped<IPhoneNotificationService, PhoneNotificationService>();
 builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
 builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();

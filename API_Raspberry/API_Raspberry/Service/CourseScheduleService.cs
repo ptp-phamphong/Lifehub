@@ -12,6 +12,8 @@ namespace API_Raspberry.Service
         void Update(int id, CourseScheduleUpdateDto dto);
         List<CourseScheduleDto> GetByMonth(int month, int year);
         void Delete(int id);
+        void DeleteBySemesterName(string semesterName);
+
     }
 
     public class CourseScheduleService : ICourseScheduleService
@@ -56,6 +58,11 @@ namespace API_Raspberry.Service
         public void Delete(int id)
         {
             _courseScheduleRepository.Delete(id);
+        }
+
+        public void DeleteBySemesterName(string semesterName)
+        {
+            _courseScheduleRepository.DeleteBySemesterName(semesterName);
         }
     }
 }

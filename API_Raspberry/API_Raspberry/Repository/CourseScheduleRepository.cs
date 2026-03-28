@@ -10,9 +10,11 @@ namespace API_Raspberry.Repository
         List<CourseSchedule> GetAll();
         CourseSchedule GetById(int id);
         void Add(CourseScheduleCreateDto dto);
+        void AddRange(List<CourseScheduleCreateDto> dtos);
         void Update(int id, CourseScheduleUpdateDto dto);
         List<CourseSchedule> GetByMonth(int month, int year);
         void Delete(int id);
+        void DeleteBySemesterName(string semesterName);
     }
 
     public class CourseScheduleRepository : ICourseScheduleRepository
@@ -46,6 +48,19 @@ namespace API_Raspberry.Repository
             _context.SaveChanges();
         }
 
+        public void AddRange(List<CourseScheduleCreateDto> dtos)
+        {
+            var entities = dtos.Select(dto =>
+            {
+                var entity = _courseScheduleMapper.ToEntity(dto);
+                entity.CreatedDate = DateTime.Now;
+                return entity;
+            }).ToList();
+
+            _context.CourseSchedules.AddRange(entities);
+            _context.SaveChanges();
+        }
+
         public void Update(int id, CourseScheduleUpdateDto dto)
         {
             var existing = _context.CourseSchedules.Find(id);
@@ -75,6 +90,16 @@ namespace API_Raspberry.Repository
             if (existing != null)
             {
                 _context.CourseSchedules.Remove(existing);
+                _context.SaveChanges();
+            }
+        }
+
+        public void DeleteBySemesterName(string semesterName)
+        {
+            var existings = _context.CourseSchedules.Where(c => c.Semester == semesterName);
+            if (existings != null && existings.Count() > 0)
+            {
+                _context.CourseSchedules.RemoveRange(existings);
                 _context.SaveChanges();
             }
         }

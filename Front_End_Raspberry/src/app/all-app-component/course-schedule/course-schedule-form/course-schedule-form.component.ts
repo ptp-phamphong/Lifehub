@@ -17,6 +17,7 @@ export class CourseScheduleFormComponent {
   startTime: string = '';
   endTime: string = '';
   room: string = '';
+  address: string = '';
   semester: string = '';
   dayOfWeek: number | null = null;
   message: string = '';
@@ -46,6 +47,7 @@ export class CourseScheduleFormComponent {
           this.startTime = res.startTime || '';
           this.endTime = res.endTime || '';
           this.room = res.room || '';
+          this.address = res.address || '';
           this.semester = res.semester || '';
           this.dayOfWeek = res.dayOfWeek ?? null;
         },
@@ -70,6 +72,7 @@ export class CourseScheduleFormComponent {
       startTime: this.startTime || undefined,
       endTime: this.endTime || undefined,
       room: this.room,
+      address: this.address,
       semester: this.semester,
       dayOfWeek: this.dayOfWeek ?? undefined,
     };

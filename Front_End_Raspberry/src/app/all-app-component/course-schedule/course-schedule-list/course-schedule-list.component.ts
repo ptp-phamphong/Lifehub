@@ -12,6 +12,9 @@ import { CourseScheduleFormComponent } from '../course-schedule-form/course-sche
 })
 export class CourseScheduleListComponent {
   courses: CourseSchedule[] = [];
+  importMessage: string = '';
+  importError: boolean = false;
+  importing: boolean = false;
 
   constructor(
     private http: HttpClient,
@@ -69,5 +72,50 @@ export class CourseScheduleListComponent {
       6: 'Thứ 6', 7: 'Thứ 7', 8: 'CN'
     };
     return dow ? labels[dow] || '' : '';
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.importMessage = '';
+    this.importError = false;
+    this.importing = true;
+
+    const semester = prompt('Nhập tên học kỳ (VD: HK1 2026):') || '';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('semester', semester);
+
+    this.http.post<{ count: number }>(`${environment.apiBaseUrl}/ImportCourseSchedule`, formData)
+      .subscribe({
+        next: (res) => {
+          this.importMessage = `Import thành công ${res.count} dòng!`;
+          this.importError = false;
+          this.importing = false;
+          this.loadCourses();
+        },
+        error: (err) => {
+          this.importMessage = err.error?.toString() || 'Import thất bại!';
+          this.importError = true;
+          this.importing = false;
+        }
+      });
+
+    // Reset input to allow re-selecting the same file
+    input.value = '';
+  }
+
+  deleteAll(){
+    const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa toàn bộ không?`);
+    if (!confirmed) {
+      return;
+    }
+    const confirmed2 = window.confirm(`Chắc chắn nha, đây là không thể thu hồi`);
+    if (!confirmed2) {
+      return;
+    }
   }
 }

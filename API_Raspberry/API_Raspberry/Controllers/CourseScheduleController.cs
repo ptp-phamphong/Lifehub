@@ -7,10 +7,14 @@ namespace API_Raspberry.Controllers
     public class CourseScheduleController : ControllerBase
     {
         private readonly ICourseScheduleService _courseScheduleService;
+        private readonly ICourseScheduleImportService _courseScheduleImportService;
 
-        public CourseScheduleController(ICourseScheduleService courseScheduleService)
+        public CourseScheduleController(
+            ICourseScheduleService courseScheduleService,
+            ICourseScheduleImportService courseScheduleImportService)
         {
             _courseScheduleService = courseScheduleService;
+            _courseScheduleImportService = courseScheduleImportService;
         }
 
         [HttpGet]
@@ -56,6 +60,33 @@ namespace API_Raspberry.Controllers
         {
             _courseScheduleService.Delete(id);
             return true;
+        }
+
+        
+
+        [HttpDelete]
+        [Route("DeleteAll/{semesterName}")]
+        public bool DeleteAll(string semesterName)
+        {
+            _courseScheduleService.DeleteBySemesterName(semesterName);
+            return true;
+        }
+
+        [HttpPost]
+        [Route("ImportCourseSchedule")]
+        public IActionResult ImportFromExcel(IFormFile file, [FromForm] string semester)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Vui lòng chọn file Excel.");
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (extension != ".xlsx")
+                return BadRequest("Chỉ hỗ trợ file .xlsx");
+
+            using var stream = file.OpenReadStream();
+            var imported = _courseScheduleImportService.ImportFromExcel(stream, semester ?? "");
+
+            return Ok(new { count = imported.Count, data = imported });
         }
     }
 }

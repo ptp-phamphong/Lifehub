@@ -10,6 +10,7 @@ namespace API_Raspberry.Dto
         public string StartTime { get; set; }
         public string EndTime { get; set; }
         public string Room { get; set; }
+        public string Address { get; set; }
         public string Semester { get; set; }
         public int? DayOfWeek { get; set; }
         public DateTime? CreatedDate { get; set; }
@@ -24,6 +25,7 @@ namespace API_Raspberry.Dto
         public string StartTime { get; set; }
         public string EndTime { get; set; }
         public string Room { get; set; }
+        public string Address { get; set; }
         public string Semester { get; set; }
         public int? DayOfWeek { get; set; }
     }
@@ -38,6 +40,7 @@ namespace API_Raspberry.Dto
         public string EndTime { get; set; }
         public string Room { get; set; }
         public string Semester { get; set; }
+        public string Address { get; set; }
         public int? DayOfWeek { get; set; }
     }
 }

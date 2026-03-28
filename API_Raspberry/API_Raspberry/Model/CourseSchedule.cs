@@ -24,6 +24,7 @@ namespace API_Raspberry.Model
         public string EndTime { get; set; }
 
         public string Room { get; set; }
+        public string Address { get; set; }
 
         public string Semester { get; set; }
 

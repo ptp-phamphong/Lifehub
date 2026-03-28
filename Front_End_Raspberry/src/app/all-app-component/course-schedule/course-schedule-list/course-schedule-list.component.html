@@ -4,6 +4,20 @@
 
   <div class="toolbar">
     <button class="btn-add" (click)="openEditDialog(0)">+ Thêm môn mới</button>
+
+    <button class="btn-import" (click)="fileInput.click()">
+      📥 Import Excel
+    </button>
+    <input #fileInput type="file" accept=".xlsx" hidden (change)="onFileSelected($event)">
+
+    <span *ngIf="importMessage" class="import-message" [class.import-error]="importError">
+      {{ importMessage }}
+    </span>
+
+
+    <button class="btn-delete" (click)="deleteAll()">
+      Xóa toàn bộ
+    </button>
   </div>
 
   <table class="course-table">

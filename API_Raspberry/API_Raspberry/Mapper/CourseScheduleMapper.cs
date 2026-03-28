@@ -27,6 +27,7 @@ namespace API_Raspberry.Mapper
                 StartTime = entity.StartTime,
                 EndTime = entity.EndTime,
                 Room = entity.Room,
+                Address = entity.Address,
                 Semester = entity.Semester,
                 DayOfWeek = entity.DayOfWeek,
                 CreatedDate = entity.CreatedDate,
@@ -49,6 +50,7 @@ namespace API_Raspberry.Mapper
                 StartTime = dto.StartTime,
                 EndTime = dto.EndTime,
                 Room = dto.Room,
+                Address = dto.Address,
                 Semester = dto.Semester,
                 DayOfWeek = dto.DayOfWeek,
             };
@@ -63,6 +65,7 @@ namespace API_Raspberry.Mapper
             entity.StartTime = dto.StartTime;
             entity.EndTime = dto.EndTime;
             entity.Room = dto.Room;
+            entity.Address = dto.Address;
             entity.Semester = dto.Semester;
             entity.DayOfWeek = dto.DayOfWeek;
         }

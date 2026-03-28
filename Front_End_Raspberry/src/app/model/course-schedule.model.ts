@@ -7,6 +7,7 @@ export class CourseSchedule {
     startTime?: string;
     endTime?: string;
     room?: string;
+    address?: string;
     semester?: string;
     dayOfWeek?: number;
     createdDate?: string;
