@@ -1,0 +1,20 @@
+namespace API_Raspberry.Dto
+{
+    public class PhoneNotificationDto
+    {
+        public int Id { get; set; }
+        public string App { get; set; }
+        public string Title { get; set; }
+        public string Text { get; set; }
+        public string Time { get; set; }
+        public DateTime? CreatedDate { get; set; }
+    }
+
+    public class PhoneNotificationCreateDto
+    {
+        public string App { get; set; }
+        public string Title { get; set; }
+        public string Text { get; set; }
+        public string Time { get; set; }
+    }
+}

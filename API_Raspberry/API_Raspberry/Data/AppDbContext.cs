@@ -12,6 +12,7 @@ namespace API_Raspberry.Data
         public DbSet<ExpenseRecord> ExpenseRecords { get; set; }
         public DbSet<ReasonType> ReasonTypes { get; set; }
         public DbSet<CourseSchedule> CourseSchedules { get; set; }
+        public DbSet<PhoneNotification> PhoneNotifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +44,13 @@ namespace API_Raspberry.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CourseName).IsRequired();
                 entity.Property(e => e.CourseCode).IsRequired();
+            });
+
+            // PhoneNotification
+            modelBuilder.Entity<PhoneNotification>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.App).IsRequired();
             });
         }
     }

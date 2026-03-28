@@ -37,6 +37,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IReasonTypeMapper, ReasonTypeMapper>();
 builder.Services.AddScoped<IExpenseRecordMapper, ExpenseRecordMapper>();
 builder.Services.AddScoped<ICourseScheduleMapper, CourseScheduleMapper>();
+builder.Services.AddScoped<IPhoneNotificationMapper, PhoneNotificationMapper>();
 builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
 
 // ----------------------------
@@ -45,6 +46,7 @@ builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IReasonTypeRepository, ReasonTypeRepository>();
 builder.Services.AddScoped<ICourseScheduleRepository, CourseScheduleRepository>();
+builder.Services.AddScoped<IPhoneNotificationRepository, PhoneNotificationRepository>();
 
 // ----------------------------
 // 5️⃣ Dependency Injection - Services
@@ -52,6 +54,7 @@ builder.Services.AddScoped<ICourseScheduleRepository, CourseScheduleRepository>(
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IReasonTypeService, ReasonTypeService>();
 builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
+builder.Services.AddScoped<IPhoneNotificationService, PhoneNotificationService>();
 builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
 builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();
 // AI Provider: đọc từ config để chọn Gemini hoặc Ollama

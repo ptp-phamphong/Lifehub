@@ -16,6 +16,7 @@ import { NotificationData } from '../models/notification.model';
 import {
   getStoredNotifications,
   clearNotifications,
+  deleteNotification,
   sendNotificationsEmail,
 } from '../services/notificationService';
 
@@ -43,8 +44,13 @@ export default function NotificationMonitorScreen() {
   const [permissionStatus, setPermissionStatus] = useState<string>('unknown');
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
+  const [sortBy, setSortBy] = useState<string>('createddate');
+  const [sortDirection, setSortDirection] = useState<string>('desc');
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (sort?: string, dir?: string) => {
+    const currentSort = sort ?? sortBy;
+    const currentDir = dir ?? sortDirection;
+
     // Debug: kiểm tra native module có tồn tại không
     const moduleExists = !!RNAndroidNotificationListener;
     const methods = RNAndroidNotificationListener
@@ -65,9 +71,9 @@ export default function NotificationMonitorScreen() {
     );
     setPermissionStatus(status);
 
-    const stored = await getStoredNotifications();
+    const stored = await getStoredNotifications(currentSort, currentDir);
     setNotifications(stored);
-  }, []);
+  }, [sortBy, sortDirection]);
 
   useFocusEffect(
     useCallback(() => {
@@ -79,6 +85,16 @@ export default function NotificationMonitorScreen() {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
+  };
+
+  const handleSortChange = async (newSortBy: string) => {
+    let newDir = 'desc';
+    if (newSortBy === sortBy) {
+      newDir = sortDirection === 'desc' ? 'asc' : 'desc';
+    }
+    setSortBy(newSortBy);
+    setSortDirection(newDir);
+    await loadData(newSortBy, newDir);
   };
 
   const handleGrantPermission = () => {
@@ -106,6 +122,25 @@ export default function NotificationMonitorScreen() {
     }
   };
 
+  const handleDeleteOne = (item: NotificationData) => {
+    if (!item.id) return;
+    Alert.alert('Xác nhận', `Xóa thông báo từ "${item.app}"?`, [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: 'Xóa',
+        style: 'destructive',
+        onPress: async () => {
+          const ok = await deleteNotification(item.id!);
+          if (ok) {
+            await loadData();
+          } else {
+            Alert.alert('Lỗi', 'Không thể xóa thông báo.');
+          }
+        },
+      },
+    ]);
+  };
+
   const handleClear = () => {
     Alert.alert('Xác nhận', 'Xóa tất cả thông báo đã thu thập?', [
       { text: 'Hủy', style: 'cancel' },
@@ -122,13 +157,25 @@ export default function NotificationMonitorScreen() {
 
   const isPermissionGranted = permissionStatus === 'authorized';
 
-  const renderNotificationItem = ({ item, index }: { item: NotificationData; index: number }) => (
+  const getSortIcon = (field: string) => {
+    if (sortBy !== field) return '↕';
+    return sortDirection === 'desc' ? '↓' : '↑';
+  };
+
+  const renderNotificationItem = ({ item }: { item: NotificationData }) => (
     <View style={styles.notificationCard}>
       <View style={styles.cardHeader}>
         <Text style={styles.appName} numberOfLines={1}>
           📱 {item.app}
         </Text>
-        <Text style={styles.time}>{item.time}</Text>
+        <View style={styles.cardActions}>
+          <Text style={styles.time}>{item.time}</Text>
+          {item.id != null && (
+            <TouchableOpacity style={styles.deleteItemBtn} onPress={() => handleDeleteOne(item)}>
+              <Text style={styles.deleteItemBtnText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
       {item.title !== '(không có tiêu đề)' && (
         <Text style={styles.title} numberOfLines={2}>
@@ -166,20 +213,41 @@ export default function NotificationMonitorScreen() {
         </View>
       ) : null}
 
+      {/* Sort Buttons */}
+      <View style={styles.sortRow}>
+        <Text style={styles.sortLabel}>Sắp xếp:</Text>
+        <TouchableOpacity
+          style={[styles.sortBtn, sortBy === 'createddate' && styles.sortBtnActive]}
+          onPress={() => handleSortChange('createddate')}
+        >
+          <Text style={[styles.sortBtnText, sortBy === 'createddate' && styles.sortBtnTextActive]}>
+            Thời gian {getSortIcon('createddate')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.sortBtn, sortBy === 'app' && styles.sortBtnActive]}
+          onPress={() => handleSortChange('app')}
+        >
+          <Text style={[styles.sortBtnText, sortBy === 'app' && styles.sortBtnTextActive]}>
+            Ứng dụng {getSortIcon('app')}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Action Buttons */}
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.emailBtn} onPress={handleSendEmail}>
           <Text style={styles.emailBtnText}>📧 Gửi Email ({notifications.length})</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
-          <Text style={styles.clearBtnText}>🗑️ Xóa</Text>
+          <Text style={styles.clearBtnText}>🗑️ Xóa tất cả</Text>
         </TouchableOpacity>
       </View>
 
       {/* Notification List */}
       <FlatList
         data={notifications}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item, index) => item.id != null ? item.id.toString() : index.toString()}
         renderItem={renderNotificationItem}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
@@ -238,6 +306,38 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
   },
+  sortRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 12,
+    marginTop: 10,
+    gap: 8,
+  },
+  sortLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555',
+  },
+  sortBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#e9ecef',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  sortBtnActive: {
+    backgroundColor: '#0d6efd',
+    borderColor: '#0d6efd',
+  },
+  sortBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#555',
+  },
+  sortBtnTextActive: {
+    color: '#fff',
+  },
   actionRow: {
     flexDirection: 'row',
     margin: 12,
@@ -287,6 +387,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   appName: {
     fontSize: 13,
     fontWeight: '700',
@@ -297,6 +402,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#999',
     marginLeft: 8,
+  },
+  deleteItemBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#dc3545',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  deleteItemBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+    lineHeight: 14,
   },
   title: {
     fontSize: 14,
