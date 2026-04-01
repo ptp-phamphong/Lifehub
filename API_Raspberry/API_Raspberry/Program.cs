@@ -38,6 +38,7 @@ builder.Services.AddScoped<IReasonTypeMapper, ReasonTypeMapper>();
 builder.Services.AddScoped<IExpenseRecordMapper, ExpenseRecordMapper>();
 builder.Services.AddScoped<ICourseScheduleMapper, CourseScheduleMapper>();
 builder.Services.AddScoped<IPhoneNotificationMapper, PhoneNotificationMapper>();
+builder.Services.AddScoped<INotificationFilterMapper, NotificationFilterMapper>();
 builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
 
 // ----------------------------
@@ -47,6 +48,7 @@ builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IReasonTypeRepository, ReasonTypeRepository>();
 builder.Services.AddScoped<ICourseScheduleRepository, CourseScheduleRepository>();
 builder.Services.AddScoped<IPhoneNotificationRepository, PhoneNotificationRepository>();
+builder.Services.AddScoped<INotificationFilterRepository, NotificationFilterRepository>();
 
 // ----------------------------
 // 5️⃣ Dependency Injection - Services
@@ -56,6 +58,7 @@ builder.Services.AddScoped<IReasonTypeService, ReasonTypeService>();
 builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
 builder.Services.AddScoped<ICourseScheduleImportService, CourseScheduleImportService>();
 builder.Services.AddScoped<IPhoneNotificationService, PhoneNotificationService>();
+builder.Services.AddScoped<INotificationFilterService, NotificationFilterService>();
 builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
 builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();
 // AI Provider: đọc từ config để chọn Gemini hoặc Ollama
@@ -92,6 +95,10 @@ try
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
+
+    // Seed default notification filters
+    var filterService = scope.ServiceProvider.GetRequiredService<INotificationFilterService>();
+    filterService.SeedDefaults();
 }
 catch (Exception ex)
 {
@@ -107,7 +114,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Caddy xử lý HTTPS, API chỉ cần HTTP nội bộ
 
 // 🔥 Thêm dòng này để bật CORS (quan trọng)
 app.UseCors("AllowAll");
@@ -117,8 +124,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 // ----------------------------
-// 7️⃣ Lắng nghe trên mọi IP và port 5000
+// 7️⃣ Lắng nghe cổng nội bộ cố định cho Caddy reverse proxy
 // ----------------------------
- app.Run();
-//app.Run("http://127.0.0.1:5000");
+app.Run("http://127.0.0.1:5000");
 

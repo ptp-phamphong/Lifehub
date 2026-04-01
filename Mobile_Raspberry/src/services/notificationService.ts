@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiBaseUrl } from '../config';
 import { NotificationData } from '../models/notification.model';
+import { shouldIgnoreNotification } from './notificationFilterService';
 
 const STORAGE_KEY = 'captured_notifications';
 const MAX_NOTIFICATIONS = 500;
@@ -116,39 +117,6 @@ export async function sendNotificationsEmail(notifications: NotificationData[]):
   }
 }
 
-// Các package hệ thống - bỏ qua hoàn toàn
-const IGNORED_PACKAGES = [
-  'android',                        // Hệ thống Android
-  'com.android.systemui',           // System UI
-  'com.android.vending',            // Google Play Store
-  'com.google.android.gms',         // Google Play Services
-  'com.samsung.android.incallui',   // Samsung incoming call UI
-  'com.samsung.android.app.smartcapture', // Samsung screenshot
-];
-
-// Từ khóa trong title/text → notification hệ thống, không phải tin nhắn thật
-const IGNORED_KEYWORDS = [
-  'bong bóng chat đang bật',
-  'đang hiện trên các ứng dụng khác',
-  'đang chạy trong nền',
-  'running in the background',
-  'bubble',
-  'is displaying over other apps',
-  'đang hoạt động',
-  'usb debugging',
-  'charging this device',
-  'đang sạc',
-];
-
-function shouldIgnoreNotification(data: { app: string; title: string; text: string; bigText: string; subText: string }): boolean {
-  // Bỏ qua package hệ thống
-  if (IGNORED_PACKAGES.includes(data.app)) return true;
-
-  // Kiểm tra từ khóa trong title + text
-  const combined = `${data.title || ''} ${data.text || ''} ${data.bigText || ''} ${data.subText || ''}`.toLowerCase();
-  return IGNORED_KEYWORDS.some(kw => combined.includes(kw));
-}
-
 /**
  * Handler cho headless task - được gọi mỗi khi có notification mới.
  * Chạy trong background, không có UI.
@@ -162,8 +130,8 @@ export async function handleNotification(taskData: { notification: string }): Pr
     const data = JSON.parse(taskData.notification);
     if (!data || !data.app) return;
 
-    // Lọc bỏ thông báo hệ thống
-    if (shouldIgnoreNotification(data)) return;
+    // Lọc bỏ thông báo hệ thống (dynamic filters từ backend + cache)
+    if (await shouldIgnoreNotification(data)) return;
 
     const notification: NotificationData = {
       app: data.app,

@@ -1,5 +1,6 @@
 // Production environment - dùng khi deploy lên Raspberry Pi
+// HTTPS qua Caddy reverse proxy + DuckDNS DNS challenge (port 3443)
 export const environment = {
   production: true,
-  apiBaseUrl: 'http://ptp-phamphong-pi.duckdns.org:3036/api',
+  apiBaseUrl: 'https://ptp-phamphong-pi.duckdns.org:3443/api',
 };

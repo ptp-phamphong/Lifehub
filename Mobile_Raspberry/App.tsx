@@ -9,6 +9,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import SpeechToTextScreen from './src/screens/SpeechToTextScreen';
 import CourseScheduleScreen from './src/screens/CourseScheduleScreen';
 import NotificationMonitorScreen from './src/screens/NotificationMonitorScreen';
+import NotificationFilterScreen from './src/screens/NotificationFilterScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -55,6 +56,14 @@ export default function App() {
           options={{
             title: 'Thông báo',
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🔔</Text>,
+          }}
+        />
+        <Tab.Screen
+          name="NotificationFilter"
+          component={NotificationFilterScreen}
+          options={{
+            title: 'Bộ lọc',
+            tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🚫</Text>,
           }}
         />
         {/* <Tab.Screen
