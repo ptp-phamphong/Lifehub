@@ -59,6 +59,7 @@ import { CourseScheduleFormComponent } from './all-app-component/course-schedule
 import { CourseCalendarComponent } from './all-app-component/course-schedule/course-calendar/course-calendar.component';
 import { CourseWeekCalendarComponent } from './all-app-component/course-schedule/course-week-calendar/course-week-calendar.component';
 import { CourseMonthCalendarComponent } from './all-app-component/course-schedule/course-month-calendar/course-month-calendar.component';
+import { SettingsTabComponent } from './all-app-component/settings-tab/settings-tab.component';
 
 @NgModule({
   declarations: [
@@ -75,6 +76,7 @@ import { CourseMonthCalendarComponent } from './all-app-component/course-schedul
     CourseCalendarComponent,
     CourseWeekCalendarComponent,
     CourseMonthCalendarComponent,
+    SettingsTabComponent,
   ],
   imports: [
     BrowserModule,

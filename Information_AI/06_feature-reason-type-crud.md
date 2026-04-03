@@ -1,0 +1,109 @@
+# Feature: Reason Type CRUD
+
+Settings feature to manage expense categories (reason types). Used as a lookup/reference for Expense Records.
+
+## Backend
+
+### Endpoints
+
+| Method | Route | Body/Param | Returns |
+|---|---|---|---|
+| POST | `/ReasonType` | `ReasonTypeCreateDto` | `bool` |
+| GET | `/GetAllReasonType` | — | `List<ReasonTypeDto>` |
+| GET | `/GetReasonTypeById/{id}` | — | `ReasonTypeDto` |
+| PUT | `/UpdateReasonTypeById/{id}` | `ReasonTypeUpdateDto` | `bool` |
+
+Note: There is no DELETE endpoint for reason types. They are soft-managed through the `Active` field.
+
+### Flow
+
+```
+ReasonTypeController → IReasonTypeService → IReasonTypeRepository → AppDbContext
+                                           → IReasonTypeMapper (DTO ↔ Entity)
+```
+
+### Key files
+
+- Controller: `API_Raspberry/Controllers/ReasonTypeController.cs`
+- Service: `API_Raspberry/Service/ReasonTypeService.cs`
+- Repository: `API_Raspberry/Repository/ReasonTypeRepository.cs`
+- Mapper: `API_Raspberry/Mapper/ReasonTypeMapper.cs`
+- DTOs: `API_Raspberry/Dto/ReasonTypeDto.cs`
+- Model: `API_Raspberry/Model/ReasonType.cs`
+
+### Entity fields
+
+- `Id` (int, PK)
+- `ReasonName` (string, required)
+- `Active` (bool)
+- `SortOrder` (int?, nullable)
+
+Table name: `reasonType`
+
+### Default ordering
+
+`GetAllReasonType` returns records ordered by `SortOrder` ascending.
+
+### Mapper behavior
+
+- `ToEntity(CreateDto)`: sets `Active = true` by default
+- `UpdateEntity(entity, UpdateDto)`: overwrites name, sort order, active status
+
+## Angular Web Frontend
+
+### Key files
+
+- `Front_End_Raspberry/src/app/all-app-component/reason-type/reason-type-list/reason-type-list.component.ts`
+- `Front_End_Raspberry/src/app/all-app-component/reason-type/reason-type-form/reason-type-form.component.ts`
+- `Front_End_Raspberry/src/app/model/reason-type.model.ts`
+
+### Pattern
+
+- List component loads all reason types via `GET /GetAllReasonType`.
+- Edit dialog opened via `MatDialog` with `ReasonTypeFormComponent`.
+- Form component handles both create and update:
+  - If `data.id > 0` → load existing, submit PUT
+  - If `data.id === 0` → create new, submit POST
+- Direct `HttpClient` usage in components — no Angular service layer.
+- No delete functionality in the UI (commented out).
+
+### Form fields
+
+- Reason name (required)
+- Sort order (optional number)
+- Active status (boolean, shown on edit)
+
+## React Native Mobile
+
+### Key files
+
+- `Mobile_Raspberry/src/screens/ReasonTypeScreen.tsx`
+- `Mobile_Raspberry/src/services/reasonTypeService.ts`
+- `Mobile_Raspberry/src/models/reasonType.model.ts`
+
+### Current state
+
+The mobile ReasonType screen is a **placeholder only**. It shows static text:
+> "📋 Reason Type Settings — Cài đặt loại chi tiêu sẽ ở đây"
+
+The service module only provides `getAllReasonTypes()` (used by expense filter), and does not have create/update/delete functions.
+
+### What exists in mobile
+
+- `reasonTypeService.ts` has `getAllReasonTypes(): Promise<ReasonType[]>` — used by `ExpenseListScreen` and `FilterReasonType` component.
+- `ReasonType` model interface with `id`, `reasonName`, `active`, `sortOrder`.
+
+### What is missing in mobile
+
+- No CRUD UI for managing reason types from the mobile app.
+- No add/edit/toggle-active service functions.
+
+## Platform comparison
+
+| Aspect | Angular | React Native |
+|---|---|---|
+| List view | Full table | Placeholder only |
+| Create | MatDialog form | Not implemented |
+| Update | MatDialog form | Not implemented |
+| Delete | Not implemented (soft-delete via Active flag) | Not implemented |
+| Service layer | None (direct HttpClient) | Partial (read only) |
