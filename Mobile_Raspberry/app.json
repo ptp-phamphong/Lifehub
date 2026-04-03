@@ -33,6 +33,7 @@
       "expo-font",
       "./plugins/withCleartextTraffic",
       "./plugins/withNotificationListener",
+      "./plugins/withAppInfoModule",
       "@react-native-community/datetimepicker"
     ],
     "extra": {

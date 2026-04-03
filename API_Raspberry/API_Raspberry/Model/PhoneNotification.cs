@@ -12,6 +12,8 @@ namespace API_Raspberry.Model
         [Required]
         public string App { get; set; }
 
+        public string AppName { get; set; }
+
         public string Title { get; set; }
 
         public string Text { get; set; }

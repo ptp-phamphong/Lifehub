@@ -20,6 +20,7 @@ namespace API_Raspberry.Mapper
             {
                 Id = entity.Id,
                 App = entity.App,
+                AppName = entity.AppName,
                 Title = entity.Title,
                 Text = entity.Text,
                 Time = entity.Time,
@@ -37,6 +38,7 @@ namespace API_Raspberry.Mapper
             return new PhoneNotification
             {
                 App = dto.App,
+                AppName = dto.AppName,
                 Title = dto.Title,
                 Text = dto.Text,
                 Time = dto.Time,

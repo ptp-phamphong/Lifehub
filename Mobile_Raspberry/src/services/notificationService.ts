@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getApiBaseUrl } from '../config';
 import { NotificationData } from '../models/notification.model';
 import { shouldIgnoreNotification } from './notificationFilterService';
+import { getAppName } from './appInfoService';
 
 const STORAGE_KEY = 'captured_notifications';
 const MAX_NOTIFICATIONS = 500;
@@ -17,6 +18,7 @@ export async function storeNotification(notification: NotificationData): Promise
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         app: notification.app,
+        appName: notification.appName,
         title: notification.title,
         text: notification.text,
         time: notification.time,
@@ -133,8 +135,12 @@ export async function handleNotification(taskData: { notification: string }): Pr
     // Lọc bỏ thông báo hệ thống (dynamic filters từ backend + cache)
     if (await shouldIgnoreNotification(data)) return;
 
+    // Resolve tên app từ package name (ví dụ: com.facebook.orca → Messenger)
+    const appName = await getAppName(data.app);
+
     const notification: NotificationData = {
       app: data.app,
+      appName: appName,
       title: data.title || data.titleBig || '(không có tiêu đề)',
       text: data.bigText || data.text || data.summaryText || '(không có nội dung)',
       time: new Date().toLocaleString('vi-VN'),

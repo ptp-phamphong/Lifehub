@@ -10,6 +10,7 @@ import {
   Linking,
   Platform,
   NativeModules,
+  Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NotificationData } from '../models/notification.model';
@@ -19,6 +20,7 @@ import {
   deleteNotification,
   sendNotificationsEmail,
 } from '../services/notificationService';
+import { AppInfo, resolveAppInfoBatch } from '../services/appInfoService';
 
 // Lấy native module trực tiếp từ NativeModules
 const { RNAndroidNotificationListener } = NativeModules;
@@ -46,6 +48,7 @@ export default function NotificationMonitorScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState<string>('createddate');
   const [sortDirection, setSortDirection] = useState<string>('desc');
+  const [appInfoMap, setAppInfoMap] = useState<Map<string, AppInfo>>(new Map());
 
   const loadData = useCallback(async (sort?: string, dir?: string) => {
     const currentSort = sort ?? sortBy;
@@ -73,6 +76,11 @@ export default function NotificationMonitorScreen() {
 
     const stored = await getStoredNotifications(currentSort, currentDir);
     setNotifications(stored);
+
+    // Resolve tên + icon cho các app (batch)
+    const packageNames = stored.map(n => n.app);
+    const infoMap = await resolveAppInfoBatch(packageNames);
+    setAppInfoMap(infoMap);
   }, [sortBy, sortDirection]);
 
   useFocusEffect(
@@ -124,7 +132,8 @@ export default function NotificationMonitorScreen() {
 
   const handleDeleteOne = (item: NotificationData) => {
     if (!item.id) return;
-    Alert.alert('Xác nhận', `Xóa thông báo từ "${item.app}"?`, [
+    const displayName = item.appName || appInfoMap.get(item.app)?.name || item.app;
+    Alert.alert('Xác nhận', `Xóa thông báo từ "${displayName}"?`, [
       { text: 'Hủy', style: 'cancel' },
       {
         text: 'Xóa',
@@ -162,12 +171,27 @@ export default function NotificationMonitorScreen() {
     return sortDirection === 'desc' ? '↓' : '↑';
   };
 
-  const renderNotificationItem = ({ item }: { item: NotificationData }) => (
+  const renderNotificationItem = ({ item }: { item: NotificationData }) => {
+    const info = appInfoMap.get(item.app);
+    const displayName = item.appName || info?.name || item.app;
+    const iconBase64 = info?.icon;
+
+    return (
     <View style={styles.notificationCard}>
       <View style={styles.cardHeader}>
-        <Text style={styles.appName} numberOfLines={1}>
-          📱 {item.app}
-        </Text>
+        <View style={styles.appRow}>
+          {iconBase64 ? (
+            <Image
+              source={{ uri: `data:image/png;base64,${iconBase64}` }}
+              style={styles.appIcon}
+            />
+          ) : (
+            <Text style={styles.appEmoji}>📱</Text>
+          )}
+          <Text style={styles.appName} numberOfLines={1}>
+            {displayName}
+          </Text>
+        </View>
         <View style={styles.cardActions}>
           <Text style={styles.time}>{item.time}</Text>
           {item.id != null && (
@@ -186,7 +210,8 @@ export default function NotificationMonitorScreen() {
         {item.text}
       </Text>
     </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -397,6 +422,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0d6efd',
     flex: 1,
+  },
+  appRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 6,
+  },
+  appIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+  },
+  appEmoji: {
+    fontSize: 16,
   },
   time: {
     fontSize: 11,
