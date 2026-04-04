@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,13 @@ import {
   sendNotificationsEmail,
 } from '../services/notificationService';
 import { AppInfo, resolveAppInfoBatch } from '../services/appInfoService';
+
+type AppGroup = {
+  packageName: string;
+  displayName: string;
+  icon: string;
+  notifications: NotificationData[];
+};
 
 // Lấy native module trực tiếp từ NativeModules
 const { RNAndroidNotificationListener } = NativeModules;
@@ -46,9 +53,41 @@ export default function NotificationMonitorScreen() {
   const [permissionStatus, setPermissionStatus] = useState<string>('unknown');
   const [debugInfo, setDebugInfo] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
+  const [viewMode, setViewMode] = useState<'all' | 'grouped'>('grouped');
+  const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<string>('createddate');
   const [sortDirection, setSortDirection] = useState<string>('desc');
   const [appInfoMap, setAppInfoMap] = useState<Map<string, AppInfo>>(new Map());
+
+  const groupedByApp = useMemo(() => {
+    const groups = new Map<string, AppGroup>();
+
+    for (const item of notifications) {
+      const info = appInfoMap.get(item.app);
+      const displayName = item.appName || info?.name || item.app;
+      const icon = info?.icon || '';
+      const current = groups.get(item.app);
+
+      if (current) {
+        current.notifications.push(item);
+      } else {
+        groups.set(item.app, {
+          packageName: item.app,
+          displayName,
+          icon,
+          notifications: [item],
+        });
+      }
+    }
+
+    return Array.from(groups.values()).sort((a, b) => b.notifications.length - a.notifications.length);
+  }, [notifications, appInfoMap]);
+
+  const selectedAppNotifications = useMemo(() => {
+    if (!selectedApp) return [];
+    const group = groupedByApp.find((g) => g.packageName === selectedApp);
+    return group?.notifications ?? [];
+  }, [groupedByApp, selectedApp]);
 
   const loadData = useCallback(async (sort?: string, dir?: string) => {
     const currentSort = sort ?? sortBy;
@@ -117,12 +156,12 @@ export default function NotificationMonitorScreen() {
     }
   };
 
-  const handleSendEmail = async () => {
-    if (notifications.length === 0) {
+  const handleSendEmail = async (items: NotificationData[]) => {
+    if (items.length === 0) {
       Alert.alert('Thông báo', 'Chưa có thông báo nào để gửi.');
       return;
     }
-    const result = await sendNotificationsEmail(notifications);
+    const result = await sendNotificationsEmail(items);
     if (result.success) {
       Alert.alert('Thành công', result.message);
     } else {
@@ -158,6 +197,7 @@ export default function NotificationMonitorScreen() {
         style: 'destructive',
         onPress: async () => {
           await clearNotifications();
+          setSelectedApp(null);
           setNotifications([]);
         },
       },
@@ -213,6 +253,42 @@ export default function NotificationMonitorScreen() {
     );
   };
 
+  const renderAppGroupItem = ({ item }: { item: AppGroup }) => (
+    <TouchableOpacity
+      style={styles.appGroupCard}
+      onPress={() => setSelectedApp(item.packageName)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.appGroupLeft}>
+        {item.icon ? (
+          <Image
+            source={{ uri: `data:image/png;base64,${item.icon}` }}
+            style={styles.appGroupIcon}
+          />
+        ) : (
+          <Text style={styles.appGroupEmoji}>📱</Text>
+        )}
+        <View style={styles.appGroupTextWrap}>
+          <Text style={styles.appGroupName} numberOfLines={1}>
+            {item.displayName}
+          </Text>
+          <Text style={styles.appGroupPackage} numberOfLines={1}>
+            {item.packageName}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.appGroupRight}>
+        <Text style={styles.appGroupCount}>{item.notifications.length}</Text>
+        <Text style={styles.appGroupArrow}>›</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const isAppDetailView = viewMode === 'grouped' && selectedApp != null;
+  const displayNotifications = isAppDetailView ? selectedAppNotifications : notifications;
+  const selectedAppName =
+    groupedByApp.find((g) => g.packageName === selectedApp)?.displayName ?? selectedApp ?? '';
+
   return (
     <View style={styles.container}>
       {/* Permission Status */}
@@ -238,7 +314,33 @@ export default function NotificationMonitorScreen() {
         </View>
       ) : null}
 
-      {/* Sort Buttons */}
+      {/* View + Sort Buttons */}
+      <View style={styles.sortRow}>
+        <Text style={styles.sortLabel}>Hiển thị:</Text>
+        <TouchableOpacity
+          style={[styles.sortBtn, viewMode === 'grouped' && styles.sortBtnActive]}
+          onPress={() => {
+            setViewMode('grouped');
+            setSelectedApp(null);
+          }}
+        >
+          <Text style={[styles.sortBtnText, viewMode === 'grouped' && styles.sortBtnTextActive]}>
+            Theo app
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.sortBtn, viewMode === 'all' && styles.sortBtnActive]}
+          onPress={() => {
+            setViewMode('all');
+            setSelectedApp(null);
+          }}
+        >
+          <Text style={[styles.sortBtnText, viewMode === 'all' && styles.sortBtnTextActive]}>
+            Tất cả
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.sortRow}>
         <Text style={styles.sortLabel}>Sắp xếp:</Text>
         <TouchableOpacity
@@ -261,31 +363,59 @@ export default function NotificationMonitorScreen() {
 
       {/* Action Buttons */}
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.emailBtn} onPress={handleSendEmail}>
-          <Text style={styles.emailBtnText}>📧 Gửi Email ({notifications.length})</Text>
+        <TouchableOpacity style={styles.emailBtn} onPress={() => handleSendEmail(displayNotifications)}>
+          <Text style={styles.emailBtnText}>📧 Gửi Email ({displayNotifications.length})</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
           <Text style={styles.clearBtnText}>🗑️ Xóa tất cả</Text>
         </TouchableOpacity>
       </View>
 
+      {isAppDetailView && (
+        <View style={styles.detailHeader}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => setSelectedApp(null)}>
+            <Text style={styles.backBtnText}>← Quay lại list app</Text>
+          </TouchableOpacity>
+          <Text style={styles.detailTitle} numberOfLines={1}>
+            {selectedAppName}
+          </Text>
+        </View>
+      )}
+
       {/* Notification List */}
-      <FlatList
-        data={notifications}
-        keyExtractor={(item, index) => item.id != null ? item.id.toString() : index.toString()}
-        renderItem={renderNotificationItem}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {isPermissionGranted
-                ? 'Chưa có thông báo nào được thu thập.\nKéo xuống để refresh.'
-                : 'Hãy cấp quyền đọc thông báo để bắt đầu.'}
-            </Text>
-          </View>
-        }
-        contentContainerStyle={notifications.length === 0 ? styles.emptyList : undefined}
-      />
+      {viewMode === 'grouped' && !isAppDetailView ? (
+        <FlatList
+          data={groupedByApp}
+          keyExtractor={(item) => item.packageName}
+          renderItem={renderAppGroupItem}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Chưa có app nào có thông báo.\nKéo xuống để refresh.</Text>
+            </View>
+          }
+          contentContainerStyle={groupedByApp.length === 0 ? styles.emptyList : undefined}
+        />
+      ) : (
+        <FlatList
+          data={displayNotifications}
+          keyExtractor={(item, index) =>
+            item.id != null ? item.id.toString() : `${item.app}-${item.time}-${index}`
+          }
+          renderItem={renderNotificationItem}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {isPermissionGranted
+                  ? 'Chưa có thông báo nào được thu thập.\nKéo xuống để refresh.'
+                  : 'Hãy cấp quyền đọc thông báo để bắt đầu.'}
+              </Text>
+            </View>
+          }
+          contentContainerStyle={displayNotifications.length === 0 ? styles.emptyList : undefined}
+        />
+      )}
     </View>
   );
 }
@@ -391,6 +521,95 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 14,
+  },
+  detailHeader: {
+    marginHorizontal: 12,
+    marginBottom: 8,
+  },
+  backBtn: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#e9ecef',
+    borderColor: '#dee2e6',
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 8,
+  },
+  backBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#495057',
+  },
+  detailTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0d6efd',
+  },
+  appGroupCard: {
+    backgroundColor: '#fff',
+    marginHorizontal: 12,
+    marginBottom: 8,
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#20c997',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  appGroupLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 8,
+  },
+  appGroupIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+  },
+  appGroupEmoji: {
+    fontSize: 20,
+  },
+  appGroupTextWrap: {
+    flex: 1,
+  },
+  appGroupName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#212529',
+  },
+  appGroupPackage: {
+    fontSize: 11,
+    color: '#6c757d',
+    marginTop: 2,
+  },
+  appGroupRight: {
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  appGroupCount: {
+    minWidth: 28,
+    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#fff',
+    backgroundColor: '#20c997',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    overflow: 'hidden',
+  },
+  appGroupArrow: {
+    fontSize: 20,
+    color: '#20c997',
+    lineHeight: 22,
   },
   notificationCard: {
     backgroundColor: '#fff',
