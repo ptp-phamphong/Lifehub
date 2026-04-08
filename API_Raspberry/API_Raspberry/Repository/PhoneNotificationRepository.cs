@@ -23,6 +23,23 @@ namespace API_Raspberry.Repository
 
         public int Add(PhoneNotification entity)
         {
+            // Ưu tiên dedup theo NotificationKey do mobile tạo ở mức message-level.
+            // Key này được build từ native notification key + message signature (timestamp|sender|text)
+            // nên giữ được nhiều message đến gần như cùng lúc, nhưng vẫn chặn re-post khi mở bubble.
+            // if (!string.IsNullOrEmpty(entity.NotificationKey))
+            // {
+            //     bool isDuplicateByKey = _context.PhoneNotifications
+            //         .Any(n => n.NotificationKey == entity.NotificationKey);
+            //     if (isDuplicateByKey) return -1;
+            // }
+            // else if (!string.IsNullOrEmpty(entity.AndroidTime))
+            // {
+            //     // Fallback cho client cũ chưa gửi NotificationKey.
+            //     bool isDuplicateByTime = _context.PhoneNotifications
+            //         .Any(n => n.App == entity.App && n.AndroidTime == entity.AndroidTime);
+            //     if (isDuplicateByTime) return -1;
+            // }
+
             _context.PhoneNotifications.Add(entity);
             _context.SaveChanges();
             return entity.Id;

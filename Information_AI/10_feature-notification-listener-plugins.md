@@ -8,8 +8,7 @@ This documents the three Expo config plugins in `Mobile_Raspberry/plugins/` that
 |---|---|
 | `withNotificationListener.js` | Register Android NotificationListenerService |
 | `withCleartextTraffic.js` | Allow HTTP (non-HTTPS) traffic to all domains |
-| `withAppInfoModule.js` | Add native Java module for app name/icon lookup |
-
+| `withAppInfoModule.js` | Add native Java module for app name/icon lookup || `withNotificationIdentityFields.js` | Patch native library to expose notification identity fields + message signatures |
 These plugins are registered in `Mobile_Raspberry/app.json` under `"plugins"`.
 
 ---
@@ -44,10 +43,13 @@ Modifies `AndroidManifest.xml` to register the `RNAndroidNotificationListenerSer
      () => handleNotification
    );
    ```
-4. `handleNotification` (in `notificationService.ts`):
+4. `handleNotification` (in `notificationService.ts`) processes each payload:
    - Parses the notification JSON.
    - Runs it through `shouldIgnoreNotification()` (filter logic).
-   - If not filtered, resolves the app name and stores the notification via API.
+   - If not filtered, extracts ALL message signatures from the notification payload (not just the latest).
+   - For each message signature, creates a separate notification record with extracted sender/text.
+   - Resolves the app name and serializes writes via a persist queue to prevent lost notifications on burst.
+   - Stores all extracted notifications via API (with fallback to AsyncStorage if API unavailable).
 
 ### User requirement
 
@@ -156,9 +158,141 @@ Wrapped by `Mobile_Raspberry/src/services/appInfoService.ts` which adds caching.
 
 ---
 
-## Important notes
+## Plugin 4: withNotificationIdentityFields
 
-- All three plugins run during `eas build` only. They do NOT apply during `eas update`.
+### File
+
+`Mobile_Raspberry/plugins/withNotificationIdentityFields.js`
+
+### What it does
+
+Patches the `RNNotification.java` class from `react-native-android-notification-listener` to extract and expose notification identity fields and all message signatures from the notification payload.
+
+### Why it's needed
+
+- The library's default implementation only captures basic notification fields.
+- To handle **notification bursts** (when many messages arrive during network outage), we need:
+  - Notification identity fields: `notificationKey`, `notificationId`, `notificationTag`, `postTime`
+  - All message signatures, not just the summary text (Android MessagingStyle.Message extraction)
+- This allows the app to differentiate individual messages within a single notification update.
+
+### Patches applied to RNNotification.java
+
+1. **Fields injection** (after `iconLarge` field):
+   ```java
+   protected String notificationKey;        // StatusBarNotification.getKey()
+   protected String notificationId;         // StatusBarNotification.getId()
+   protected String notificationTag;        // StatusBarNotification.getTag()
+   protected ArrayList<String> messageSignatures;  // Extracted from EXTRA_MESSAGES
+   ```
+
+2. **Field assignment** (in constructor, after `this.time = ...`):
+   ```java
+   this.notificationKey = sbn.getKey();
+   this.notificationId = Integer.toString(sbn.getId());
+   this.notificationTag = sbn.getTag();
+   this.messageSignatures = this.getMessageSignatures(notification);
+   ```
+
+3. **Message extraction helper** (new private method):
+   ```java
+   private ArrayList<String> getMessageSignatures(Notification notification) {
+       ArrayList<String> result = new ArrayList<String>();
+       try {
+           // Extract from Notification.EXTRA_MESSAGES (MessagingStyle)
+           android.os.Parcelable[] parcelables = notification.extras.getParcelableArray(Notification.EXTRA_MESSAGES);
+           if (parcelables == null || parcelables.length == 0) return result;
+           
+           java.util.List<Notification.MessagingStyle.Message> messages =
+               Notification.MessagingStyle.Message.getMessagesFromBundleArray(parcelables);
+           
+           // Build signature string: timestamp|sender|text
+           for (Notification.MessagingStyle.Message message : messages) {
+               CharSequence textValue = message.getText();
+               CharSequence senderValue = message.getSender();
+               long timestamp = message.getTimestamp();
+               
+               String safeText = (textValue == null) ? "" : textValue.toString().trim();
+               String safeSender = (senderValue == null) ? "" : senderValue.toString().trim();
+               
+               result.add(Long.toString(timestamp) + "|" + safeSender + "|" + safeText);
+           }
+       } catch (Exception e) {
+           Log.d(TAG, e.getMessage());
+       }
+       return result;
+   }
+   ```
+
+### Message signature format
+
+Each element in `messageSignatures` array is a pipe-separated string:
+```
+timestamp|sender|text
+```
+
+Example:
+```
+1712547890000|Alice|Hello
+1712547895000|Alice|How are you?
+```
+
+This format allows the React Native layer to extract individual messages even when Android groups multiple messages into one notification update.
+
+### Impact on notification handling
+
+- The `handleNotification` function in `notificationService.ts` now:
+  1. Reads ALL `messageSignatures` from the payload (instead of just taking the latest one).
+  2. Deduplicates by parsing each signature to extract sender/text.
+  3. Creates a separate notification record for EACH message.
+  4. Serializes writes via a persist queue to prevent data loss when burst notifications arrive rapidly.
+
+### Build requirement
+
+This plugin runs during `eas build` and modifies the native library code in `node_modules`. **Any change to this plugin requires a full APK rebuild**—`eas update` will NOT apply the patch.
+
+Build errors will occur if `RNNotification.java` path or anchor points change in a future version of `react-native-android-notification-listener`. The plugin validates this and fails fast with clear error messages.
+
+---
+
+## JavaScript Service: notificationService.ts
+
+### Key functions added to handle bursts
+
+**Persist queue** (global state):
+```typescript
+let persistQueue: Promise<void> = Promise.resolve();
+```
+Ensures notification writes are serialized, preventing request loss during burst events.
+
+**getMessageSignatures() → string[]**:
+Reads all message signatures from the notification payload and deduplicates them.
+
+**buildNotificationIdentities() → NotificationIdentity[]**:
+Returns an array (not a single object) because one notification event may contain multiple message signatures. Each identity includes:
+- `notificationKey` (Android's unique key or computed from message signature hash)
+- `androidTime` (extracted from message timestamp or fallback to postTime)
+- `messageSender` & `messageText` (parsed from signature)
+
+**mergeNotifications(remote, local) → NotificationData[]**:
+When reading notifications, merges API response with local AsyncStorage fallback. This prevents data loss if API requests fail during burst.
+
+**enqueuePersist(work) → Promise**:
+Queues async work (e.g., storing a notification) to serialize disk writes when burst events arrive rapidly.
+
+**handleNotification() flow**:
+1. Parse raw payload.
+2. Check filter (`shouldIgnoreNotification`).
+3. Extract identities (array) and base title/text.
+4. Queue async work that loops through each identity:
+   - Build NotificationData with extracted sender (if available) or fallback to base title.
+   - Call `storeNotification()` for each.
+5. This ensures all messages are captured even if Android delivers them in a single event.
+
+### Important notes
+
+- All four plugins run during `eas build` only. They do NOT apply during `eas update`.
 - Any change to these plugins requires a full APK rebuild.
-- The plugins use Expo's `withAndroidManifest`, `withDangerousMod`, and `withMainApplication` APIs.
+- The plugins use Expo's `withAndroidManifest`, `withDangerousMod`, `withMainApplication`, and `withDangerousMod` APIs.
 - The generated Java code is part of the build output, not committed to the repository source.
+- Database constraint changes (removal of UNIQUE indexes) are applied via a separate EF Core migration on the backend.

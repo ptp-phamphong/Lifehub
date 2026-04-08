@@ -20,6 +20,32 @@ namespace API_Raspberry.Model
 
         public string Time { get; set; }
 
+        /// <summary>
+        /// Thời gian post notification từ Android (sbn.getPostTime() - milliseconds as string).
+        /// Dùng để phát hiện duplicate khi user mở chat bubble:
+        /// Android re-post cùng notification với cùng postTime → cùng AndroidTime → duplicate.
+        /// </summary>
+        public string AndroidTime { get; set; }
+
+        /// <summary>
+        /// Notification key từ Android (StatusBarNotification.getKey()).
+        /// Đây là định danh ổn định cho cùng một notification khi bị update/re-post.
+        /// Dùng làm dedup key chính xác hơn AndroidTime.
+        /// </summary>
+        public string NotificationKey { get; set; }
+
+        /// <summary>
+        /// Notification id từ Android (StatusBarNotification.getId()).
+        /// Lưu để debug/đối soát khi cần.
+        /// </summary>
+        public string NotificationId { get; set; }
+
+        /// <summary>
+        /// Notification tag từ Android (StatusBarNotification.getTag()).
+        /// Lưu để debug/đối soát khi cần.
+        /// </summary>
+        public string NotificationTag { get; set; }
+
         public DateTime? CreatedDate { get; set; }
     }
 }

@@ -49,7 +49,7 @@ export default function SystemInfoScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Thông tin hệ thống - 2</Text>
+        <Text style={styles.title}>Thông tin hệ thống</Text>
         <View style={styles.headerRight}>
           {lastUpdated && (
             <Text style={styles.lastUpdated}>Cập nhật: {formatTime(lastUpdated)}</Text>

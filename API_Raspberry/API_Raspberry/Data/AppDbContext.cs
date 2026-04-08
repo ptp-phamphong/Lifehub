@@ -52,6 +52,15 @@ namespace API_Raspberry.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.App).IsRequired();
+                // NotificationKey là định danh chuẩn từ Android cho cùng notification.
+                // entity.HasIndex(e => e.NotificationKey)
+                //     .IsUnique()
+                //     .HasFilter("`NotificationKey` IS NOT NULL");
+                // Unique index trên (App, AndroidTime) để chặn duplicate khi mở chat bubble.
+                // MySQL cho phép nhiều NULL trong UNIQUE index nên record cũ (không có AndroidTime) không bị ảnh hưởng.
+                entity.HasIndex(e => new { e.App, e.AndroidTime })
+                    //   .IsUnique()
+                      .HasFilter("`AndroidTime` IS NOT NULL");
             });
 
             // NotificationFilter

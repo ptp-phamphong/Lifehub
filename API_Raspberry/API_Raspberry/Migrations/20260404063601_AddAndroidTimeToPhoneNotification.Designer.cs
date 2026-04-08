@@ -4,6 +4,7 @@ using API_Raspberry.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API_Raspberry.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260404063601_AddAndroidTimeToPhoneNotification")]
+    partial class AddAndroidTimeToPhoneNotification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -149,15 +152,6 @@ namespace API_Raspberry.Migrations
                     b.Property<DateTime?>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("NotificationId")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("NotificationKey")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("NotificationTag")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Text")
                         .HasColumnType("longtext");
 
@@ -170,6 +164,7 @@ namespace API_Raspberry.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("App", "AndroidTime")
+                        .IsUnique()
                         .HasFilter("`AndroidTime` IS NOT NULL");
 
                     b.ToTable("PhoneNotification");

@@ -4,6 +4,7 @@ using API_Raspberry.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API_Raspberry.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260404070115_AddNotificationIdentityFields")]
+    partial class AddNotificationIdentityFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,7 +156,7 @@ namespace API_Raspberry.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("NotificationKey")
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("NotificationTag")
                         .HasColumnType("longtext");
@@ -169,7 +172,12 @@ namespace API_Raspberry.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NotificationKey")
+                        .IsUnique()
+                        .HasFilter("`NotificationKey` IS NOT NULL");
+
                     b.HasIndex("App", "AndroidTime")
+                        .IsUnique()
                         .HasFilter("`AndroidTime` IS NOT NULL");
 
                     b.ToTable("PhoneNotification");

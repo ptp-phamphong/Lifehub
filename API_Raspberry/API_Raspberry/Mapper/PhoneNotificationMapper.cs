@@ -24,6 +24,10 @@ namespace API_Raspberry.Mapper
                 Title = entity.Title,
                 Text = entity.Text,
                 Time = entity.Time,
+                AndroidTime = entity.AndroidTime,
+                NotificationKey = entity.NotificationKey,
+                NotificationId = entity.NotificationId,
+                NotificationTag = entity.NotificationTag,
                 CreatedDate = entity.CreatedDate,
             };
         }
@@ -42,6 +46,10 @@ namespace API_Raspberry.Mapper
                 Title = dto.Title,
                 Text = dto.Text,
                 Time = dto.Time,
+                AndroidTime = dto.AndroidTime,
+                NotificationKey = dto.NotificationKey,
+                NotificationId = dto.NotificationId,
+                NotificationTag = dto.NotificationTag,
                 CreatedDate = DateTime.Now,
             };
         }
