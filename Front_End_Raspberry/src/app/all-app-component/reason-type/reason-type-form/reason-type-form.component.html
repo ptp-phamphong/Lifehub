@@ -1,27 +1,33 @@
 <div class="expense-form">
-  <h2>Thêm lý do</h2>
+  <h2>{{ id > 0 ? 'Chỉnh sửa lý do' : 'Thêm lý do mới' }}</h2>
+
   <form (ngSubmit)="submitForm()">
     <div class="form-group">
-      <label for="reasonName">Tên</label>
-      <input id="reasonName" type="text" [(ngModel)]="reasonName" name="reasonName" placeholder="Nhập tên" />
+      <label for="reasonName">Tên lý do</label>
+      <input id="reasonName" type="text" [(ngModel)]="reasonName" name="reasonName" placeholder="Nhập tên lý do..." />
     </div>
 
     <div class="form-group">
       <label for="sortOrder">Số thứ tự</label>
-      <input id="sortOrder" type="number" [(ngModel)]="sortOrder" name="sortOrder" placeholder="Nhập số thứ tự" />
+      <input id="sortOrder" type="number" [(ngModel)]="sortOrder" name="sortOrder" placeholder="Nhập số thứ tự..." />
     </div>
 
-    <div class="form-group">
-      <label for="active">Trạng thái</label>
-      <input id="active" type="checkbox" [(ngModel)]="active" name="active" />
+    <div class="form-group form-group-checkbox">
+      <label for="active">Hoạt động</label>
+      <label class="toggle">
+        <input id="active" type="checkbox" [(ngModel)]="active" name="active" />
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+        </span>
+      </label>
     </div>
 
     <button type="submit">Lưu</button>
   </form>
 
-  <p class="message">{{ message }}</p>
+  <p class="message" *ngIf="message">{{ message }}</p>
 
-  <div>
-    <button mat-button color="warn" (click)="cancel()">Hủy</button>
+  <div class="cancel-row">
+    <button type="button" (click)="cancel()">Hủy</button>
   </div>
 </div>

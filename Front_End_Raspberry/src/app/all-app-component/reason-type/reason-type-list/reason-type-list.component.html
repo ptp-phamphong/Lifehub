@@ -1,8 +1,11 @@
 <div class="expense-table-container">
 
   <h2>Danh sách lý do</h2>
-  <br>
-  <button mat-button color="primary" (click)="openEditDialog(0)">Thêm mới</button>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm mới</button>
+  </div>
 
   <table class="expense-table">
     <thead>
@@ -19,13 +22,13 @@
         <td>{{ item.id }}</td>
         <td>{{ item.reasonName }}</td>
         <td>{{ item.sortOrder }}</td>
-        <td>{{ item.active }}</td>
         <td>
-          <button mat-button color="primary" (click)="openEditDialog(item.id)">Sửa</button>
-          <!-- <button mat-button color="primary" (click)="deleteRecord(item)">Xoá</button> -->
-
-          <!-- <button class="btn btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
-          <button class="btn btn-delete" (click)="deleteRecord(item)">Xoá</button> -->
+          <span class="badge" [class.badge-active]="item.active" [class.badge-inactive]="!item.active">
+            {{ item.active ? 'Hoạt động' : 'Ẩn' }}
+          </span>
+        </td>
+        <td class="col-actions">
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
         </td>
       </tr>
     </tbody>
