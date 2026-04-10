@@ -33,6 +33,39 @@ $radius-sm: 8px;
   }
 }
 
+.flow-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid $border;
+  background: $bg;
+}
+
+.tab-btn {
+  border: none;
+  background: transparent;
+  color: $text-secondary;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &.active {
+    background: $primary;
+    color: #fff;
+    box-shadow: $shadow-sm;
+  }
+}
+
 // ── Summary Cards ──
 .summary-section {
   display: flex;

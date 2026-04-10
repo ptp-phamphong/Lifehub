@@ -96,6 +96,12 @@
 - **Current state**: `SettingsScreen.tsx` exists but is commented out in tab navigator.
 - **What it likely contains**: API URL configuration (runtime changeable via `setApiBaseUrl()`).
 
+### 7. Income CRUD on mobile
+
+- **Current state**: Income CRUD is available on backend and Angular web.
+- **What's missing**: Mobile list/form/edit/delete UI for income records.
+- **Backend ready**: Income endpoints are available (`/IncomeNote`, `/GetAllIncomeNote`, ...).
+
 ---
 
 ## Summary table
@@ -104,6 +110,7 @@
 |---|---|---|---|
 | System Info | ✅ | ✅ | ✅ |
 | Expense CRUD | ✅ | ✅ | ✅ |
+| Income CRUD | ✅ | ✅ | ❌ |
 | Reason Type CRUD | ✅ | ✅ | ❌ Placeholder |
 | Course Schedule CRUD | ✅ | ✅ | ❌ Read-only calendar |
 | Course Calendar display | ✅ | ✅ | ✅ |

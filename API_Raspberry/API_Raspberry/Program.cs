@@ -29,13 +29,14 @@ builder.Services.AddCors(options =>
 // ----------------------------
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
 
 // ----------------------------
 // 3️⃣ Dependency Injection - Mappers
 // ----------------------------
 builder.Services.AddScoped<IReasonTypeMapper, ReasonTypeMapper>();
 builder.Services.AddScoped<IExpenseRecordMapper, ExpenseRecordMapper>();
+builder.Services.AddScoped<IIncomeRecordMapper, IncomeRecordMapper>();
 builder.Services.AddScoped<ICourseScheduleMapper, CourseScheduleMapper>();
 builder.Services.AddScoped<IPhoneNotificationMapper, PhoneNotificationMapper>();
 builder.Services.AddScoped<INotificationFilterMapper, NotificationFilterMapper>();
@@ -45,6 +46,7 @@ builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
 // 4️⃣ Dependency Injection - Repositories
 // ----------------------------
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
+builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 builder.Services.AddScoped<IReasonTypeRepository, ReasonTypeRepository>();
 builder.Services.AddScoped<ICourseScheduleRepository, CourseScheduleRepository>();
 builder.Services.AddScoped<IPhoneNotificationRepository, PhoneNotificationRepository>();
@@ -54,6 +56,7 @@ builder.Services.AddScoped<INotificationFilterRepository, NotificationFilterRepo
 // 5️⃣ Dependency Injection - Services
 // ----------------------------
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
+builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<IReasonTypeService, ReasonTypeService>();
 builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
 builder.Services.AddScoped<ICourseScheduleImportService, CourseScheduleImportService>();
@@ -127,4 +130,5 @@ app.MapControllers();
 // 7️⃣ Lắng nghe cổng nội bộ cố định cho Caddy reverse proxy
 // ----------------------------
 app.Run("http://127.0.0.1:5000");
+// app.Run();
 

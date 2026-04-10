@@ -10,6 +10,7 @@ namespace API_Raspberry.Data
         }
 
         public DbSet<ExpenseRecord> ExpenseRecords { get; set; }
+        public DbSet<IncomeRecord> IncomeRecords { get; set; }
         public DbSet<ReasonType> ReasonTypes { get; set; }
         public DbSet<CourseSchedule> CourseSchedules { get; set; }
         public DbSet<PhoneNotification> PhoneNotifications { get; set; }
@@ -30,6 +31,14 @@ namespace API_Raspberry.Data
                       .WithMany()
                       .HasForeignKey(e => e.ReasonTypeId)
                       .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // IncomeRecord
+            modelBuilder.Entity<IncomeRecord>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Reason).IsRequired();
+                entity.Property(e => e.Amount).IsRequired();
             });
 
             // ReasonType

@@ -1,26 +1,31 @@
 <div class="expense-table-container">
 
-  <h2>Danh sách chi tiêu</h2>
+  <div class="flow-tabs">
+    <button class="tab-btn" [class.active]="activeTab === 'expense'" (click)="onTabChange('expense')">Tiền chi</button>
+    <button class="tab-btn" [class.active]="activeTab === 'income'" (click)="onTabChange('income')">Tiền thu</button>
+  </div>
+
+  <h2>{{ pageTitle }}</h2>
 
   <!-- Summary Cards -->
   <div class="summary-section">
     <div class="summary-card" *ngIf="!showAll && sumThisMonth > 0">
-      Tổng tháng {{selectedMonth}}/{{selectedYear}}: <b>{{formatCurrency(sumThisMonth)}}</b>
+      {{sumThisMonthLabel}} {{selectedMonth}}/{{selectedYear}}: <b>{{formatCurrency(sumThisMonth)}}</b>
     </div>
     <div class="summary-card" *ngIf="showAll && sumAll > 0">
-      Tổng toàn bộ: <b>{{formatCurrency(sumAll)}}</b>
+      {{sumAllLabel}}: <b>{{formatCurrency(sumAll)}}</b>
     </div>
     <div class="summary-card" *ngIf="showAll && sumAllFiltered > 0">
-      Lịch sử theo filter: <b>{{formatCurrency(sumAllFiltered)}}</b>
+      {{sumAllFilteredLabel}}: <b>{{formatCurrency(sumAllFiltered)}}</b>
     </div>
     <div class="summary-card" *ngIf="sumThisWeek > 0">
-      Tổng tuần hiện tại: <b>{{formatCurrency(sumThisWeek)}}</b>
+      {{sumThisWeekLabel}}: <b>{{formatCurrency(sumThisWeek)}}</b>
     </div>
   </div>
 
   <!-- Toolbar -->
   <div class="toolbar">
-    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm mới</button>
+    <button class="btn-add" (click)="openEditDialog(0)">{{ addButtonLabel }}</button>
     <label class="show-all-checkbox">
       <input type="checkbox" [checked]="showAll" (change)="toggleShowAll()" />
       Hiển thị toàn bộ lịch sử
@@ -30,7 +35,7 @@
   <app-month-pagination *ngIf="!showAll" (monthChanged)="onMonthChanged($event)"></app-month-pagination>
 
   <!-- Filters -->
-  <div class="filters-wrapper">
+  <div class="filters-wrapper" *ngIf="isExpenseTab">
     <div class="filter-section">
       <span>Lọc theo lý do</span>
       <ng-select [(ngModel)]="reasonTypeIdsFilterIn" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
@@ -53,9 +58,9 @@
     <thead>
       <tr>
         <th class="sortable" (click)="onSort('id')">Id <span class="sort-icon">{{getSortIcon('id')}}</span></th>
-        <th class="sortable" (click)="onSort('createdDate')">Ngày tháng <span class="sort-icon">{{getSortIcon('createdDate')}}</span></th>
+        <th class="sortable" (click)="onSort('createdDate')">{{dateLabel}} <span class="sort-icon">{{getSortIcon('createdDate')}}</span></th>
         <th class="sortable" (click)="onSort('reason')">Lý do <span class="sort-icon">{{getSortIcon('reason')}}</span></th>
-        <th class="sortable" (click)="onSort('reasonType')">Loại lý do <span class="sort-icon">{{getSortIcon('reasonType')}}</span></th>
+        <th *ngIf="isExpenseTab" class="sortable" (click)="onSort('reasonType')">Loại lý do <span class="sort-icon">{{getSortIcon('reasonType')}}</span></th>
         <th class="sortable" (click)="onSort('amount')">Số tiền <span class="sort-icon">{{getSortIcon('amount')}}</span></th>
         <th>Hành động</th>
       </tr>
@@ -65,7 +70,7 @@
         <td>{{ item.id }}</td>
         <td>{{ item.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
         <td>{{ item.reason }}</td>
-        <td>{{ item.reasonType?.reasonName }}</td>
+        <td *ngIf="isExpenseTab">{{ item.reasonType?.reasonName }}</td>
         <td class="col-amount">{{ formatCurrency(item.amount) }}</td>
         <td class="col-actions">
           <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>

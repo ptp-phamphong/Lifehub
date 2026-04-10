@@ -22,6 +22,7 @@ export class ExpenseRecordComponent {
   amount: number = 0;
   message: string = '';
   id: number = 0;
+  flowType: 'expense' | 'income' = 'expense';
   reasonTypes: ReasonType[] = [];
   reasonTypeId?: number = null;
   expenseDate: Date = new Date();
@@ -39,7 +40,11 @@ export class ExpenseRecordComponent {
 
   ngOnInit() {
     this.id = this.data.id;
-    this.loadAllReasonType();
+    this.flowType = this.data.flowType === 'income' ? 'income' : 'expense';
+    if (this.isExpenseMode) {
+      this.loadAllReasonType();
+    }
+
     if(this.id > 0){
       this.loadExpense();
     }
@@ -47,6 +52,38 @@ export class ExpenseRecordComponent {
 
   get isEditMode(): boolean {
     return this.id > 0;
+  }
+
+  get isExpenseMode(): boolean {
+    return this.flowType === 'expense';
+  }
+
+  get formTitle(): string {
+    if (this.isExpenseMode) {
+      return this.isEditMode ? 'Chỉnh sửa chi tiêu' : 'Thêm ghi chú chi tiêu';
+    }
+
+    return this.isEditMode ? 'Chỉnh sửa thu vào' : 'Thêm ghi chú thu vào';
+  }
+
+  get dateLabel(): string {
+    return this.isExpenseMode ? 'Ngày chi tiêu' : 'Ngày thu vào';
+  }
+
+  private getRoute(routeType: 'getById' | 'add' | 'update'): string {
+    if (this.isExpenseMode) {
+      return {
+        getById: 'GetExpenseById',
+        add: 'ExpenseNote',
+        update: 'UpdateById',
+      }[routeType];
+    }
+
+    return {
+      getById: 'GetIncomeById',
+      add: 'IncomeNote',
+      update: 'UpdateIncomeById',
+    }[routeType];
   }
 
   loadAllReasonType(){
@@ -59,7 +96,7 @@ export class ExpenseRecordComponent {
   }
 
   loadExpense(){
-    this.http.get(`${environment.apiBaseUrl}/GetExpenseById/${this.id}`)
+    this.http.get(`${environment.apiBaseUrl}/${this.getRoute('getById')}/${this.id}`)
       .subscribe({
         next: (res) => {
           const record = Object.assign(new ExpenseRecord(), res);
@@ -83,17 +120,20 @@ export class ExpenseRecordComponent {
       return;
     }
 
-    const payload: ExpenseRecord = {
+    const payload: any = {
       reason: this.reason,
       amount: this.amount,
-      reasonTypeId: this.reasonTypeId,
       createdDate: this.formatLocalDate(this.expenseDate)
     };
+
+    if (this.isExpenseMode) {
+      payload.reasonTypeId = this.reasonTypeId;
+    }
 
     if(this.id > 0){
 
 
-      this.http.put(`${environment.apiBaseUrl}/UpdateById/${this.id}`, payload)
+      this.http.put(`${environment.apiBaseUrl}/${this.getRoute('update')}/${this.id}`, payload)
         .subscribe({
           next: (res) => {
             this.message = '✅ Gửi thành công!';
@@ -108,7 +148,7 @@ export class ExpenseRecordComponent {
     }
     else{
 
-      this.http.post(`${environment.apiBaseUrl}/ExpenseNote`, payload)
+      this.http.post(`${environment.apiBaseUrl}/${this.getRoute('add')}`, payload)
         .subscribe({
           next: (res) => {
             this.message = '✅ Gửi thành công!';
@@ -146,6 +186,10 @@ export class ExpenseRecordComponent {
   }
 
   submitAi() {
+    if (!this.isExpenseMode) {
+      return;
+    }
+
     if (!this.aiPrompt.trim()) {
       this.message = '⚠️ Vui lòng nhập mô tả chi tiêu.';
       return;

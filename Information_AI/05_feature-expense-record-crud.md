@@ -87,6 +87,7 @@ Service applies additional sorting after query using LINQ on the result list. Su
 ### Pattern
 
 - List component injects `HttpClient` directly, calls POST `/GetAllExpenseNote` with filter.
+- Route `/expense-record-list` now has 2 tabs (`Tien chi`, `Tien thu`); this expense feature is the `Tien chi` tab.
 - Uses `MatDialog` to open add/edit form as a dialog.
 - Form component loads expense by ID for editing, creates/updates via HTTP.
 - Month pagination component controls which month is displayed.
