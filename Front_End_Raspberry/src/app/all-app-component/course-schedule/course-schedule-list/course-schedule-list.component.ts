@@ -37,7 +37,9 @@ export class CourseScheduleListComponent {
 
   openEditDialog(id: number): void {
     const dialogRef = this.dialog.open(CourseScheduleFormComponent, {
-      width: '550px',
+      width: '95vw',
+      maxWidth: '550px',
+      maxHeight: '92vh',
       data: { id },
       viewContainerRef: this.viewContainerRef
     });

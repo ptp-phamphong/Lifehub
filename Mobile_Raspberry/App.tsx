@@ -42,14 +42,14 @@ export default function App() {
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📊</Text>,
           }}
         />
-        <Tab.Screen
+        {/* <Tab.Screen
           name="ReasonType"
           component={ReasonTypeScreen}
           options={{
             title: 'Loại chi tiêu',
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📋</Text>,
           }}
-        />
+        /> */}
         <Tab.Screen
           name="NotificationMonitor"
           component={NotificationMonitorScreen}

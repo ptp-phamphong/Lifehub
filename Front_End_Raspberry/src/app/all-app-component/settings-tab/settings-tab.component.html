@@ -1,1 +1,29 @@
-<div>Chỉnh sửa cấu hình hệ thống.</div>
+<div class="settings-layout">
+	<aside class="settings-sidebar">
+		<h5 class="settings-title">Cài đặt</h5>
+		<ul class="nav flex-column nav-pills settings-menu">
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					[routerLink]="['/settings/reason-type-settings']"
+					routerLinkActive="active"
+				>
+					Reason type Settings
+				</a>
+			</li>
+			<li class="nav-item">
+				<a
+					class="nav-link"
+					[routerLink]="['/settings/course-schedule-settings']"
+					routerLinkActive="active"
+				>
+					Course Schedule Settings
+				</a>
+			</li>
+		</ul>
+	</aside>
+
+	<section class="settings-content">
+		<router-outlet></router-outlet>
+	</section>
+</div>

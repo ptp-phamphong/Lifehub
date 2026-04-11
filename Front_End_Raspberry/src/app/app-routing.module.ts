@@ -16,10 +16,20 @@ const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'system-info' },
       { path: 'system-info', component: SystemInfoTabComponent },
       { path: 'expense-record-list', component: ExpenseRecordListComponent },
-      { path: 'reason-type-settings', component: ReasonTypeListComponent },
-      { path: 'course-schedule-settings', component: CourseScheduleListComponent },
       { path: 'course-calendar', component: CourseCalendarComponent },
-      { path: 'settings', component: SettingsTabComponent }
+      {
+        path: 'settings',
+        component: SettingsTabComponent,
+        children: [
+          { path: '', pathMatch: 'full', redirectTo: 'reason-type-settings' },
+          { path: 'reason-type-settings', component: ReasonTypeListComponent },
+          { path: 'course-schedule-settings', component: CourseScheduleListComponent }
+        ]
+      },
+      { path: 'reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },
+      { path: 'setting/reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },
+      { path: 'course-schedule-settings', redirectTo: 'settings/course-schedule-settings', pathMatch: 'full' },
+      { path: 'setting/course-schedule-settings', redirectTo: 'settings/course-schedule-settings', pathMatch: 'full' }
     ]
   },
   { path: '**', redirectTo: '' }

@@ -1,3 +1,12 @@
+.main-shell {
+  width: 100%;
+  max-width: 100%;
+}
+
+.main-content-panel {
+  min-height: calc(100vh - 180px);
+}
+
 .nav-tabs .nav-link {
   border-radius: 0.5rem;
   transition: all 0.2s ease;
