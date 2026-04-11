@@ -12,6 +12,16 @@ interface Props {
 export default function FilterReasonType({ label, reasonTypes, selectedIds, onSelectionChange }: Props) {
   const [modalVisible, setModalVisible] = useState(false);
 
+  const getReasonTypeLabel = (reasonType: ReasonType) => {
+    if (!reasonType.reasonName) {
+      return '';
+    }
+
+    return reasonType.active === false
+      ? `${reasonType.reasonName} (inactive)`
+      : reasonType.reasonName;
+  };
+
   const toggleItem = (id: number) => {
     const next = selectedIds.includes(id)
       ? selectedIds.filter(i => i !== id)
@@ -21,7 +31,7 @@ export default function FilterReasonType({ label, reasonTypes, selectedIds, onSe
 
   const selectedNames = reasonTypes
     .filter(r => r.id !== undefined && selectedIds.includes(r.id))
-    .map(r => r.reasonName)
+    .map(r => getReasonTypeLabel(r))
     .join(', ');
 
   return (
@@ -47,7 +57,7 @@ export default function FilterReasonType({ label, reasonTypes, selectedIds, onSe
                     onPress={() => rt.id !== undefined && toggleItem(rt.id)}
                   >
                     <Text style={[styles.itemText, isSelected && styles.itemTextSelected]}>
-                      {isSelected ? '☑ ' : '☐ '}{rt.reasonName}
+                      {isSelected ? '☑ ' : '☐ '}{getReasonTypeLabel(rt)}
                     </Text>
                   </TouchableOpacity>
                 );

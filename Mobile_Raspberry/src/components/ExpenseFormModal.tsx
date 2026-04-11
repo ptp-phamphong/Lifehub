@@ -33,6 +33,18 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const isReasonTypeActive = (reasonType: ReasonType) => reasonType.active !== false;
+
+  const getReasonTypeLabel = (reasonType?: ReasonType) => {
+    if (!reasonType?.reasonName) {
+      return '';
+    }
+
+    return isReasonTypeActive(reasonType)
+      ? reasonType.reasonName
+      : `${reasonType.reasonName} (inactive)`;
+  };
+
   useEffect(() => {
     if (!visible) return;
     // Reset form
@@ -115,7 +127,8 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
     setAmount(Number(raw) || 0);
   };
 
-  const selectedReasonName = reasonTypes.find(r => r.id === reasonTypeId)?.reasonName;
+  const activeReasonTypes = reasonTypes.filter(isReasonTypeActive);
+  const selectedReasonName = getReasonTypeLabel(reasonTypes.find(r => r.id === reasonTypeId));
 
   const formatDisplayDate = (date: Date): string => {
     const dd = String(date.getDate()).padStart(2, '0');
@@ -215,14 +228,14 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
                     >
                       <Text style={styles.pickerItemText}>-- Không chọn --</Text>
                     </TouchableOpacity>
-                    {reasonTypes.map(rt => (
+                    {activeReasonTypes.map(rt => (
                       <TouchableOpacity
                         key={rt.id}
                         style={[styles.pickerItem, rt.id === reasonTypeId && styles.pickerItemActive]}
                         onPress={() => { setReasonTypeId(rt.id); setShowReasonPicker(false); }}
                       >
                         <Text style={[styles.pickerItemText, rt.id === reasonTypeId && styles.pickerItemTextActive]}>
-                          {rt.reasonName}
+                          {getReasonTypeLabel(rt)}
                         </Text>
                       </TouchableOpacity>
                     ))}

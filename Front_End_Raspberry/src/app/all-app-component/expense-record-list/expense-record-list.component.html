@@ -38,7 +38,7 @@
   <div class="filters-wrapper" *ngIf="isExpenseTab">
     <div class="filter-section">
       <span>Lọc theo lý do</span>
-      <ng-select [(ngModel)]="reasonTypeIdsFilterIn" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
+      <ng-select [(ngModel)]="reasonTypeIdsFilterIn" name="reasonTypes" [items]="reasonTypes" bindLabel="displayName"
         bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
         (change)="onChangeReasonTypeIn($event)">
       </ng-select>
@@ -46,7 +46,7 @@
 
     <div class="filter-section">
       <span>Lọc theo không phải lý do</span>
-      <ng-select [(ngModel)]="reasonTypeIdsFilterOut" name="reasonTypes" [items]="reasonTypes" bindLabel="reasonName"
+      <ng-select [(ngModel)]="reasonTypeIdsFilterOut" name="reasonTypes" [items]="reasonTypes" bindLabel="displayName"
         bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true" [multiple]="true"
         (change)="onChangeReasonTypeOut($event)">
       </ng-select>
@@ -70,7 +70,7 @@
         <td>{{ item.id }}</td>
         <td>{{ item.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
         <td>{{ item.reason }}</td>
-        <td *ngIf="isExpenseTab">{{ item.reasonType?.reasonName }}</td>
+        <td *ngIf="isExpenseTab">{{ getReasonTypeLabel(item.reasonType) }}</td>
         <td class="col-amount">{{ formatCurrency(item.amount) }}</td>
         <td class="col-actions">
           <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>

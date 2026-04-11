@@ -72,6 +72,27 @@ export class ExpenseRecordListComponent implements OnInit {
     return this.isExpenseTab ? '+ Thêm mới chi tiêu' : '+ Thêm mới thu vào';
   }
 
+  private isReasonTypeActive(reasonType?: ReasonType): boolean {
+    return reasonType?.active !== false;
+  }
+
+  private toReasonTypeOption(reasonType: ReasonType): ReasonType {
+    return {
+      ...reasonType,
+      displayName: this.getReasonTypeLabel(reasonType)
+    };
+  }
+
+  getReasonTypeLabel(reasonType?: ReasonType): string {
+    if (!reasonType?.reasonName) {
+      return '—';
+    }
+
+    return this.isReasonTypeActive(reasonType)
+      ? reasonType.reasonName
+      : `${reasonType.reasonName} (inactive)`;
+  }
+
   onTabChange(tab: 'expense' | 'income') {
     if (this.activeTab === tab) {
       return;
@@ -209,7 +230,7 @@ export class ExpenseRecordListComponent implements OnInit {
   loadAllReasonType(){
     this.http.get<ReasonType[]>(`${environment.apiBaseUrl}/GetAllReasonType`).subscribe({
         next: (data) => {
-          this.reasonTypes = data;
+          this.reasonTypes = data.map(reasonType => this.toReasonTypeOption(reasonType));
         },
         error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
       });

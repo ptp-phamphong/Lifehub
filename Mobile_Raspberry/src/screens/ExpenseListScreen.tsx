@@ -83,6 +83,16 @@ export default function ExpenseListScreen() {
     return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
   };
 
+  const getReasonTypeLabel = (reasonType?: ReasonType): string => {
+    if (!reasonType?.reasonName) {
+      return '—';
+    }
+
+    return reasonType.active === false
+      ? `${reasonType.reasonName} (inactive)`
+      : reasonType.reasonName;
+  };
+
   // ── Data Loading ──────────────────────────────────────
   const loadByMonth = useCallback(
     async (month: number, year: number) => {
@@ -218,7 +228,7 @@ export default function ExpenseListScreen() {
     <View style={styles.row}>
       <View style={styles.rowMain}>
         <Text style={styles.rowReason} numberOfLines={1}>{item.reason}</Text>
-        <Text style={styles.rowType}>{item.reasonType?.reasonName ?? '—'}</Text>
+        <Text style={styles.rowType}>{getReasonTypeLabel(item.reasonType)}</Text>
         <Text style={styles.rowDate}>{formatDate(item.createdDate)}</Text>
       </View>
       <View style={styles.rowRight}>

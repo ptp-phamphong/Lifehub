@@ -86,10 +86,23 @@ export class ExpenseRecordComponent {
     }[routeType];
   }
 
+  private isReasonTypeActive(reasonType: ReasonType): boolean {
+    return reasonType.active !== false;
+  }
+
+  private toReasonTypeOption(reasonType: ReasonType): ReasonType {
+    return {
+      ...reasonType,
+      displayName: reasonType.reasonName ?? ''
+    };
+  }
+
   loadAllReasonType(){
     this.http.get<ReasonType[]>(`${environment.apiBaseUrl}/GetAllReasonType`).subscribe({
         next: (data) => {
-          this.reasonTypes = data;
+          this.reasonTypes = data
+            .filter(reasonType => this.isReasonTypeActive(reasonType))
+            .map(reasonType => this.toReasonTypeOption(reasonType));
         },
         error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
       });

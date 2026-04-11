@@ -3,4 +3,5 @@ export class ReasonType{
     reasonName?: string;
     active?: boolean;
     sortOrder?: number;
+    displayName?: string;
 }

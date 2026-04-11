@@ -42,7 +42,7 @@
 
     <div class="form-group" *ngIf="isExpenseMode">
       <label for="reasonType">Loại lý do</label>
-      <ng-select [(ngModel)]="reasonTypeId" name="reasonTypeId" [items]="reasonTypes" bindLabel="reasonName"
+      <ng-select [(ngModel)]="reasonTypeId" name="reasonTypeId" [items]="reasonTypes" bindLabel="displayName"
         bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true">
       </ng-select>
     </div>
