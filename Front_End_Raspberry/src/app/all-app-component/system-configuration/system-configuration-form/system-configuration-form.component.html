@@ -1,0 +1,23 @@
+<div class="expense-form">
+  <h2>{{ id > 0 ? 'Chinh sua cau hinh dac biet' : 'Them cau hinh dac biet' }}</h2>
+
+  <form (ngSubmit)="submitForm()">
+    <div class="form-group">
+      <label for="keyConfig">KeyConfig</label>
+      <input id="keyConfig" type="text" [(ngModel)]="keyConfig" name="keyConfig" placeholder="Nhap key config..." />
+    </div>
+
+    <div class="form-group">
+      <label for="valueConfig">ValueConfig</label>
+      <input id="valueConfig" type="text" [(ngModel)]="valueConfig" name="valueConfig" placeholder="Nhap value config..." />
+    </div>
+
+    <button type="submit">Luu</button>
+  </form>
+
+  <p class="message" *ngIf="message">{{ message }}</p>
+
+  <div class="cancel-row">
+    <button type="button" (click)="cancel()">Huy</button>
+  </div>
+</div>

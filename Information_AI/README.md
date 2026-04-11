@@ -16,6 +16,7 @@ Files:
 - `11_feature-other-and-missing.md`: Other features, platform gaps, and missing feature summary.
 - `12_feature-income-record-crud.md`: Income Record CRUD (web + backend), with tab integration in expense-record-list route.
 - `13_feature-semester-metadata-crud.md`: Semester metadata CRUD (web + backend) with current semester validation on Angular form.
+- `14_feature-system-configuration-crud.md`: System configuration CRUD (web + backend) for special key-value settings.
 
 Scope covered:
 - Database: MySQL

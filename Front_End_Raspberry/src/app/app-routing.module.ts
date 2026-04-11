@@ -8,6 +8,7 @@ import { CourseScheduleListComponent } from './all-app-component/course-schedule
 import { CourseCalendarComponent } from './all-app-component/course-schedule/course-calendar/course-calendar.component';
 import { SettingsTabComponent } from './all-app-component/settings-tab/settings-tab.component';
 import { SemesterMetadataListComponent } from './all-app-component/semester-metadata/semester-metadata-list/semester-metadata-list.component';
+import { SystemConfigurationListComponent } from './all-app-component/system-configuration/system-configuration-list/system-configuration-list.component';
 
 const routes: Routes = [
   {
@@ -25,7 +26,8 @@ const routes: Routes = [
           { path: '', pathMatch: 'full', redirectTo: 'reason-type-settings' },
           { path: 'reason-type-settings', component: ReasonTypeListComponent },
           { path: 'course-schedule-settings', component: CourseScheduleListComponent },
-          { path: 'semester-settings', component: SemesterMetadataListComponent }
+          { path: 'semester-settings', component: SemesterMetadataListComponent },
+          { path: 'system-configuration-settings', component: SystemConfigurationListComponent }
         ]
       },
       { path: 'reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },
@@ -33,7 +35,9 @@ const routes: Routes = [
       { path: 'course-schedule-settings', redirectTo: 'settings/course-schedule-settings', pathMatch: 'full' },
       { path: 'setting/course-schedule-settings', redirectTo: 'settings/course-schedule-settings', pathMatch: 'full' },
       { path: 'semester-settings', redirectTo: 'settings/semester-settings', pathMatch: 'full' },
-      { path: 'setting/semester-settings', redirectTo: 'settings/semester-settings', pathMatch: 'full' }
+      { path: 'setting/semester-settings', redirectTo: 'settings/semester-settings', pathMatch: 'full' },
+      { path: 'system-configuration-settings', redirectTo: 'settings/system-configuration-settings', pathMatch: 'full' },
+      { path: 'setting/system-configuration-settings', redirectTo: 'settings/system-configuration-settings', pathMatch: 'full' }
     ]
   },
   { path: '**', redirectTo: '' }

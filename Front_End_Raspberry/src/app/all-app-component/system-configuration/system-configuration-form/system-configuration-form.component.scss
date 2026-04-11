@@ -1,0 +1,120 @@
+$primary: #0ea5e9;
+$primary-hover: #0284c7;
+$danger: #ef4444;
+$surface: #ffffff;
+$text-primary: #1e293b;
+$text-secondary: #64748b;
+$border: #e2e8f0;
+$radius: 16px;
+$radius-sm: 10px;
+
+.expense-form {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 32px 28px 24px;
+  background: $surface;
+  border-radius: $radius;
+
+  h2 {
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 24px 0;
+    padding-bottom: 16px;
+    border-bottom: 2px solid #f1f5f9;
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: $text-secondary;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    input[type='text'] {
+      padding: 10px 14px;
+      border: 1.5px solid $border;
+      border-radius: $radius-sm;
+      font-size: 15px;
+      color: $text-primary;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+      outline: none;
+
+      &::placeholder {
+        color: #94a3b8;
+      }
+
+      &:focus {
+        border-color: $primary;
+        background: $surface;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+      }
+    }
+  }
+
+  button[type='submit'] {
+    width: 100%;
+    background: $primary;
+    color: #fff;
+    padding: 12px;
+    border: none;
+    border-radius: $radius-sm;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    margin-top: 6px;
+
+    &:hover {
+      background: $primary-hover;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  .cancel-row {
+    text-align: center;
+    margin-top: 8px;
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: $radius-sm;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #fef2f2;
+      color: $danger;
+      border: 1.5px solid #fecaca;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: $danger;
+        color: #fff;
+        border-color: $danger;
+      }
+    }
+  }
+
+  .message {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: $text-secondary;
+  }
+}

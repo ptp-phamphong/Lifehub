@@ -13,6 +13,7 @@ namespace API_Raspberry.Data
         public DbSet<IncomeRecord> IncomeRecords { get; set; }
         public DbSet<ReasonType> ReasonTypes { get; set; }
         public DbSet<SemesterMetadata> SemesterMetadatas { get; set; }
+        public DbSet<SystemConfiguration> SystemConfigurations { get; set; }
         public DbSet<CourseSchedule> CourseSchedules { get; set; }
         public DbSet<PhoneNotification> PhoneNotifications { get; set; }
         public DbSet<NotificationFilter> NotificationFilters { get; set; }
@@ -55,6 +56,14 @@ namespace API_Raspberry.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.SemesterName).IsRequired();
                 entity.Property(e => e.CodeSemester).IsRequired();
+            });
+
+            // SystemConfiguration
+            modelBuilder.Entity<SystemConfiguration>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.KeyConfig).IsRequired();
+                entity.Property(e => e.ValueConfig).IsRequired();
             });
 
             // CourseSchedule

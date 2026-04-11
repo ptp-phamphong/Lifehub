@@ -1,0 +1,29 @@
+<div class="expense-table-container">
+  <h2>Cau hinh dac biet</h2>
+
+  <div class="toolbar">
+    <button class="btn-add" (click)="openEditDialog(0)">+ Them moi</button>
+  </div>
+
+  <table class="expense-table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>KeyConfig</th>
+        <th>ValueConfig</th>
+        <th>Hanh dong</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of configurations">
+        <td>{{ item.id }}</td>
+        <td>{{ item.keyConfig }}</td>
+        <td>{{ item.valueConfig }}</td>
+        <td class="col-actions">
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">Sua</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoa</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -36,6 +36,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // ----------------------------
 builder.Services.AddScoped<IReasonTypeMapper, ReasonTypeMapper>();
 builder.Services.AddScoped<ISemesterMetadataMapper, SemesterMetadataMapper>();
+builder.Services.AddScoped<ISystemConfigurationMapper, SystemConfigurationMapper>();
 builder.Services.AddScoped<IExpenseRecordMapper, ExpenseRecordMapper>();
 builder.Services.AddScoped<IIncomeRecordMapper, IncomeRecordMapper>();
 builder.Services.AddScoped<ICourseScheduleMapper, CourseScheduleMapper>();
@@ -50,6 +51,7 @@ builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 builder.Services.AddScoped<IReasonTypeRepository, ReasonTypeRepository>();
 builder.Services.AddScoped<ISemesterMetadataRepository, SemesterMetadataRepository>();
+builder.Services.AddScoped<ISystemConfigurationRepository, SystemConfigurationRepository>();
 builder.Services.AddScoped<ICourseScheduleRepository, CourseScheduleRepository>();
 builder.Services.AddScoped<IPhoneNotificationRepository, PhoneNotificationRepository>();
 builder.Services.AddScoped<INotificationFilterRepository, NotificationFilterRepository>();
@@ -61,6 +63,7 @@ builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<IReasonTypeService, ReasonTypeService>();
 builder.Services.AddScoped<ISemesterMetadataService, SemesterMetadataService>();
+builder.Services.AddScoped<ISystemConfigurationService, SystemConfigurationService>();
 builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
 builder.Services.AddScoped<ICourseScheduleImportService, CourseScheduleImportService>();
 builder.Services.AddScoped<IPhoneNotificationService, PhoneNotificationService>();
