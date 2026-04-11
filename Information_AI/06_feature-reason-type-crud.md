@@ -49,6 +49,16 @@ Table name: `reasonType`
 - `ToEntity(CreateDto)`: sets `Active = true` by default
 - `UpdateEntity(entity, UpdateDto)`: overwrites name, sort order, active status
 
+## Active field usage rules
+
+`Active` is treated as a soft-enable/disable flag and is consumed by Expense features as follows:
+
+1. Expense add/edit form dropdowns (Angular + React Native): only show reason types where `Active = true`.
+2. Expense list filter dropdowns (Angular + React Native): show both active and inactive reason types.
+3. Inactive items shown in filters/lists must include an explicit marker, e.g. `(inactive)`.
+4. Existing expense rows linked to inactive reason types must still render that reason type text.
+5. API contract remains unchanged: `GET /GetAllReasonType` continues returning all records.
+
 ## Angular Web Frontend
 
 ### Key files
@@ -88,6 +98,11 @@ The mobile ReasonType screen is a **placeholder only**. It shows static text:
 
 The service module only provides `getAllReasonTypes()` (used by expense filter), and does not have create/update/delete functions.
 
+Even though mobile ReasonType CRUD screen is not implemented, the `Active` flag is already consumed in Expense flows:
+
+- Expense form picker: active only.
+- Expense filters/list: active + inactive with `(inactive)` label.
+
 ### What exists in mobile
 
 - `reasonTypeService.ts` has `getAllReasonTypes(): Promise<ReasonType[]>` — used by `ExpenseListScreen` and `FilterReasonType` component.
@@ -107,3 +122,9 @@ The service module only provides `getAllReasonTypes()` (used by expense filter),
 | Update | MatDialog form | Not implemented |
 | Delete | Not implemented (soft-delete via Active flag) | Not implemented |
 | Service layer | None (direct HttpClient) | Partial (read only) |
+
+## Mobile build note for this feature
+
+- ReasonType active/inactive display behavior is handled at JS/TS UI layer.
+- For Expo apps with OTA enabled, this can be shipped via `eas update` (no new APK typically required).
+- New APK/AAB is needed for native-level changes (plugins/modules/config) or non-OTA delivery.

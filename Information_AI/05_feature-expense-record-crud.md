@@ -95,6 +95,14 @@ Service applies additional sorting after query using LINQ on the result list. Su
 - Column sorting supported.
 - Shows summaries: month total, week total, overall total.
 
+### ReasonType active/inactive behavior
+
+- Expense add/edit form dropdown only shows active reason types (`active = true`).
+- Expense list filter dropdowns (IN/OUT) still show all reason types.
+- Inactive reason types in filter dropdown include a suffix `(inactive)` for visibility.
+- Expense rows that reference inactive reason types still display the reason type text with `(inactive)` suffix.
+- Existing records are not auto-cleared when linked reason type becomes inactive.
+
 ### Data access
 
 - No dedicated Angular service — all HTTP calls are in components.
@@ -120,6 +128,20 @@ Service applies additional sorting after query using LINQ on the result list. Su
 - CRUD operations: add, edit (modal), delete (Alert confirm).
 - Month pagination, show-all toggle, reason type filter IN/OUT.
 - Sorting by column with direction toggle.
+
+### ReasonType active/inactive behavior
+
+- Expense add/edit modal only shows active reason types (`active = true`) in the picker.
+- Expense list filter controls still show all reason types.
+- Inactive reason types in filters are labeled with `(inactive)`.
+- Expense list row shows reason type with `(inactive)` suffix when applicable.
+- Existing records linked to inactive reason types remain readable/editable.
+
+### Mobile release note
+
+- This active/inactive behavior is JS/TS/UI logic.
+- If app distribution uses Expo OTA (`eas update`), usually no new APK is needed.
+- Build new APK/AAB only when not using OTA, or when there are native/plugin/config changes.
 
 ### Service API functions
 
