@@ -15,6 +15,7 @@ Files:
 - `10_feature-notification-listener-plugins.md`: Android native plugins for notification capture.
 - `11_feature-other-and-missing.md`: Other features, platform gaps, and missing feature summary.
 - `12_feature-income-record-crud.md`: Income Record CRUD (web + backend), with tab integration in expense-record-list route.
+- `13_feature-semester-metadata-crud.md`: Semester metadata CRUD (web + backend) with current semester validation on Angular form.
 
 Scope covered:
 - Database: MySQL

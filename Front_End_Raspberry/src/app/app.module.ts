@@ -60,6 +60,8 @@ import { CourseCalendarComponent } from './all-app-component/course-schedule/cou
 import { CourseWeekCalendarComponent } from './all-app-component/course-schedule/course-week-calendar/course-week-calendar.component';
 import { CourseMonthCalendarComponent } from './all-app-component/course-schedule/course-month-calendar/course-month-calendar.component';
 import { SettingsTabComponent } from './all-app-component/settings-tab/settings-tab.component';
+import { SemesterMetadataListComponent } from './all-app-component/semester-metadata/semester-metadata-list/semester-metadata-list.component';
+import { SemesterMetadataFormComponent } from './all-app-component/semester-metadata/semester-metadata-form/semester-metadata-form.component';
 
 @NgModule({
   declarations: [
@@ -77,6 +79,8 @@ import { SettingsTabComponent } from './all-app-component/settings-tab/settings-
     CourseWeekCalendarComponent,
     CourseMonthCalendarComponent,
     SettingsTabComponent,
+    SemesterMetadataListComponent,
+    SemesterMetadataFormComponent,
   ],
   imports: [
     BrowserModule,

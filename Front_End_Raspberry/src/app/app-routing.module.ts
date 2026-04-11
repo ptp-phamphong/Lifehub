@@ -7,6 +7,7 @@ import { ReasonTypeListComponent } from './all-app-component/reason-type/reason-
 import { CourseScheduleListComponent } from './all-app-component/course-schedule/course-schedule-list/course-schedule-list.component';
 import { CourseCalendarComponent } from './all-app-component/course-schedule/course-calendar/course-calendar.component';
 import { SettingsTabComponent } from './all-app-component/settings-tab/settings-tab.component';
+import { SemesterMetadataListComponent } from './all-app-component/semester-metadata/semester-metadata-list/semester-metadata-list.component';
 
 const routes: Routes = [
   {
@@ -23,13 +24,16 @@ const routes: Routes = [
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'reason-type-settings' },
           { path: 'reason-type-settings', component: ReasonTypeListComponent },
-          { path: 'course-schedule-settings', component: CourseScheduleListComponent }
+          { path: 'course-schedule-settings', component: CourseScheduleListComponent },
+          { path: 'semester-settings', component: SemesterMetadataListComponent }
         ]
       },
       { path: 'reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },
       { path: 'setting/reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },
       { path: 'course-schedule-settings', redirectTo: 'settings/course-schedule-settings', pathMatch: 'full' },
-      { path: 'setting/course-schedule-settings', redirectTo: 'settings/course-schedule-settings', pathMatch: 'full' }
+      { path: 'setting/course-schedule-settings', redirectTo: 'settings/course-schedule-settings', pathMatch: 'full' },
+      { path: 'semester-settings', redirectTo: 'settings/semester-settings', pathMatch: 'full' },
+      { path: 'setting/semester-settings', redirectTo: 'settings/semester-settings', pathMatch: 'full' }
     ]
   },
   { path: '**', redirectTo: '' }

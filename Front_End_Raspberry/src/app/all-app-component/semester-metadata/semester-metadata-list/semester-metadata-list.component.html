@@ -1,0 +1,35 @@
+<div class="expense-table-container">
+  <h2>Danh sach hoc ky</h2>
+
+  <div class="toolbar">
+    <button class="btn-add" (click)="openEditDialog(0)">+ Them moi</button>
+  </div>
+
+  <table class="expense-table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Ma hoc ky</th>
+        <th>Ten hoc ky</th>
+        <th>Hoc ky hien tai</th>
+        <th>Hanh dong</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of semesters">
+        <td>{{ item.id }}</td>
+        <td>{{ item.codeSemester }}</td>
+        <td>{{ item.semesterName }}</td>
+        <td>
+          <span class="badge" [class.badge-active]="item.isCurrentSemester" [class.badge-inactive]="!item.isCurrentSemester">
+            {{ item.isCurrentSemester ? 'Current' : 'No' }}
+          </span>
+        </td>
+        <td class="col-actions">
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">Sua</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoa</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

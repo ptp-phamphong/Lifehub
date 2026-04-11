@@ -35,6 +35,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // 3️⃣ Dependency Injection - Mappers
 // ----------------------------
 builder.Services.AddScoped<IReasonTypeMapper, ReasonTypeMapper>();
+builder.Services.AddScoped<ISemesterMetadataMapper, SemesterMetadataMapper>();
 builder.Services.AddScoped<IExpenseRecordMapper, ExpenseRecordMapper>();
 builder.Services.AddScoped<IIncomeRecordMapper, IncomeRecordMapper>();
 builder.Services.AddScoped<ICourseScheduleMapper, CourseScheduleMapper>();
@@ -48,6 +49,7 @@ builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
 builder.Services.AddScoped<IExpenseRepository, ExpenseRepository>();
 builder.Services.AddScoped<IIncomeRepository, IncomeRepository>();
 builder.Services.AddScoped<IReasonTypeRepository, ReasonTypeRepository>();
+builder.Services.AddScoped<ISemesterMetadataRepository, SemesterMetadataRepository>();
 builder.Services.AddScoped<ICourseScheduleRepository, CourseScheduleRepository>();
 builder.Services.AddScoped<IPhoneNotificationRepository, PhoneNotificationRepository>();
 builder.Services.AddScoped<INotificationFilterRepository, NotificationFilterRepository>();
@@ -58,6 +60,7 @@ builder.Services.AddScoped<INotificationFilterRepository, NotificationFilterRepo
 builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<IReasonTypeService, ReasonTypeService>();
+builder.Services.AddScoped<ISemesterMetadataService, SemesterMetadataService>();
 builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
 builder.Services.AddScoped<ICourseScheduleImportService, CourseScheduleImportService>();
 builder.Services.AddScoped<IPhoneNotificationService, PhoneNotificationService>();
@@ -129,6 +132,6 @@ app.MapControllers();
 // ----------------------------
 // 7️⃣ Lắng nghe cổng nội bộ cố định cho Caddy reverse proxy
 // ----------------------------
-app.Run("http://127.0.0.1:5000");
-// app.Run();
+//app.Run("http://127.0.0.1:5000");
+ app.Run();
 
