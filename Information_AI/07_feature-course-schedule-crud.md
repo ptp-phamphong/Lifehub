@@ -70,6 +70,14 @@ Returns courses where the course's `[StartDate, EndDate]` range overlaps with th
 
 ## Angular Web Frontend
 
+### Navigation and route
+
+- Current route: `/settings/course-schedule-settings`
+- Access path in UI: top menu `Cài đặt` → left sidebar item `Course Schedule Settings`
+- Legacy routes still redirect to the new route:
+    - `/course-schedule-settings`
+    - `/setting/course-schedule-settings`
+
 ### Key files
 
 - `Front_End_Raspberry/src/app/all-app-component/course-schedule/course-schedule-list/course-schedule-list.component.ts` — list + CRUD + import

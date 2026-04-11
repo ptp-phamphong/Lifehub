@@ -121,6 +121,13 @@ Observed pattern:
 - `MainTabComponent` acts as the navigation shell
 - Each tab button maps to a route through `routerLink`
 - Child content is rendered via `router-outlet`
+- `SettingsTabComponent` uses nested routes with a left sidebar menu and an inner `router-outlet`
+- Settings sub-routes currently include:
+	- `/settings/reason-type-settings`
+	- `/settings/course-schedule-settings`
+- Legacy routes are kept as redirects for compatibility:
+	- `/reason-type-settings` → `/settings/reason-type-settings`
+	- `/course-schedule-settings` → `/settings/course-schedule-settings`
 
 Tradeoff:
 - Better URL sharing and browser history behavior

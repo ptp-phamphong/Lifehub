@@ -61,6 +61,14 @@ Table name: `reasonType`
 
 ## Angular Web Frontend
 
+### Navigation and route
+
+- Current route: `/settings/reason-type-settings`
+- Access path in UI: top menu `Cài đặt` → left sidebar item `Reason type Settings`
+- Legacy routes still redirect to the new route:
+  - `/reason-type-settings`
+  - `/setting/reason-type-settings`
+
 ### Key files
 
 - `Front_End_Raspberry/src/app/all-app-component/reason-type/reason-type-list/reason-type-list.component.ts`
