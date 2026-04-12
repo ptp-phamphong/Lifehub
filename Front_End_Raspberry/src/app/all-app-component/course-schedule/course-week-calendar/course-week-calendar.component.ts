@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
+import { toLunarDate, formatLunarDateVN } from 'src/app/utils/lunar-calendar';
 
 export interface WeekDay {
   date: Date;
@@ -52,8 +53,39 @@ export class CourseWeekCalendarComponent implements OnInit {
 
   // Current week reference (Monday)
   currentWeekMonday: Date = new Date();
+  
+  // Swipe gesture tracking
+  private touchStartX: number = 0;
+  private touchStartY: number = 0;
+  private minSwipeDistance: number = 50;
 
   constructor(private http: HttpClient) {}
+  
+  @HostListener('touchstart', ['$event'])
+  onTouchStart(e: TouchEvent) {
+    const touch = e.touches[0];
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+  }
+  
+  @HostListener('touchend', ['$event'])
+  onTouchEnd(e: TouchEvent) {
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - this.touchStartX;
+    const deltaY = Math.abs(touch.clientY - this.touchStartY);
+    
+    // Only detect horizontal swipe (deltaY should be small)
+    if (deltaY > deltaX) return;
+    
+    // Swipe right → previous week
+    if (deltaX > this.minSwipeDistance) {
+      this.prevWeek();
+    }
+    // Swipe left → next week
+    else if (deltaX < -this.minSwipeDistance) {
+      this.nextWeek();
+    }
+  }
 
   ngOnInit() {
     this.hours = [];
@@ -287,5 +319,14 @@ export class CourseWeekCalendarComponent implements OnInit {
       6: 'Thứ 6', 7: 'Thứ 7', 8: 'Chủ nhật'
     };
     return dow ? labels[dow] || '' : '';
+  }
+  
+  // Lunar calendar support
+  toLunarDate(date: Date) {
+    return toLunarDate(date);
+  }
+  
+  formatLunarDateVN(lunarDate: any): string {
+    return formatLunarDateVN(lunarDate);
   }
 }

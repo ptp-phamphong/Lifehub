@@ -1,7 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
+  GestureResponderEvent,
   Modal,
+  PanResponder,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +12,7 @@ import {
 } from 'react-native';
 import { CourseSchedule } from '../models/courseSchedule.model';
 import { getCourseScheduleByMonth } from '../services/courseScheduleService';
+import { toLunarDate, formatLunarDateShort } from '../utils/lunarCalendar';
 
 // ─── Types ────────────────────────────────────────────────
 interface CalendarDay {
@@ -84,6 +87,33 @@ export default function CourseMonthCalendar() {
   const [courses, setCourses] = useState<CourseSchedule[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<CourseSchedule | null>(null);
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
+
+  // ── Swipe gesture handler ──────────────────────────────
+  const swipeRef = useRef<PanResponder | null>(null);
+  const gestureRef = useRef({ x0: 0, y0: 0 });
+
+  if (!swipeRef.current) {
+    swipeRef.current = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (e: GestureResponderEvent) => {
+        gestureRef.current = { x0: e.nativeEvent.pageX, y0: e.nativeEvent.pageY };
+      },
+      onPanResponderRelease: (e: GestureResponderEvent) => {
+        const dx = e.nativeEvent.pageX - gestureRef.current.x0;
+        const minSwipeDistance = 50;
+        
+        // Swipe right → previous month
+        if (dx > minSwipeDistance) {
+          prevMonth();
+        }
+        // Swipe left → next month
+        else if (dx < -minSwipeDistance) {
+          nextMonth();
+        }
+      },
+    });
+  }
 
   // ── Load data ──────────────────────────────────────────
   const loadMonth = useCallback(async () => {
@@ -231,7 +261,7 @@ export default function CourseMonthCalendar() {
   const monthYearLabel = `${MONTH_NAMES[currentMonth - 1]} ${currentYear}`;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...swipeRef.current?.panHandlers}>
       {/* Header Navigation */}
       <View style={styles.header}>
         <TouchableOpacity onPress={prevMonth} style={styles.navBtn}>
@@ -239,6 +269,7 @@ export default function CourseMonthCalendar() {
         </TouchableOpacity>
         <TouchableOpacity onPress={goToToday} style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{monthYearLabel}</Text>
+          <Text style={styles.swipeHint}>👆 Vuốt để chuyển tháng</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={nextMonth} style={styles.navBtn}>
           <Text style={styles.navText}>▶</Text>
@@ -280,6 +311,12 @@ export default function CourseMonthCalendar() {
                 >
                   {day.day}
                 </Text>
+                {/* Lunar date display */}
+                {day.isCurrentMonth && (
+                  <Text style={styles.lunarDate}>
+                    {formatLunarDateShort(toLunarDate(day.date))}
+                  </Text>
+                )}
                 {/* Course chips */}
                 {day.courses.slice(0, MAX_VISIBLE_COURSES).map((course, ci) => {
                   const colors = getChipColor(course);
@@ -437,6 +474,7 @@ const styles = StyleSheet.create({
   navText: { fontSize: 18, color: '#0d6efd' },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 16, fontWeight: '700', color: '#1e293b' },
+  swipeHint: { fontSize: 10, color: '#94a3b8', marginTop: 2 },
 
   // Weekday row
   weekdayRow: {
@@ -464,6 +502,7 @@ const styles = StyleSheet.create({
   dayNumber: { fontSize: 12, fontWeight: '500', color: '#334155', textAlign: 'center', marginBottom: 2 },
   otherMonthText: { color: '#cbd5e1' },
   todayNumber: { color: '#2563eb', fontWeight: '700' },
+  lunarDate: { fontSize: 8, color: '#94a3b8', textAlign: 'center', marginBottom: 1 },
 
   // Course chips
   courseChip: {

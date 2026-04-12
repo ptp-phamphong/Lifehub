@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
+  GestureResponderEvent,
   Modal,
+  PanResponder,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +12,7 @@ import {
 } from 'react-native';
 import { CourseSchedule } from '../models/courseSchedule.model';
 import { getCourseScheduleByMonth } from '../services/courseScheduleService';
+import { toLunarDate, formatLunarDateVN } from '../utils/lunarCalendar';
 
 // ─── Types ────────────────────────────────────────────────
 interface WeekDay {
@@ -105,6 +108,33 @@ export default function CourseWeekCalendar() {
   const [courses, setCourses] = useState<CourseSchedule[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<CourseSchedule | null>(null);
   const scrollRef = useRef<ScrollView>(null);
+
+  // ── Swipe gesture handler ──────────────────────────────
+  const swipeRef = useRef<PanResponder | null>(null);
+  const gestureRef = useRef({ x0: 0, y0: 0 });
+
+  if (!swipeRef.current) {
+    swipeRef.current = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (e: GestureResponderEvent) => {
+        gestureRef.current = { x0: e.nativeEvent.pageX, y0: e.nativeEvent.pageY };
+      },
+      onPanResponderRelease: (e: GestureResponderEvent) => {
+        const dx = e.nativeEvent.pageX - gestureRef.current.x0;
+        const minSwipeDistance = 50;
+        
+        // Swipe right → previous week
+        if (dx > minSwipeDistance) {
+          prevWeek();
+        }
+        // Swipe left → next week
+        else if (dx < -minSwipeDistance) {
+          nextWeek();
+        }
+      },
+    });
+  }
 
   const hours = useMemo(() => {
     const arr: number[] = [];
@@ -268,7 +298,7 @@ export default function CourseWeekCalendar() {
   today.setHours(0, 0, 0, 0);
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...swipeRef.current?.panHandlers}>
       {/* Header Navigation */}
       <View style={styles.header}>
         <TouchableOpacity onPress={prevWeek} style={styles.navBtn}>
@@ -276,6 +306,7 @@ export default function CourseWeekCalendar() {
         </TouchableOpacity>
         <TouchableOpacity onPress={goToCurrentWeek} style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{weekRangeLabel}</Text>
+          <Text style={styles.swipeHint}>👆 Vuốt để chuyển tuần</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={nextWeek} style={styles.navBtn}>
           <Text style={styles.navText}>▶</Text>
@@ -287,10 +318,14 @@ export default function CourseWeekCalendar() {
         <View style={styles.gutterHeader} />
         {weekDays.map((day) => {
           const isT = isSameDay(day.date, today);
+          const lunarDate = toLunarDate(day.date);
           return (
             <View key={day.label} style={[styles.dayColHeader, isT && styles.todayHeader]}>
               <Text style={[styles.dayName, isT && styles.todayText]}>{day.label}</Text>
               <Text style={[styles.dayDate, isT && styles.todayText]}>{day.dateLabel}</Text>
+              <Text style={[styles.dayLunarDate, isT && styles.todayText]}>
+                {formatLunarDateVN(lunarDate)}
+              </Text>
             </View>
           );
         })}
@@ -437,6 +472,7 @@ const styles = StyleSheet.create({
   navText: { fontSize: 18, color: '#0d6efd' },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
+  swipeHint: { fontSize: 10, color: '#94a3b8', marginTop: 2 },
 
   // Day column headers
   dayHeaders: {
@@ -454,6 +490,7 @@ const styles = StyleSheet.create({
   todayHeader: { backgroundColor: '#eff6ff' },
   dayName: { fontSize: 11, fontWeight: '600', color: '#64748b' },
   dayDate: { fontSize: 10, color: '#94a3b8' },
+  dayLunarDate: { fontSize: 8, color: '#cbd5e1', marginTop: 1 },
   todayText: { color: '#2563eb' },
 
   // Scroll body

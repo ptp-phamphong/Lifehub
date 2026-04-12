@@ -1,6 +1,6 @@
 # Feature: Course Schedule Calendar Display
 
-Displays the course schedule in visual calendar formats (week view and month view). Consumption-only — no editing from calendar views.
+Displays the course schedule in visual calendar formats (week view and month view). Consumption-only, no editing from calendar views. Both web and mobile calendars support lunar date display and swipe navigation.
 
 ## Backend
 
@@ -19,6 +19,8 @@ This returns all courses whose date range overlaps with the given month.
 - `Front_End_Raspberry/src/app/all-app-component/course-schedule/course-calendar/course-calendar.component.ts` — container with toggle
 - `Front_End_Raspberry/src/app/all-app-component/course-schedule/course-week-calendar/course-week-calendar.component.ts` — week view
 - `Front_End_Raspberry/src/app/all-app-component/course-schedule/course-month-calendar/course-month-calendar.component.ts` — month view
+- `Front_End_Raspberry/src/app/utils/lunar-calendar.ts` — Gregorian to lunar conversion helper
+- `Front_End_Raspberry/src/main.ts` — loads `hammerjs` for touch gesture support
 
 ### Container component
 
@@ -32,6 +34,8 @@ This returns all courses whose date range overlaps with the given month.
 - Rows: time slots.
 - Each cell shows course name, room, time range.
 - Detail popup displays `SemesterName` when available.
+- Displays lunar date under each day header.
+- Supports swipe gesture: right = previous week, left = next week.
 
 ### Month calendar
 
@@ -40,10 +44,14 @@ This returns all courses whose date range overlaps with the given month.
 - Each day cell shows courses scheduled for that day.
 - Uses `DayOfWeek` field to place courses on correct weekdays.
 - Detail popup displays `SemesterName` when available.
+- Displays lunar date in each current-month day cell.
+- Supports swipe gesture: right = previous month, left = next month.
 
 ### Navigation
 
-Both views include month pagination to navigate between months.
+- Week view: button navigation and swipe gesture between weeks.
+- Month view: button navigation and swipe gesture between months.
+- Clicking the center label still jumps to current week/current month.
 
 ## React Native Mobile
 
@@ -53,13 +61,14 @@ Both views include month pagination to navigate between months.
 - `Mobile_Raspberry/src/components/CourseWeekCalendar.tsx` — week view
 - `Mobile_Raspberry/src/components/CourseMonthCalendar.tsx` — month view
 - `Mobile_Raspberry/src/services/courseScheduleService.ts` — API call
+- `Mobile_Raspberry/src/utils/lunarCalendar.ts` — Gregorian to lunar conversion helper
 
 ### Pattern
 
-- `CourseScheduleScreen` loads courses for the selected month via `getCourseScheduleByMonth()`.
-- Toggles between week and month calendar views.
-- `MonthPagination` component for month navigation.
-- Calendar components render course blocks in a grid layout.
+- `CourseScheduleScreen` toggles between week and month calendar views.
+- Calendar components fetch data via `getCourseScheduleByMonth()` and render course blocks in a grid layout.
+- Week and month components show lunar date labels.
+- Week and month components support swipe gesture for timeline navigation.
 
 ### Service
 
@@ -106,5 +115,6 @@ Both platforms use the same convention:
 | Week view | Grid component | Calendar component |
 | Month view | Grid component | Calendar component |
 | View toggle | Boolean flag in container | Screen-level toggle |
-| Month navigation | Shared MonthPagination | Shared MonthPagination |
+| Lunar date | Yes (`lunisolar`) | Yes (`lunisolar`) |
+| Swipe navigation | Yes (touch + `hammerjs`) | Yes (`PanResponder`) |
 | Data source | HttpClient in component | Service module with fetch |

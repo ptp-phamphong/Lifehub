@@ -50,6 +50,13 @@ $time-gutter-width: 60px;
   color: $text-primary;
 }
 
+.swipe-hint {
+  display: block;
+  font-size: 0.65rem;
+  color: $text-muted;
+  margin-top: 4px;
+}
+
 .btn-nav {
   background: $bg;
   border: 1px solid $border;
@@ -127,6 +134,13 @@ $time-gutter-width: 60px;
   font-size: 0.75rem;
   color: $text-secondary;
   margin-top: 2px;
+}
+
+.day-lunar {
+  font-size: 0.65rem;
+  color: $text-muted;
+  margin-top: 2px;
+  line-height: 1;
 }
 
 // ── Timetable Body ──

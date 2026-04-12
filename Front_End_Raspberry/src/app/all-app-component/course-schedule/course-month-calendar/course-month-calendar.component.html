@@ -3,7 +3,10 @@
   <!-- Header: Navigation -->
   <div class="calendar-header">
     <button class="btn-nav" (click)="prevMonth()">◀</button>
-    <h2 class="month-label" (click)="goToToday()">{{ monthYearLabel }}</h2>
+    <div class="header-center" (click)="goToToday()">
+      <h2 class="month-label">{{ monthYearLabel }}</h2>
+      <p class="swipe-hint">👆 Vuốt để chuyển tháng</p>
+    </div>
     <button class="btn-nav" (click)="nextMonth()">▶</button>
   </div>
 
@@ -22,6 +25,9 @@
         [class.has-courses]="day.courses.length > 0"
       >
         <div class="day-number">{{ day.day }}</div>
+        <div class="day-lunar" *ngIf="day.isCurrentMonth">
+          {{ formatLunarDateShort(toLunarDate(day.date)) }}
+        </div>
         <div class="day-courses">
           <div
             class="course-chip"

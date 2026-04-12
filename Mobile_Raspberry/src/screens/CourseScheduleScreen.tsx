@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CourseMonthCalendar from '../components/CourseMonthCalendar';
 import CourseWeekCalendar from '../components/CourseWeekCalendar';
 

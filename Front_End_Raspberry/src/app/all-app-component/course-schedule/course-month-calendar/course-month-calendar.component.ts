@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
+import { toLunarDate, formatLunarDateShort } from 'src/app/utils/lunar-calendar';
 
 const COURSE_COLORS = [
   { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
@@ -39,11 +40,42 @@ export class CourseMonthCalendarComponent {
     selectedDay: CalendarDay | null = null;
     maxVisibleCourses = 1;
     private colorMap: Map<string, number> = new Map();
+    
+    // Swipe gesture tracking
+    private touchStartX: number = 0;
+    private touchStartY: number = 0;
+    private minSwipeDistance: number = 50;
   
     constructor(private http: HttpClient) {}
   
     ngOnInit() {
       this.loadMonth();
+    }
+    
+    @HostListener('touchstart', ['$event'])
+    onTouchStart(e: TouchEvent) {
+      const touch = e.touches[0];
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+    }
+    
+    @HostListener('touchend', ['$event'])
+    onTouchEnd(e: TouchEvent) {
+      const touch = e.changedTouches[0];
+      const deltaX = touch.clientX - this.touchStartX;
+      const deltaY = Math.abs(touch.clientY - this.touchStartY);
+      
+      // Only detect horizontal swipe (deltaY should be small)
+      if (deltaY > deltaX) return;
+      
+      // Swipe right → previous month
+      if (deltaX > this.minSwipeDistance) {
+        this.prevMonth();
+      }
+      // Swipe left → next month
+      else if (deltaX < -this.minSwipeDistance) {
+        this.nextMonth();
+      }
     }
   
     get monthYearLabel(): string {
@@ -216,4 +248,13 @@ export class CourseMonthCalendarComponent {
     closeDayDetail() {
       this.selectedDay = null;
     }
+  
+  // Lunar calendar support
+  toLunarDate(date: Date) {
+    return toLunarDate(date);
+  }
+  
+  formatLunarDateShort(lunarDate: any): string {
+    return formatLunarDateShort(lunarDate);
+  }
 }

@@ -5,6 +5,7 @@
     <button class="btn-nav" (click)="prevWeek()">◀</button>
     <div class="week-label" (click)="goToCurrentWeek(); $event.stopPropagation()">
       <span class="week-title">{{ weekRangeLabel }}</span>
+      <span class="swipe-hint">👆 Vuốt để chuyển tuần</span>
     </div>
     <button class="btn-nav" (click)="nextWeek()">▶</button>
   </div>
@@ -23,6 +24,7 @@
         >
           <span class="day-name">{{ day.label }}</span>
           <span class="day-date">{{ day.dateLabel }}</span>
+          <span class="day-lunar">{{ formatLunarDateVN(toLunarDate(day.date)) }}</span>
         </div>
       </div>
 

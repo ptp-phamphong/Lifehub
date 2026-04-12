@@ -67,6 +67,8 @@ Main dependencies from `Front_End_Raspberry/package.json`:
 | @ng-bootstrap/ng-bootstrap | ^15.1.2 |
 | @ng-select/ng-select | ^10.0.4 |
 | bootstrap | ^5.3.8 |
+| hammerjs | ^2.0.8 |
+| lunisolar | ^1.3.4 |
 | rxjs | ~7.8.0 |
 | tslib | ^2.3.0 |
 | zone.js | ~0.13.0 |
@@ -111,10 +113,12 @@ Main dependencies from `Mobile_Raspberry/package.json`:
 | expo-keep-awake | ~15.0.8 |
 | expo-status-bar | ~3.0.9 |
 | expo-updates | ~29.0.16 |
+| lunisolar | ^1.3.4 |
 | react | 19.1.0 |
 | react-dom | 19.1.0 |
 | react-native | 0.81.5 |
 | react-native-android-notification-listener | ^5.0.1 |
+| react-native-gesture-handler | ^2.15.0 |
 | react-native-safe-area-context | ~5.6.0 |
 | react-native-screens | ~4.16.0 |
 | react-native-web | ^0.21.0 |
