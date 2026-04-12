@@ -8,13 +8,19 @@ namespace API_Raspberry.Controllers
     {
         private readonly ICourseScheduleService _courseScheduleService;
         private readonly ICourseScheduleImportService _courseScheduleImportService;
+        private readonly ISemesterMetadataService _semesterMetadataService;
+        private readonly IUehStudentScheduleService _uehStudentScheduleService;
 
         public CourseScheduleController(
             ICourseScheduleService courseScheduleService,
-            ICourseScheduleImportService courseScheduleImportService)
+            ICourseScheduleImportService courseScheduleImportService,
+            ISemesterMetadataService semesterMetadataService,
+            IUehStudentScheduleService uehStudentScheduleService)
         {
             _courseScheduleService = courseScheduleService;
             _courseScheduleImportService = courseScheduleImportService;
+            _semesterMetadataService = semesterMetadataService;
+            _uehStudentScheduleService = uehStudentScheduleService;
         }
 
         [HttpGet]
@@ -87,6 +93,43 @@ namespace API_Raspberry.Controllers
             var imported = _courseScheduleImportService.ImportFromExcel(stream, semesterMetadataId);
 
             return Ok(new { count = imported.Count, data = imported });
+        }
+
+        [HttpPost]
+        [Route("ResetImportCourseScheduleFromUeh")]
+        public async Task<IActionResult> ResetImportFromUeh([FromBody] UehStudentScheduleRequestDto request = null)
+        {
+            var currentSemester = _semesterMetadataService
+                .GetAll()
+                .FirstOrDefault(x => x.IsCurrentSemester);
+
+            if (currentSemester == null)
+            {
+                return BadRequest(new { message = "Không tìm thấy học kỳ hiện tại (IsCurrentSemester = true)." });
+            }
+
+            var fetchResult = await _uehStudentScheduleService.FetchScheduleAsync(request);
+            if (!fetchResult.Success || string.IsNullOrWhiteSpace(fetchResult.ScheduleHtml))
+            {
+                return BadRequest(new
+                {
+                    message = fetchResult.Message ?? "Không thể lấy HTML thời khóa biểu từ UEH.",
+                    detail = fetchResult
+                });
+            }
+
+            _courseScheduleService.DeleteBySemesterMetadataId(currentSemester.Id);
+            var imported = _courseScheduleImportService.ImportFromHtml(fetchResult.ScheduleHtml, currentSemester.Id);
+
+            return Ok(new
+            {
+                message = $"Reset và import thành công {imported.Count} dòng.",
+                count = imported.Count,
+                semesterMetadataId = currentSemester.Id,
+                yearStudy = fetchResult.YearStudy,
+                termId = fetchResult.TermId,
+                data = imported
+            });
         }
     }
 }

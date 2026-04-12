@@ -12,29 +12,29 @@ namespace API_Raspberry.Controllers
             _speechToTextService = speechToTextService;
         }
 
-        [HttpPost]
-        [Route("SpeechToText")]
-        public async Task<IActionResult> SpeechToText([FromForm] IFormFile audioFile)
-        {
-            if (audioFile == null || audioFile.Length == 0)
-            {
-                return BadRequest(new { error = "Không có file audio." });
-            }
+        // [HttpPost]
+        // [Route("SpeechToText")]
+        // public async Task<IActionResult> SpeechToText([FromForm] IFormFile audioFile)
+        // {
+        //     if (audioFile == null || audioFile.Length == 0)
+        //     {
+        //         return BadRequest(new { error = "Không có file audio." });
+        //     }
 
-            try
-            {
-                using var memoryStream = new MemoryStream();
-                await audioFile.CopyToAsync(memoryStream);
-                byte[] audioData = memoryStream.ToArray();
+        //     try
+        //     {
+        //         using var memoryStream = new MemoryStream();
+        //         await audioFile.CopyToAsync(memoryStream);
+        //         byte[] audioData = memoryStream.ToArray();
 
-                string transcribedText = await _speechToTextService.TranscribeAudioAsync(audioData, audioFile.FileName);
+        //         string transcribedText = await _speechToTextService.TranscribeAudioAsync(audioData, audioFile.FileName);
 
-                return Ok(new { text = transcribedText });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
-        }
+        //         return Ok(new { text = transcribedText });
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return StatusCode(500, new { error = ex.Message });
+        //     }
+        // }
     }
 }

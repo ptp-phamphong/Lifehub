@@ -123,6 +123,37 @@ export class CourseScheduleListComponent {
     input.value = '';
   }
 
+  resetImportFromUeh() {
+    const confirmed = window.confirm('Sẽ xóa toàn bộ môn của học kỳ hiện tại rồi import lại từ UEH. Tiếp tục?');
+    if (!confirmed) {
+      return;
+    }
+
+    const confirmed2 = window.confirm('Xác nhận lần 2: thao tác reset này không thể hoàn tác.');
+    if (!confirmed2) {
+      return;
+    }
+
+    this.importMessage = '';
+    this.importError = false;
+    this.importing = true;
+
+    this.http.post<{ count: number; message?: string }>(`${environment.apiBaseUrl}/ResetImportCourseScheduleFromUeh`, {})
+      .subscribe({
+        next: (res) => {
+          this.importMessage = res.message || `Reset + import thành công ${res.count} dòng!`;
+          this.importError = false;
+          this.importing = false;
+          this.loadCourses();
+        },
+        error: (err) => {
+          this.importMessage = err.error?.message || err.error?.toString() || 'Reset + import thất bại!';
+          this.importError = true;
+          this.importing = false;
+        }
+      });
+  }
+
   deleteAll() {
     const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa toàn bộ không?`);
     if (!confirmed) {

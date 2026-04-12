@@ -42,6 +42,7 @@
 |---|---|
 | Course Schedule Excel import | File upload + semester tag |
 | Course Schedule bulk delete by semester | Double confirmation UI |
+| Course Schedule Reset + Import từ UEH | Auto-login UEH SSO, fetch HTML, delete current semester courses, re-import |
 | Reason Type CRUD management | Create + update via dialog |
 | Tab-based navigation | MainTabComponent with router tabs |
 

@@ -70,6 +70,7 @@ builder.Services.AddScoped<IPhoneNotificationService, PhoneNotificationService>(
 builder.Services.AddScoped<INotificationFilterService, NotificationFilterService>();
 builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
 builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();
+builder.Services.AddScoped<IUehStudentScheduleService, UehStudentScheduleService>();
 // AI Provider: đọc từ config để chọn Gemini hoặc Ollama
 var aiProvider = builder.Configuration.GetValue<string>("AiProvider") ?? "Gemini";
 if (string.Equals(aiProvider, "Ollama", StringComparison.OrdinalIgnoreCase))
@@ -136,5 +137,5 @@ app.MapControllers();
 // 7️⃣ Lắng nghe cổng nội bộ cố định cho Caddy reverse proxy
 // ----------------------------
 app.Run("http://127.0.0.1:5000");
-//  app.Run();
+//   app.Run();
 

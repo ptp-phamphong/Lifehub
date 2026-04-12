@@ -17,6 +17,10 @@
     </button>
     <input #fileInput type="file" accept=".xlsx" hidden (change)="onFileSelected($event)">
 
+    <button class="btn-import-html-reset" [disabled]="importing" (click)="resetImportFromUeh()">
+      🔄 Reset + Import từ UEH
+    </button>
+
     <span *ngIf="importMessage" class="import-message" [class.import-error]="importError">
       {{ importMessage }}
     </span>

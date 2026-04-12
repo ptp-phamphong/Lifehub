@@ -101,6 +101,27 @@ $radius-sm: 8px;
   }
 }
 
+.btn-import-html-reset {
+  background: #f59e0b;
+  color: #fff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: $radius-sm;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+
+  &:hover {
+    background: #d97706;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+}
+
 .btn-delete {
   background: #10b981;
   color: #fff;
