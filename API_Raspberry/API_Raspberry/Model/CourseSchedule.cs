@@ -26,7 +26,8 @@ namespace API_Raspberry.Model
         public string Room { get; set; }
         public string Address { get; set; }
 
-        public string Semester { get; set; }
+        public int? SemesterMetadataId { get; set; }
+        public SemesterMetadata SemesterMetadata { get; set; }
 
         public int? DayOfWeek { get; set; }
 

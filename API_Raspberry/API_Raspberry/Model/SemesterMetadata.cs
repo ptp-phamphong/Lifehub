@@ -15,6 +15,8 @@ namespace API_Raspberry.Model
         [Required]
         public string CodeSemester { get; set; }
 
+        public int Year { get; set; }
+
         public bool IsCurrentSemester { get; set; }
     }
 }

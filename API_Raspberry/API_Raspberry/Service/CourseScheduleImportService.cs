@@ -8,7 +8,7 @@ namespace API_Raspberry.Service
 {
     public interface ICourseScheduleImportService
     {
-        List<CourseScheduleCreateDto> ImportFromExcel(Stream fileStream, string semester);
+        List<CourseScheduleCreateDto> ImportFromExcel(Stream fileStream, int? semesterMetadataId);
     }
 
     public class CourseScheduleImportService : ICourseScheduleImportService
@@ -20,7 +20,7 @@ namespace API_Raspberry.Service
             _courseScheduleRepository = courseScheduleRepository;
         }
 
-        public List<CourseScheduleCreateDto> ImportFromExcel(Stream fileStream, string semester)
+        public List<CourseScheduleCreateDto> ImportFromExcel(Stream fileStream, int? semesterMetadataId)
         {
             var results = new List<CourseScheduleCreateDto>();
 
@@ -58,7 +58,7 @@ namespace API_Raspberry.Service
                     StartDate = startDate,
                     EndDate = endDate,
                     Room = room,
-                    Semester = semester,
+                    SemesterMetadataId = semesterMetadataId,
                     Address = address,
                 };
 

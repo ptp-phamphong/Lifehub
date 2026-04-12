@@ -56,6 +56,7 @@ namespace API_Raspberry.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.SemesterName).IsRequired();
                 entity.Property(e => e.CodeSemester).IsRequired();
+                entity.Property(e => e.Year).IsRequired();
             });
 
             // SystemConfiguration
@@ -72,6 +73,11 @@ namespace API_Raspberry.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CourseName).IsRequired();
                 entity.Property(e => e.CourseCode).IsRequired();
+
+                entity.HasOne(e => e.SemesterMetadata)
+                      .WithMany()
+                      .HasForeignKey(e => e.SemesterMetadataId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // PhoneNotification

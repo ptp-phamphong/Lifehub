@@ -1,6 +1,6 @@
 # Feature: Course Schedule CRUD
 
-Manages university course schedules with full CRUD, Excel import, and bulk delete by semester.
+Manages university course schedules with full CRUD, Excel import, and bulk delete by semester metadata.
 
 ## Backend
 
@@ -13,9 +13,9 @@ Manages university course schedules with full CRUD, Excel import, and bulk delet
 | POST | `/AddCourseSchedule` | `CourseScheduleCreateDto` | `bool` |
 | PUT | `/UpdateCourseSchedule/{id}` | `CourseScheduleUpdateDto` | `bool` |
 | DELETE | `/DeleteCourseSchedule/{id}` | — | `bool` |
-| DELETE | `/DeleteBySemesterName/{semesterName}` | — | `bool` |
+| DELETE | `/DeleteBySemesterMetadataId/{semesterMetadataId}` | — | `bool` |
 | GET | `/GetCourseScheduleByMonth/{month}/{year}` | — | `List<CourseScheduleDto>` |
-| POST | `/ImportCourseSchedule` | `IFormFile file`, `string semester` (multipart/form-data) | `{ count, data }` |
+| POST | `/ImportCourseSchedule` | `IFormFile file`, `int? semesterMetadataId` (multipart/form-data) | `{ count, data }` |
 
 ### Flow
 
@@ -46,9 +46,13 @@ CourseScheduleController → ICourseScheduleService → ICourseScheduleRepositor
 - `EndTime` (string) — e.g., "09:30"
 - `Room` (string)
 - `Address` (string)
-- `Semester` (string) — e.g., "HK1 2026"
+- `SemesterMetadataId` (int?, nullable FK -> `semesterMetadata.Id`)
 - `DayOfWeek` (int?) — 2=Monday, 3=Tuesday, ..., 8=Sunday
 - `CreatedDate` (DateTime?)
+
+DTO response now also includes:
+- `SemesterName` (string?)
+- `SemesterYear` (int?)
 
 Table name: `CourseSchedule`
 
@@ -61,12 +65,12 @@ Returns courses where the course's `[StartDate, EndDate]` range overlaps with th
 - Accepts `.xlsx` files only.
 - Uses `ClosedXML` library.
 - Import is processed by `CourseScheduleImportService`.
-- Requires a semester name to tag the imported courses.
+- Supports optional `semesterMetadataId` to tag imported courses.
 - Repository has `AddRange()` for batch insert.
 
 ### Bulk delete
 
-`DeleteBySemesterName` deletes all courses matching a given semester string.
+`DeleteBySemesterMetadataId` deletes all courses matching a semester metadata id.
 
 ## Angular Web Frontend
 
@@ -89,13 +93,14 @@ Returns courses where the course's `[StartDate, EndDate]` range overlaps with th
 - Loads all courses via `GET /GetAllCourseSchedule`.
 - Edit via MatDialog (`CourseScheduleFormComponent`).
 - Delete single course with `window.confirm`.
-- Excel import: file input → prompt for semester name → POST multipart form data.
-- Bulk delete by semester with double confirmation.
+- Excel import: file input + semester dropdown → POST multipart form data.
+- Bulk delete by semester metadata id with double confirmation.
 - `dayOfWeekLabel()` helper: 2→"Thứ 2", 3→"Thứ 3", ..., 8→"CN".
 
 ### Form component
 
 - Same pattern as other forms: dialog-based, handles both create and update.
+- Semester field is now a dropdown bound to `semesterMetadataId`.
 - Direct `HttpClient` usage.
 
 ## React Native Mobile
@@ -134,6 +139,6 @@ The mobile `CourseScheduleScreen` focuses on **displaying** the schedule (calend
 | List/table view | Full list with all courses | Calendar views only |
 | Create | MatDialog form | Not implemented |
 | Update | MatDialog form | Not implemented |
-| Delete | Single + bulk by semester | Not implemented |
-| Excel import | File upload with semester prompt | Not implemented |
+| Delete | Single + bulk by semester metadata id | Not implemented |
+| Excel import | File upload with semester dropdown | Not implemented |
 | Calendar view | Week and month views | Week and month views |

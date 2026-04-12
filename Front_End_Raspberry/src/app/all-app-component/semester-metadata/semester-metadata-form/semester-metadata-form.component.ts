@@ -12,6 +12,7 @@ import { environment } from 'src/environments/environment';
 export class SemesterMetadataFormComponent {
   semesterName: string = '';
   codeSemester: string = '';
+  year: number | null = null;
   isCurrentSemester: boolean = false;
   message: string = '';
   id: number = 0;
@@ -36,6 +37,7 @@ export class SemesterMetadataFormComponent {
           const record = Object.assign(new SemesterMetadata(), res);
           this.semesterName = record?.semesterName != null ? record.semesterName : '';
           this.codeSemester = record?.codeSemester != null ? record.codeSemester : '';
+          this.year = record?.year ?? null;
           this.isCurrentSemester = record?.isCurrentSemester === true;
         },
         error: (err) => {
@@ -56,6 +58,11 @@ export class SemesterMetadataFormComponent {
       return;
     }
 
+    if (this.year == null || Number.isNaN(this.year)) {
+      this.message = 'Vui long nhap nam hoc ky.';
+      return;
+    }
+
     if (this.isCurrentSemester && this.hasAnotherCurrentSemester()) {
       this.message = 'Chi duoc ton tai mot hoc ky hien tai.';
       return;
@@ -64,6 +71,7 @@ export class SemesterMetadataFormComponent {
     const payload: SemesterMetadata = {
       semesterName: this.semesterName,
       codeSemester: this.codeSemester,
+      year: this.year,
       isCurrentSemester: this.isCurrentSemester
     };
 

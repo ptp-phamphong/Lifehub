@@ -11,6 +11,7 @@
         <th>Id</th>
         <th>Ma hoc ky</th>
         <th>Ten hoc ky</th>
+        <th>Nam</th>
         <th>Hoc ky hien tai</th>
         <th>Hanh dong</th>
       </tr>
@@ -20,6 +21,7 @@
         <td>{{ item.id }}</td>
         <td>{{ item.codeSemester }}</td>
         <td>{{ item.semesterName }}</td>
+        <td>{{ item.year }}</td>
         <td>
           <span class="badge" [class.badge-active]="item.isCurrentSemester" [class.badge-inactive]="!item.isCurrentSemester">
             {{ item.isCurrentSemester ? 'Current' : 'No' }}

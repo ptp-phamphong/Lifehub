@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
+import { SemesterMetadata } from 'src/app/model/semester-metadata.model';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -18,10 +19,11 @@ export class CourseScheduleFormComponent {
   endTime: string = '';
   room: string = '';
   address: string = '';
-  semester: string = '';
+  semesterMetadataId: number | null = null;
   dayOfWeek: number | null = null;
   message: string = '';
   id: number = 0;
+  semesters: SemesterMetadata[] = [];
 
   constructor(
     private http: HttpClient,
@@ -31,9 +33,23 @@ export class CourseScheduleFormComponent {
 
   ngOnInit() {
     this.id = this.data.id;
+    this.loadSemesters();
     if (this.id > 0) {
       this.loadCourse();
     }
+  }
+
+  loadSemesters() {
+    this.http.get<SemesterMetadata[]>(`${environment.apiBaseUrl}/GetAllSemesterMetadata`)
+      .subscribe({
+        next: (res) => {
+          this.semesters = res || [];
+        },
+        error: (err) => {
+          console.error(err);
+          this.semesters = [];
+        }
+      });
   }
 
   loadCourse() {
@@ -48,7 +64,7 @@ export class CourseScheduleFormComponent {
           this.endTime = res.endTime || '';
           this.room = res.room || '';
           this.address = res.address || '';
-          this.semester = res.semester || '';
+          this.semesterMetadataId = res.semesterMetadataId ?? null;
           this.dayOfWeek = res.dayOfWeek ?? null;
         },
         error: (err) => {
@@ -73,7 +89,7 @@ export class CourseScheduleFormComponent {
       endTime: this.endTime || undefined,
       room: this.room,
       address: this.address,
-      semester: this.semester,
+      semesterMetadataId: this.semesterMetadataId ?? undefined,
       dayOfWeek: this.dayOfWeek ?? undefined,
     };
 

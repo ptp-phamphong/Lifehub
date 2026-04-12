@@ -22,6 +22,7 @@ namespace API_Raspberry.Mapper
                 Id = entity.Id,
                 SemesterName = entity.SemesterName,
                 CodeSemester = entity.CodeSemester,
+                Year = entity.Year,
                 IsCurrentSemester = entity.IsCurrentSemester
             };
         }
@@ -37,6 +38,7 @@ namespace API_Raspberry.Mapper
             {
                 SemesterName = dto.SemesterName,
                 CodeSemester = dto.CodeSemester,
+                Year = dto.Year,
                 IsCurrentSemester = dto.IsCurrentSemester
             };
         }
@@ -45,6 +47,7 @@ namespace API_Raspberry.Mapper
         {
             entity.SemesterName = dto.SemesterName;
             entity.CodeSemester = dto.CodeSemester;
+            entity.Year = dto.Year;
             entity.IsCurrentSemester = dto.IsCurrentSemester;
         }
     }

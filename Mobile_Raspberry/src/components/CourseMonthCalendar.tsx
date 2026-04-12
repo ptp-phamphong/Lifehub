@@ -59,6 +59,13 @@ function dayOfWeekLabel(dow?: number): string {
   return dow ? labels[dow] || '' : '';
 }
 
+function semesterLabel(course?: CourseSchedule | null): string {
+  if (!course) return '';
+  if (course.semesterName && course.semesterYear) return `${course.semesterName} (${course.semesterYear})`;
+  if (course.semesterName) return course.semesterName;
+  return 'Chưa gán học kỳ';
+}
+
 function truncate(text: string | undefined, maxLen: number): string {
   if (!text) return '';
   return text.length > maxLen ? text.substring(0, maxLen) + '…' : text;
@@ -402,7 +409,7 @@ export default function CourseMonthCalendar() {
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Học kỳ:</Text>
-              <Text style={styles.detailValue}>{selectedCourse?.semester}</Text>
+              <Text style={styles.detailValue}>{semesterLabel(selectedCourse)}</Text>
             </View>
           </View>
         </TouchableOpacity>

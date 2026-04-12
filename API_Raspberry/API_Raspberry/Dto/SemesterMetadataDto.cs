@@ -5,6 +5,7 @@ namespace API_Raspberry.Dto
         public int Id { get; set; }
         public string SemesterName { get; set; }
         public string CodeSemester { get; set; }
+        public int Year { get; set; }
         public bool IsCurrentSemester { get; set; }
     }
 
@@ -12,6 +13,7 @@ namespace API_Raspberry.Dto
     {
         public string SemesterName { get; set; }
         public string CodeSemester { get; set; }
+        public int Year { get; set; }
         public bool IsCurrentSemester { get; set; }
     }
 
@@ -19,6 +21,7 @@ namespace API_Raspberry.Dto
     {
         public string SemesterName { get; set; }
         public string CodeSemester { get; set; }
+        public int Year { get; set; }
         public bool IsCurrentSemester { get; set; }
     }
 }

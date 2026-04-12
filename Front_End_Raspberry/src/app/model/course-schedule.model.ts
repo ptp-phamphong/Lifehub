@@ -8,7 +8,9 @@ export class CourseSchedule {
     endTime?: string;
     room?: string;
     address?: string;
-    semester?: string;
+    semesterMetadataId?: number;
+    semesterName?: string;
+    semesterYear?: number;
     dayOfWeek?: number;
     createdDate?: string;
 }

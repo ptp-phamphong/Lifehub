@@ -92,6 +92,13 @@ function dayOfWeekLabel(dow?: number): string {
   return dow ? labels[dow] || '' : '';
 }
 
+function semesterLabel(course?: CourseSchedule | null): string {
+  if (!course) return '';
+  if (course.semesterName && course.semesterYear) return `${course.semesterName} (${course.semesterYear})`;
+  if (course.semesterName) return course.semesterName;
+  return 'Chưa gán học kỳ';
+}
+
 // ─── Component ────────────────────────────────────────────
 export default function CourseWeekCalendar() {
   const [mondayDate, setMondayDate] = useState(() => getMonday(new Date()));
@@ -402,7 +409,7 @@ export default function CourseWeekCalendar() {
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Học kỳ:</Text>
-              <Text style={styles.detailValue}>{selectedCourse?.semester}</Text>
+              <Text style={styles.detailValue}>{semesterLabel(selectedCourse)}</Text>
             </View>
           </View>
         </TouchableOpacity>

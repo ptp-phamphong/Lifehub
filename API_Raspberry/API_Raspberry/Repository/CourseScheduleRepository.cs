@@ -2,6 +2,7 @@ using API_Raspberry.Data;
 using API_Raspberry.Dto;
 using API_Raspberry.Mapper;
 using API_Raspberry.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace API_Raspberry.Repository
 {
@@ -14,7 +15,7 @@ namespace API_Raspberry.Repository
         void Update(int id, CourseScheduleUpdateDto dto);
         List<CourseSchedule> GetByMonth(int month, int year);
         void Delete(int id);
-        void DeleteBySemesterName(string semesterName);
+        void DeleteBySemesterMetadataId(int semesterMetadataId);
     }
 
     public class CourseScheduleRepository : ICourseScheduleRepository
@@ -31,13 +32,16 @@ namespace API_Raspberry.Repository
         public List<CourseSchedule> GetAll()
         {
             return _context.CourseSchedules
+                .Include(c => c.SemesterMetadata)
                 .OrderByDescending(c => c.Id)
                 .ToList();
         }
 
         public CourseSchedule GetById(int id)
         {
-            return _context.CourseSchedules.FirstOrDefault(c => c.Id == id);
+            return _context.CourseSchedules
+                .Include(c => c.SemesterMetadata)
+                .FirstOrDefault(c => c.Id == id);
         }
 
         public void Add(CourseScheduleCreateDto dto)
@@ -77,6 +81,7 @@ namespace API_Raspberry.Repository
             var endOfMonth = new DateTime(year, month, DateTime.DaysInMonth(year, month));
 
             return _context.CourseSchedules
+                .Include(c => c.SemesterMetadata)
                 .Where(c => c.StartDate.HasValue && c.EndDate.HasValue
                          && c.StartDate.Value <= endOfMonth
                          && c.EndDate.Value >= startOfMonth)
@@ -94,9 +99,9 @@ namespace API_Raspberry.Repository
             }
         }
 
-        public void DeleteBySemesterName(string semesterName)
+        public void DeleteBySemesterMetadataId(int semesterMetadataId)
         {
-            var existings = _context.CourseSchedules.Where(c => c.Semester == semesterName);
+            var existings = _context.CourseSchedules.Where(c => c.SemesterMetadataId == semesterMetadataId);
             if (existings != null && existings.Count() > 0)
             {
                 _context.CourseSchedules.RemoveRange(existings);

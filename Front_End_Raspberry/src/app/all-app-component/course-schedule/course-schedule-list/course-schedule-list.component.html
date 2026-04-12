@@ -5,6 +5,13 @@
   <div class="toolbar">
     <button class="btn-add" (click)="openEditDialog(0)">+ Thêm môn mới</button>
 
+    <select [(ngModel)]="selectedSemesterMetadataId" name="selectedSemesterMetadataId" class="semester-select">
+      <option [ngValue]="null">-- Chọn học kỳ cho import/xóa --</option>
+      <option *ngFor="let semester of semesters" [ngValue]="semester.id">
+        {{ semester.codeSemester }} - {{ semester.semesterName }} ({{ semester.year }})
+      </option>
+    </select>
+
     <button class="btn-import" (click)="fileInput.click()">
       📥 Import Excel
     </button>
@@ -45,7 +52,7 @@
         <td>{{ item.startTime && item.endTime ? item.startTime + ' - ' + item.endTime : '' }}</td>
         <td>{{ dayOfWeekLabel(item.dayOfWeek) }}</td>
         <td>{{ item.room }}</td>
-        <td><span class="semester-badge">{{ item.semester }}</span></td>
+        <td><span class="semester-badge">{{ semesterDisplay(item) }}</span></td>
         <td class="col-actions">
           <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
           <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoá</button>

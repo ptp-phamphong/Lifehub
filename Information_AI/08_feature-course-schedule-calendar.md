@@ -31,6 +31,7 @@ This returns all courses whose date range overlaps with the given month.
 - Columns: Monday to Sunday (mapped from `DayOfWeek`).
 - Rows: time slots.
 - Each cell shows course name, room, time range.
+- Detail popup displays `SemesterName` when available.
 
 ### Month calendar
 
@@ -38,6 +39,7 @@ This returns all courses whose date range overlaps with the given month.
 - Renders a monthly grid.
 - Each day cell shows courses scheduled for that day.
 - Uses `DayOfWeek` field to place courses on correct weekdays.
+- Detail popup displays `SemesterName` when available.
 
 ### Navigation
 
@@ -78,7 +80,9 @@ export interface CourseSchedule {
   endTime?: string;
   room?: string;
   address?: string;
-  semester?: string;
+  semesterMetadataId?: number;
+  semesterName?: string;
+  semesterYear?: number;
   dayOfWeek?: number;
   createdDate?: string;
 }

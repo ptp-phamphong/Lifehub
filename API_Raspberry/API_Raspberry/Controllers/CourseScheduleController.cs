@@ -65,16 +65,16 @@ namespace API_Raspberry.Controllers
         
 
         [HttpDelete]
-        [Route("DeleteBySemesterName/{semesterName}")]
-        public bool DeleteBySemesterName(string semesterName)
+        [Route("DeleteBySemesterMetadataId/{semesterMetadataId}")]
+        public bool DeleteBySemesterMetadataId(int semesterMetadataId)
         {
-            _courseScheduleService.DeleteBySemesterName(semesterName);
+            _courseScheduleService.DeleteBySemesterMetadataId(semesterMetadataId);
             return true;
         }
 
         [HttpPost]
         [Route("ImportCourseSchedule")]
-        public IActionResult ImportFromExcel(IFormFile file, [FromForm] string semester)
+        public IActionResult ImportFromExcel(IFormFile file, [FromForm] int? semesterMetadataId)
         {
             if (file == null || file.Length == 0)
                 return BadRequest("Vui lòng chọn file Excel.");
@@ -84,7 +84,7 @@ namespace API_Raspberry.Controllers
                 return BadRequest("Chỉ hỗ trợ file .xlsx");
 
             using var stream = file.OpenReadStream();
-            var imported = _courseScheduleImportService.ImportFromExcel(stream, semester ?? "");
+            var imported = _courseScheduleImportService.ImportFromExcel(stream, semesterMetadataId);
 
             return Ok(new { count = imported.Count, data = imported });
         }

@@ -28,7 +28,9 @@ namespace API_Raspberry.Mapper
                 EndTime = entity.EndTime,
                 Room = entity.Room,
                 Address = entity.Address,
-                Semester = entity.Semester,
+                SemesterMetadataId = entity.SemesterMetadataId,
+                SemesterName = entity.SemesterMetadata?.SemesterName,
+                SemesterYear = entity.SemesterMetadata?.Year,
                 DayOfWeek = entity.DayOfWeek,
                 CreatedDate = entity.CreatedDate,
             };
@@ -51,7 +53,7 @@ namespace API_Raspberry.Mapper
                 EndTime = dto.EndTime,
                 Room = dto.Room,
                 Address = dto.Address,
-                Semester = dto.Semester,
+                SemesterMetadataId = dto.SemesterMetadataId,
                 DayOfWeek = dto.DayOfWeek,
             };
         }
@@ -66,7 +68,7 @@ namespace API_Raspberry.Mapper
             entity.EndTime = dto.EndTime;
             entity.Room = dto.Room;
             entity.Address = dto.Address;
-            entity.Semester = dto.Semester;
+            entity.SemesterMetadataId = dto.SemesterMetadataId;
             entity.DayOfWeek = dto.DayOfWeek;
         }
     }

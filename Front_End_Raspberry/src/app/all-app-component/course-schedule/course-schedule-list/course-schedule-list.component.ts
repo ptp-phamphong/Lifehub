@@ -3,6 +3,7 @@ import { Component, ViewContainerRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { environment } from 'src/environments/environment';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
+import { SemesterMetadata } from 'src/app/model/semester-metadata.model';
 import { CourseScheduleFormComponent } from '../course-schedule-form/course-schedule-form.component';
 
 @Component({
@@ -12,6 +13,8 @@ import { CourseScheduleFormComponent } from '../course-schedule-form/course-sche
 })
 export class CourseScheduleListComponent {
   courses: CourseSchedule[] = [];
+  semesters: SemesterMetadata[] = [];
+  selectedSemesterMetadataId: number | null = null;
   importMessage: string = '';
   importError: boolean = false;
   importing: boolean = false;
@@ -24,6 +27,16 @@ export class CourseScheduleListComponent {
 
   ngOnInit() {
     this.loadCourses();
+    this.loadSemesters();
+  }
+
+  loadSemesters() {
+    this.http.get<SemesterMetadata[]>(`${environment.apiBaseUrl}/GetAllSemesterMetadata`).subscribe({
+      next: (data) => {
+        this.semesters = data;
+      },
+      error: (err) => console.error('Lỗi khi tải học kỳ:', err)
+    });
   }
 
   loadCourses() {
@@ -85,11 +98,11 @@ export class CourseScheduleListComponent {
     this.importError = false;
     this.importing = true;
 
-    const semester = prompt('Nhập tên học kỳ (VD: HK1 2026):') || '';
-
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('semester', semester);
+    if (this.selectedSemesterMetadataId != null) {
+      formData.append('semesterMetadataId', String(this.selectedSemesterMetadataId));
+    }
 
     this.http.post<{ count: number }>(`${environment.apiBaseUrl}/ImportCourseSchedule`, formData)
       .subscribe({
@@ -119,9 +132,12 @@ export class CourseScheduleListComponent {
     if (!confirmed2) {
       return;
     }
-    const semester = prompt('Nhập tên học kỳ muốn xóa toàn bộ (VD: HK1 2026):') || '';
+    if (this.selectedSemesterMetadataId == null) {
+      window.alert('Vui lòng chọn học kỳ cần xóa toàn bộ.');
+      return;
+    }
 
-    this.http.delete(`${environment.apiBaseUrl}/DeleteBySemesterName/${semester}`)
+    this.http.delete(`${environment.apiBaseUrl}/DeleteBySemesterMetadataId/${this.selectedSemesterMetadataId}`)
       .subscribe({
         next: () => {
           this.loadCourses();
@@ -130,5 +146,17 @@ export class CourseScheduleListComponent {
           console.error(err);
         }
       });
+  }
+
+  semesterDisplay(item: CourseSchedule): string {
+    if (item.semesterName && item.semesterYear) {
+      return `${item.semesterName} (${item.semesterYear})`;
+    }
+
+    if (item.semesterName) {
+      return item.semesterName;
+    }
+
+    return 'Chưa gán học kỳ';
   }
 }

@@ -1,6 +1,7 @@
 # Feature: Semester Metadata CRUD
 
 Settings feature to manage semester metadata and flag the current semester.
+Semester metadata is also referenced by course schedules through `SemesterMetadataId`.
 
 ## Backend
 
@@ -33,6 +34,7 @@ SemesterMetadataController -> ISemesterMetadataService -> ISemesterMetadataRepos
 - Id (int, PK, auto increment)
 - SemesterName (nvarchar/string, required)
 - CodeSemester (nvarchar/string, required)
+- Year (int, required)
 - IsCurrentSemester (bit/bool)
 
 Table name: semesterMetadata
@@ -67,6 +69,7 @@ Table name: semesterMetadata
 
 - Semester name (required)
 - Semester code (required)
+- Year (required)
 - Is current semester (boolean)
 
 ### Validation rule
@@ -86,3 +89,8 @@ Note:
 
 - No changes in this feature iteration.
 - Semester Metadata CRUD is implemented only for Angular web settings.
+
+## Integration with Course Schedule
+
+- `CourseSchedule` now stores `SemesterMetadataId` (nullable) instead of a raw semester string.
+- Course Schedule API responses include `SemesterName` and `SemesterYear` for UI display.

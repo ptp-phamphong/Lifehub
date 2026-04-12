@@ -7,7 +7,9 @@ export interface CourseSchedule {
   startTime?: string;
   endTime?: string;
   room?: string;
-  semester?: string;
+  semesterMetadataId?: number;
+  semesterName?: string;
+  semesterYear?: number;
   dayOfWeek?: number;
   createdDate?: string;
 }
