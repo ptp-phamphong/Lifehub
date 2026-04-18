@@ -61,10 +61,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "Front_End_Raspberry:build:production"
+              "buildTarget": "Front_End_Raspberry:build:production"
             },
             "development": {
-              "browserTarget": "Front_End_Raspberry:build:development"
+              "buildTarget": "Front_End_Raspberry:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -72,7 +72,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "Front_End_Raspberry:build"
+            "buildTarget": "Front_End_Raspberry:build"
           }
         },
         "test": {
