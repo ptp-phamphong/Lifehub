@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { MainTabComponent } from './all-app-component/main-tab/main-tab.component';
 import { SystemInfoTabComponent } from './all-app-component/system-info-tab/system-info-tab.component';
@@ -65,46 +65,40 @@ import { SemesterMetadataFormComponent } from './all-app-component/semester-meta
 import { SystemConfigurationListComponent } from './all-app-component/system-configuration/system-configuration-list/system-configuration-list.component';
 import { SystemConfigurationFormComponent } from './all-app-component/system-configuration/system-configuration-form/system-configuration-form.component';
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    MainTabComponent,
-    SystemInfoTabComponent,
-    ExpenseRecordComponent,
-    ExpenseRecordListComponent,
-    ReasonTypeListComponent,
-    ReasonTypeFormComponent,
-    MonthPaginationComponent,
-    CourseScheduleListComponent,
-    CourseScheduleFormComponent,
-    CourseCalendarComponent,
-    CourseWeekCalendarComponent,
-    CourseMonthCalendarComponent,
-    SettingsTabComponent,
-    SemesterMetadataListComponent,
-    SemesterMetadataFormComponent,
-    SystemConfigurationListComponent,
-    SystemConfigurationFormComponent,
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    HttpClientModule,
-    NgbModule,
-    FormsModule,
-    MatDialogModule,
-    BrowserAnimationsModule,
-    NgSelectModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatInputModule,
-    MatFormFieldModule,
-    BrowserAnimationsModule
-  ],
-  providers: [
-    { provide: DateAdapter, useClass: AppDateAdapter },
-    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
-  ],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        MainTabComponent,
+        SystemInfoTabComponent,
+        ExpenseRecordComponent,
+        ExpenseRecordListComponent,
+        ReasonTypeListComponent,
+        ReasonTypeFormComponent,
+        MonthPaginationComponent,
+        CourseScheduleListComponent,
+        CourseScheduleFormComponent,
+        CourseCalendarComponent,
+        CourseWeekCalendarComponent,
+        CourseMonthCalendarComponent,
+        SettingsTabComponent,
+        SemesterMetadataListComponent,
+        SemesterMetadataFormComponent,
+        SystemConfigurationListComponent,
+        SystemConfigurationFormComponent,
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        AppRoutingModule,
+        NgbModule,
+        FormsModule,
+        MatDialogModule,
+        BrowserAnimationsModule,
+        NgSelectModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatInputModule,
+        MatFormFieldModule,
+        BrowserAnimationsModule], providers: [
+        { provide: DateAdapter, useClass: AppDateAdapter },
+        { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
+        provideHttpClient(withInterceptorsFromDi()),
+    ] })
 export class AppModule { }
