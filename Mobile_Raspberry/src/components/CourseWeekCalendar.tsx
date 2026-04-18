@@ -4,6 +4,7 @@ import {
   GestureResponderEvent,
   Modal,
   PanResponder,
+  PanResponderInstance,
   ScrollView,
   StyleSheet,
   Text,
@@ -107,16 +108,19 @@ export default function CourseWeekCalendar() {
   const [mondayDate, setMondayDate] = useState(() => getMonday(new Date()));
   const [courses, setCourses] = useState<CourseSchedule[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<CourseSchedule | null>(null);
+  const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   // ── Swipe gesture handler ──────────────────────────────
-  const swipeRef = useRef<PanResponder | null>(null);
+  const swipeRef = useRef<PanResponderInstance | null>(null);
   const gestureRef = useRef({ x0: 0, y0: 0 });
 
   if (!swipeRef.current) {
     swipeRef.current = PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      // Don't claim on tap start — let children (TouchableOpacity) handle taps
+      onStartShouldSetPanResponder: () => false,
+      // Only claim gesture when there is a clear horizontal swipe
+      onMoveShouldSetPanResponder: (_, gs) => Math.abs(gs.dx) > 10 && Math.abs(gs.dx) > Math.abs(gs.dy),
       onPanResponderGrant: (e: GestureResponderEvent) => {
         gestureRef.current = { x0: e.nativeEvent.pageX, y0: e.nativeEvent.pageY };
       },
@@ -269,16 +273,19 @@ export default function CourseWeekCalendar() {
     d.setDate(d.getDate() - 7);
     setMondayDate(d);
     setSelectedCourse(null);
+    setSelectedDay(null);
   };
   const nextWeek = () => {
     const d = new Date(mondayDate);
     d.setDate(d.getDate() + 7);
     setMondayDate(d);
     setSelectedCourse(null);
+    setSelectedDay(null);
   };
   const goToCurrentWeek = () => {
     setMondayDate(getMonday(new Date()));
     setSelectedCourse(null);
+    setSelectedDay(null);
   };
 
   // ── Current time line ───────────────────────────────────
@@ -319,14 +326,24 @@ export default function CourseWeekCalendar() {
         {weekDays.map((day) => {
           const isT = isSameDay(day.date, today);
           const lunarDate = toLunarDate(day.date);
+          const isSelected = selectedDay && isSameDay(selectedDay.date, day.date);
           return (
-            <View key={day.label} style={[styles.dayColHeader, isT && styles.todayHeader]}>
-              <Text style={[styles.dayName, isT && styles.todayText]}>{day.label}</Text>
-              <Text style={[styles.dayDate, isT && styles.todayText]}>{day.dateLabel}</Text>
-              <Text style={[styles.dayLunarDate, isT && styles.todayText]}>
+            <TouchableOpacity
+              key={day.label}
+              onPress={() => setSelectedDay(isSelected ? null : day)}
+              style={[styles.dayColHeader, isT && styles.todayHeader, isSelected && styles.selectedDayHeader]}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.dayName, isT && styles.todayText, isSelected && styles.selectedDayText]}>
+                {day.label}
+              </Text>
+              <Text style={[styles.dayDate, isT && styles.todayText, isSelected && styles.selectedDayText]}>
+                {day.dateLabel}
+              </Text>
+              <Text style={[styles.dayLunarDate, isT && styles.todayText, isSelected && styles.selectedDayText]}>
                 {formatLunarDateVN(lunarDate)}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </View>
@@ -399,6 +416,51 @@ export default function CourseWeekCalendar() {
           })}
         </View>
       </ScrollView>
+
+      {/* Day Schedule Modal */}
+      {selectedDay && (
+        <Modal visible={!!selectedDay} transparent animationType="fade" onRequestClose={() => setSelectedDay(null)}>
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setSelectedDay(null)}
+          >
+            <View style={styles.detailCard} onStartShouldSetResponder={() => true}>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setSelectedDay(null)}>
+                <Text style={styles.closeBtnText}>✕</Text>
+              </TouchableOpacity>
+              <Text style={styles.detailTitle}>
+                {DAY_LABELS[weekDays.findIndex((d) => isSameDay(d.date, selectedDay.date))]} - {selectedDay.dateLabel}
+              </Text>
+              <Text style={styles.dayScheduleLabel}>Thời khóa biểu</Text>
+              <View style={styles.dayScheduleList}>
+                {getCoursesForDay(selectedDay).length > 0 ? (
+                  getCoursesForDay(selectedDay).map((block, idx) => (
+                    <TouchableOpacity
+                      key={`${block.course.id}-${idx}`}
+                      onPress={() => {
+                        setSelectedDay(null);
+                        setSelectedCourse(block.course);
+                      }}
+                      style={[styles.dayScheduleItem, { borderLeftColor: block.borderColor }]}
+                    >
+                      <Text style={[styles.scheduleTime, { color: block.borderColor }]}>
+                        {block.course.startTime} - {block.course.endTime}
+                      </Text>
+                      <Text style={[styles.scheduleName, { color: block.textColor }]}>
+                        {block.course.courseName}
+                      </Text>
+                      <Text style={styles.scheduleRoom}>{block.course.room}</Text>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={styles.noCourseText}>Không có lớp học hôm nay</Text>
+                )}
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
 
       {/* Course Detail Modal */}
       <Modal visible={!!selectedCourse} transparent animationType="fade" onRequestClose={() => setSelectedCourse(null)}>
@@ -488,10 +550,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   todayHeader: { backgroundColor: '#eff6ff' },
+  selectedDayHeader: { backgroundColor: '#dbeafe', borderRadius: 6 },
   dayName: { fontSize: 11, fontWeight: '600', color: '#64748b' },
   dayDate: { fontSize: 10, color: '#94a3b8' },
   dayLunarDate: { fontSize: 8, color: '#cbd5e1', marginTop: 1 },
   todayText: { color: '#2563eb' },
+  selectedDayText: { color: '#2563eb', fontWeight: '700' },
 
   // Scroll body
   scrollBody: { flex: 1 },
@@ -589,4 +653,44 @@ const styles = StyleSheet.create({
   },
   detailLabel: { width: 100, fontSize: 13, color: '#64748b', fontWeight: '500' },
   detailValue: { flex: 1, fontSize: 13, color: '#1e293b' },
+
+  // Day schedule modal
+  dayScheduleLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748b',
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  dayScheduleList: {
+    maxHeight: 300,
+  },
+  dayScheduleItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderLeftWidth: 3,
+    marginBottom: 6,
+    backgroundColor: '#f8fafc',
+    borderRadius: 6,
+  },
+  scheduleTime: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  scheduleName: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  scheduleRoom: {
+    fontSize: 11,
+    color: '#64748b',
+  },
+  noCourseText: {
+    fontSize: 13,
+    color: '#94a3b8',
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
 });

@@ -4,6 +4,7 @@ import {
   GestureResponderEvent,
   Modal,
   PanResponder,
+  PanResponderInstance,
   ScrollView,
   StyleSheet,
   Text,
@@ -89,20 +90,22 @@ export default function CourseMonthCalendar() {
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
 
   // ── Swipe gesture handler ──────────────────────────────
-  const swipeRef = useRef<PanResponder | null>(null);
+  const swipeRef = useRef<PanResponderInstance | null>(null);
   const gestureRef = useRef({ x0: 0, y0: 0 });
 
   if (!swipeRef.current) {
     swipeRef.current = PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      // Don't claim on tap start — let children (TouchableOpacity) handle taps
+      onStartShouldSetPanResponder: () => false,
+      // Only claim gesture when there is a clear horizontal swipe
+      onMoveShouldSetPanResponder: (_, gs) => Math.abs(gs.dx) > 10 && Math.abs(gs.dx) > Math.abs(gs.dy),
       onPanResponderGrant: (e: GestureResponderEvent) => {
         gestureRef.current = { x0: e.nativeEvent.pageX, y0: e.nativeEvent.pageY };
       },
       onPanResponderRelease: (e: GestureResponderEvent) => {
         const dx = e.nativeEvent.pageX - gestureRef.current.x0;
         const minSwipeDistance = 50;
-        
+
         // Swipe right → previous month
         if (dx > minSwipeDistance) {
           prevMonth();
@@ -297,10 +300,8 @@ export default function CourseMonthCalendar() {
                   !day.isCurrentMonth && styles.otherMonth,
                   day.isToday && styles.todayCell,
                 ]}
-                activeOpacity={day.courses.length > 0 ? 0.6 : 1}
-                onPress={() => {
-                  if (day.courses.length > 0) setSelectedDay(day);
-                }}
+                activeOpacity={0.6}
+                onPress={() => setSelectedDay(day)}
               >
                 <Text
                   style={[
@@ -331,6 +332,9 @@ export default function CourseMonthCalendar() {
                     >
                       <Text style={[styles.chipTime, { color: colors.border }]} numberOfLines={1}>
                         {course.startTime}
+                      </Text>
+                      <Text style={[styles.chipTime, { color: colors.border }]} numberOfLines={1}>
+                        {course.room}
                       </Text>
                       <Text style={[styles.chipName, { color: colors.text }]} numberOfLines={1}>
                         {truncate(course.courseName, 8)}
