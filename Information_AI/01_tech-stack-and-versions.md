@@ -47,40 +47,40 @@ Other backend technologies in use:
 ## 3. Web Frontend
 
 Platform:
-- Angular `16.2.x`
-- TypeScript `~5.1.3`
+- Angular `18.2.x`
+- TypeScript `~5.4.5`
 
 Main dependencies from `Front_End_Raspberry/package.json`:
 
 | Package | Version |
 |---|---:|
-| @angular/animations | ^16.2.0 |
-| @angular/cdk | ^16.2.14 |
-| @angular/common | ^16.2.0 |
-| @angular/compiler | ^16.2.0 |
-| @angular/core | ^16.2.0 |
-| @angular/forms | ^16.2.0 |
-| @angular/material | ^16.2.14 |
-| @angular/platform-browser | ^16.2.0 |
-| @angular/platform-browser-dynamic | ^16.2.0 |
-| @angular/router | ^16.2.0 |
-| @ng-bootstrap/ng-bootstrap | ^15.1.2 |
-| @ng-select/ng-select | ^10.0.4 |
+| @angular/animations | ^18.2.14 |
+| @angular/cdk | ^18.2.14 |
+| @angular/common | ^18.2.14 |
+| @angular/compiler | ^18.2.14 |
+| @angular/core | ^18.2.14 |
+| @angular/forms | ^18.2.14 |
+| @angular/material | ^18.2.14 |
+| @angular/platform-browser | ^18.2.14 |
+| @angular/platform-browser-dynamic | ^18.2.14 |
+| @angular/router | ^18.2.14 |
+| @ng-bootstrap/ng-bootstrap | ^17.0.1 |
+| @ng-select/ng-select | ^13.9.1 |
 | bootstrap | ^5.3.8 |
 | hammerjs | ^2.0.8 |
-| lunisolar | ^1.3.4 |
+| lunisolar | 1.5.1 |
 | rxjs | ~7.8.0 |
 | tslib | ^2.3.0 |
-| zone.js | ~0.13.0 |
+| zone.js | ~0.14.10 |
 
 Main dev dependencies:
 
 | Package | Version |
 |---|---:|
-| @angular-devkit/build-angular | ^16.2.10 |
-| @angular/cli | ^16.2.10 |
-| @angular/compiler-cli | ^16.2.0 |
-| typescript | ~5.1.3 |
+| @angular-devkit/build-angular | ^18.2.21 |
+| @angular/cli | ^18.2.21 |
+| @angular/compiler-cli | ^18.2.14 |
+| typescript | ~5.4.5 |
 | jasmine-core | ~4.6.0 |
 | karma | ~6.4.0 |
 
