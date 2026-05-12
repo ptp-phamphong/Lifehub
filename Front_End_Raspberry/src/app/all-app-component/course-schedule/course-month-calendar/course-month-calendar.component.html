@@ -28,7 +28,21 @@
         <div class="day-lunar" *ngIf="day.isCurrentMonth">
           {{ formatLunarDateShort(toLunarDate(day.date)) }}
         </div>
-        <div class="day-courses">
+
+        <!-- Expense mode: show daily total -->
+        <ng-container *ngIf="showExpense">
+          <div
+            class="day-expense-total"
+            *ngIf="day.isCurrentMonth && getDailyTotal(day.date) > 0"
+            (click)="openExpenseDetail(day.date, $event)"
+          >
+            {{ getDailyTotal(day.date) | number:'1.0-0' }}đ
+          </div>
+        </ng-container>
+
+        <!-- Schedule mode: show course chips -->
+        <ng-container *ngIf="!showExpense">
+          <div class="day-courses">
           <div
             class="course-chip"
             *ngFor="let course of day.courses | slice:0:maxVisibleCourses"
@@ -49,8 +63,26 @@
             +{{ day.courses.length - maxVisibleCourses }} khác
           </div>
         </div>
+        </ng-container>
       </div>
     </ng-container>
+  </div>
+
+  <!-- Expense Detail Panel -->
+  <div class="detail-panel" *ngIf="selectedDayExpenses" (click)="closeExpenseDetail()">
+    <div class="detail-card expense-detail-card" (click)="$event.stopPropagation()">
+      <button class="btn-close-detail" (click)="closeExpenseDetail()">✕</button>
+      <h3>Chi tiêu ngày {{ selectedDayExpenses.date | date:'dd/MM/yyyy' }}</h3>
+      <div class="expense-detail-list">
+        <div class="expense-detail-item" *ngFor="let e of selectedDayExpenses.items">
+          <span class="expense-reason">{{ e.reason }}</span>
+          <span class="expense-amount">{{ e.amount | number:'1.0-0' }}đ</span>
+        </div>
+      </div>
+      <div class="expense-detail-total">
+        Tổng: {{ selectedDayTotal | number:'1.0-0' }}đ
+      </div>
+    </div>
   </div>
 
   <!-- Day Detail Panel (all courses for a day) -->

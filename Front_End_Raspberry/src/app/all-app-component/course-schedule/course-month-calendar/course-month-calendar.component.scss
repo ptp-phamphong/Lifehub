@@ -380,6 +380,82 @@ $radius-sm: 8px;
   }
 }
 
+// ── Expense Total Chip (inside day cell) ──
+.day-expense-total {
+  background: #dcfce7;
+  border: 1px solid #22c55e;
+  border-radius: 4px;
+  padding: 3px 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #166534;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 2px;
+  transition: filter 0.15s, transform 0.1s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &:hover {
+    filter: brightness(0.93);
+    transform: scale(1.03);
+  }
+}
+
+// ── Expense Detail Dialog ──
+.expense-detail-card {
+  min-width: 320px;
+  max-width: 440px;
+}
+
+.expense-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 360px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+}
+
+.expense-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border-left: 3px solid #22c55e;
+}
+
+.expense-reason {
+  font-size: 0.88rem;
+  color: $text-primary;
+  flex: 1;
+}
+
+.expense-amount {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #dc2626;
+  white-space: nowrap;
+}
+
+.expense-detail-total {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fef9c3;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #92400e;
+  text-align: right;
+  border: 1px solid #fde68a;
+}
+
 // ── Responsive ──
 @media (max-width: 768px) {
   .calendar-container {

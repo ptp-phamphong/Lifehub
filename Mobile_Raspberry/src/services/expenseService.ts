@@ -70,3 +70,8 @@ export async function deleteExpenseById(id: number): Promise<void> {
   const res = await fetch(`${getApiBaseUrl()}/DeleteById/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 }
+
+/** Lấy danh sách chi tiêu theo tháng/năm */
+export async function getExpensesByMonth(month: number, year: number): Promise<ExpenseRecord[]> {
+  return getJson<ExpenseRecord[]>(`/GetExpensesByMonth/${month}/${year}`);
+}

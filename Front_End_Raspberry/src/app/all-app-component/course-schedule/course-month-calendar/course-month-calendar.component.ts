@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, HostListener, SimpleChanges } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
+import { ExpenseRecord } from 'src/app/model/expense.model';
 import { toLunarDate, formatLunarDateShort } from 'src/app/utils/lunar-calendar';
 
 const COURSE_COLORS = [
@@ -30,7 +31,9 @@ export interface CalendarDay {
   templateUrl: './course-month-calendar.component.html',
   styleUrls: ['./course-month-calendar.component.scss']
 })
-export class CourseMonthCalendarComponent {
+export class CourseMonthCalendarComponent implements OnChanges {
+  @Input() showExpense: boolean = false;
+
   currentMonth: number = new Date().getMonth() + 1;
     currentYear: number = new Date().getFullYear();
     weeks: CalendarDay[][] = [];
@@ -40,7 +43,12 @@ export class CourseMonthCalendarComponent {
     selectedDay: CalendarDay | null = null;
     maxVisibleCourses = 1;
     private colorMap: Map<string, number> = new Map();
-    
+
+    // Expense overlay
+    expenses: ExpenseRecord[] = [];
+    expensesByDay: Map<string, ExpenseRecord[]> = new Map();
+    selectedDayExpenses: { date: Date; items: ExpenseRecord[] } | null = null;
+
     // Swipe gesture tracking
     private touchStartX: number = 0;
     private touchStartY: number = 0;
@@ -50,6 +58,12 @@ export class CourseMonthCalendarComponent {
   
     ngOnInit() {
       this.loadMonth();
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+      if (changes['showExpense'] && this.showExpense && this.expenses.length === 0) {
+        this.loadExpenses();
+      }
     }
     
     @HostListener('touchstart', ['$event'])
@@ -122,6 +136,9 @@ export class CourseMonthCalendarComponent {
           this.courses = data;
           this.buildColorMap();
           this.buildCalendar();
+          if (this.showExpense) {
+            this.loadExpenses();
+          }
         },
         error: (err) => {
           console.error('Lỗi khi tải thời khóa biểu:', err);
@@ -129,6 +146,57 @@ export class CourseMonthCalendarComponent {
           this.buildCalendar();
         }
       });
+    }
+
+    loadExpenses() {
+      this.http.get<ExpenseRecord[]>(
+        `${environment.apiBaseUrl}/GetExpensesByMonth/${this.currentMonth}/${this.currentYear}`
+      ).subscribe({
+        next: (data) => {
+          this.expenses = data;
+          this.buildExpensesByDay();
+        },
+        error: () => {
+          this.expenses = [];
+          this.expensesByDay.clear();
+        }
+      });
+    }
+
+    buildExpensesByDay() {
+      this.expensesByDay.clear();
+      for (const e of this.expenses) {
+        if (!e.createdDate) continue;
+        const d = new Date(e.createdDate as string);
+        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+        if (!this.expensesByDay.has(key)) {
+          this.expensesByDay.set(key, []);
+        }
+        this.expensesByDay.get(key)!.push(e);
+      }
+    }
+
+    getDailyExpenses(date: Date): ExpenseRecord[] {
+      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      return this.expensesByDay.get(key) || [];
+    }
+
+    getDailyTotal(date: Date): number {
+      return this.getDailyExpenses(date).reduce((sum, e) => sum + (e.amount || 0), 0);
+    }
+
+    openExpenseDetail(date: Date, event: Event) {
+      event.stopPropagation();
+      this.selectedDayExpenses = { date, items: this.getDailyExpenses(date) };
+    }
+
+    closeExpenseDetail() {
+      this.selectedDayExpenses = null;
+    }
+
+    get selectedDayTotal(): number {
+      if (!this.selectedDayExpenses) return 0;
+      return this.selectedDayExpenses.items.reduce((sum, e) => sum + (e.amount || 0), 0);
     }
   
     buildCalendar() {

@@ -11,4 +11,5 @@ import { CourseSchedule } from 'src/app/model/course-schedule.model';
 })
 export class CourseCalendarComponent {
   showMonth: boolean = true;
+  showExpense: boolean = false;
 }

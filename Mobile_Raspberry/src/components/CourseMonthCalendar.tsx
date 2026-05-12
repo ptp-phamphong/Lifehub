@@ -13,7 +13,9 @@ import {
 } from 'react-native';
 import { CourseSchedule } from '../models/courseSchedule.model';
 import { getCourseScheduleByMonth } from '../services/courseScheduleService';
+import { getExpensesByMonth } from '../services/expenseService';
 import { toLunarDate, formatLunarDateShort } from '../utils/lunarCalendar';
+import { ExpenseRecord } from '../models/expense.model';
 
 // ─── Types ────────────────────────────────────────────────
 interface CalendarDay {
@@ -82,12 +84,14 @@ function formatDayOfWeekVN(d: Date): string {
 }
 
 // ─── Component ────────────────────────────────────────────
-export default function CourseMonthCalendar() {
+export default function CourseMonthCalendar({ showExpense = false }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [courses, setCourses] = useState<CourseSchedule[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<CourseSchedule | null>(null);
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
+  const [selectedDayExpenses, setSelectedDayExpenses] = useState<{ date: Date; items: ExpenseRecord[] } | null>(null);
 
   // ── Swipe gesture handler ──────────────────────────────
   const swipeRef = useRef<PanResponderInstance | null>(null);
@@ -129,9 +133,24 @@ export default function CourseMonthCalendar() {
     }
   }, [currentMonth, currentYear]);
 
+  const loadExpenses = useCallback(async () => {
+    if (!showExpense) return;
+    try {
+      const data = await getExpensesByMonth(currentMonth, currentYear);
+      setExpenses(data);
+    } catch (err) {
+      console.error('Lỗi khi tải chi tiêu:', err);
+      setExpenses([]);
+    }
+  }, [currentMonth, currentYear, showExpense]);
+
   useEffect(() => {
     loadMonth();
   }, [loadMonth]);
+
+  useEffect(() => {
+    loadExpenses();
+  }, [loadExpenses]);
 
   // ── Color map ─────────────────────────────────────────
   const colorMap = useMemo(() => {
@@ -176,6 +195,32 @@ export default function CourseMonthCalendar() {
         .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
     },
     [courses],
+  );
+
+  // ── Expense helpers ───────────────────────────────────
+  const expensesByDay = useMemo(() => {
+    const map = new Map<string, ExpenseRecord[]>();
+    for (const e of expenses) {
+      if (!e.createdDate) continue;
+      const d = new Date(e.createdDate);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(e);
+    }
+    return map;
+  }, [expenses]);
+
+  const getDailyExpenses = useCallback(
+    (date: Date): ExpenseRecord[] => {
+      const key = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      return expensesByDay.get(key) || [];
+    },
+    [expensesByDay],
+  );
+
+  const getDailyTotal = useCallback(
+    (date: Date): number => getDailyExpenses(date).reduce((sum, e) => sum + (e.amount || 0), 0),
+    [getDailyExpenses],
   );
 
   // ── Build calendar grid ───────────────────────────────
@@ -301,7 +346,16 @@ export default function CourseMonthCalendar() {
                   day.isToday && styles.todayCell,
                 ]}
                 activeOpacity={0.6}
-                onPress={() => setSelectedDay(day)}
+                onPress={() => {
+                  if (showExpense && day.isCurrentMonth) {
+                    const dayExpenses = getDailyExpenses(day.date);
+                    if (dayExpenses.length > 0) {
+                      setSelectedDayExpenses({ date: day.date, items: dayExpenses });
+                    }
+                  } else {
+                    setSelectedDay(day);
+                  }
+                }}
               >
                 <Text
                   style={[
@@ -318,8 +372,16 @@ export default function CourseMonthCalendar() {
                     {formatLunarDateShort(toLunarDate(day.date))}
                   </Text>
                 )}
-                {/* Course chips */}
-                {day.courses.slice(0, MAX_VISIBLE_COURSES).map((course, ci) => {
+                {/* Expense mode: show daily total chip */}
+                {showExpense && day.isCurrentMonth && getDailyTotal(day.date) > 0 && (
+                  <View style={styles.expenseTotalChip}>
+                    <Text style={styles.expenseTotalChipText} numberOfLines={1}>
+                      {getDailyTotal(day.date).toLocaleString('vi-VN')}đ
+                    </Text>
+                  </View>
+                )}
+                {/* Schedule mode: show course chips */}
+                {!showExpense && day.courses.slice(0, MAX_VISIBLE_COURSES).map((course, ci) => {
                   const colors = getChipColor(course);
                   return (
                     <TouchableOpacity
@@ -342,7 +404,7 @@ export default function CourseMonthCalendar() {
                     </TouchableOpacity>
                   );
                 })}
-                {day.courses.length > MAX_VISIBLE_COURSES && (
+                {!showExpense && day.courses.length > MAX_VISIBLE_COURSES && (
                   <TouchableOpacity
                     style={styles.moreChip}
                     onPress={() => setSelectedDay(day)}
@@ -406,7 +468,41 @@ export default function CourseMonthCalendar() {
         </TouchableOpacity>
       </Modal>
 
-      {/* Course Detail Modal */}
+      {/* Expense Detail Modal */}
+      <Modal visible={!!selectedDayExpenses} transparent animationType="fade" onRequestClose={() => setSelectedDayExpenses(null)}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setSelectedDayExpenses(null)}
+        >
+          <View style={styles.detailCard} onStartShouldSetResponder={() => true}>
+            <TouchableOpacity style={styles.closeBtn} onPress={() => setSelectedDayExpenses(null)}>
+              <Text style={styles.closeBtnText}>✕</Text>
+            </TouchableOpacity>
+            <Text style={styles.detailTitle}>
+              Chi tiêu ngày {selectedDayExpenses ? formatDateVN(selectedDayExpenses.date) : ''}
+            </Text>
+            <ScrollView style={{ maxHeight: 300 }}>
+              {selectedDayExpenses?.items.map((e, i) => (
+                <View key={i} style={styles.expenseItem}>
+                  <Text style={styles.expenseReason} numberOfLines={2}>{e.reason}</Text>
+                  <Text style={styles.expenseAmount}>
+                    {(e.amount || 0).toLocaleString('vi-VN')}đ
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
+            <View style={styles.expenseTotalRow}>
+              <Text style={styles.expenseTotalLabel}>Tổng:</Text>
+              <Text style={styles.expenseTotalValue}>
+                {selectedDayExpenses?.items.reduce((s, e) => s + (e.amount || 0), 0).toLocaleString('vi-VN')}đ
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Course Detail Modal (kept separate, no label change) */}
       <Modal visible={!!selectedCourse} transparent animationType="fade" onRequestClose={() => setSelectedCourse(null)}>
         <TouchableOpacity
           style={styles.modalOverlay}
@@ -569,4 +665,50 @@ const styles = StyleSheet.create({
   },
   detailLabel: { width: 100, fontSize: 13, color: '#64748b', fontWeight: '500' },
   detailValue: { flex: 1, fontSize: 13, color: '#1e293b' },
+
+  // Expense overlay
+  expenseTotalChip: {
+    backgroundColor: '#dcfce7',
+    borderWidth: 1,
+    borderColor: '#22c55e',
+    borderRadius: 4,
+    paddingHorizontal: 3,
+    paddingVertical: 2,
+    marginTop: 2,
+    alignItems: 'center',
+  },
+  expenseTotalChipText: {
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#166534',
+  },
+  expenseItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: '#f8fafc',
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: '#22c55e',
+    marginBottom: 6,
+  },
+  expenseReason: { flex: 1, fontSize: 13, color: '#1e293b' },
+  expenseAmount: { fontSize: 13, fontWeight: '700', color: '#dc2626', flexShrink: 0 },
+  expenseTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#fef9c3',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  expenseTotalLabel: { fontSize: 14, fontWeight: '600', color: '#92400e' },
+  expenseTotalValue: { fontSize: 14, fontWeight: '700', color: '#92400e' },
 });

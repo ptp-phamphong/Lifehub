@@ -8,8 +8,17 @@
   <span class="toggle-label" [class.active]="showMonth">Tháng</span>
 </div>
 
+<div class="view-toggle-bar" *ngIf="showMonth">
+  <span class="toggle-label" [class.active]="!showExpense">Thời khóa biểu</span>
+  <label class="toggle-switch">
+    <input type="checkbox" [(ngModel)]="showExpense" name="showExpense" />
+    <span class="toggle-slider"></span>
+  </label>
+  <span class="toggle-label" [class.active]="showExpense">Chi tiêu</span>
+</div>
+
 <ng-container *ngIf="showMonth">
-  <app-course-month-calendar></app-course-month-calendar>
+  <app-course-month-calendar [showExpense]="showExpense"></app-course-month-calendar>
 </ng-container>
 
 <ng-container *ngIf="!showMonth">
