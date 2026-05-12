@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../ThemeContext';
 
 interface Props {
   initialMonth?: number;
@@ -11,6 +12,7 @@ export default function MonthPagination({ initialMonth, initialYear, onMonthChan
   const now = new Date();
   const [month, setMonth] = useState(initialMonth ?? now.getMonth() + 1);
   const [year, setYear] = useState(initialYear ?? now.getFullYear());
+  const { colors } = useTheme();
 
   const goPrev = () => {
     let m = month - 1;
@@ -32,11 +34,11 @@ export default function MonthPagination({ initialMonth, initialYear, onMonthChan
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={goPrev} style={styles.btn}>
+      <TouchableOpacity onPress={goPrev} style={[styles.btn, { backgroundColor: colors.primary }]}>
         <Text style={styles.btnText}>◀</Text>
       </TouchableOpacity>
-      <Text style={styles.label}>Tháng {month}/{year}</Text>
-      <TouchableOpacity onPress={goNext} style={styles.btn}>
+      <Text style={[styles.label, { color: colors.text }]}>Tháng {month}/{year}</Text>
+      <TouchableOpacity onPress={goNext} style={[styles.btn, { backgroundColor: colors.primary }]}>
         <Text style={styles.btnText}>▶</Text>
       </TouchableOpacity>
     </View>

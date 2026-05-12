@@ -3,10 +3,12 @@ import { StyleSheet, Switch, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CourseMonthCalendar from '../components/CourseMonthCalendar';
 import CourseWeekCalendar from '../components/CourseWeekCalendar';
+import { useTheme } from '../ThemeContext';
 
 export default function CourseScheduleScreen() {
   const [showMonth, setShowMonth] = useState(true);
   const [showExpense, setShowExpense] = useState(false);
+  const { colors } = useTheme();
 
   const handleShowMonthChange = (val: boolean) => {
     setShowMonth(val);
@@ -14,10 +16,10 @@ export default function CourseScheduleScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Toggle bar: Tuần / Tháng */}
-      <View style={styles.toggleBar}>
-        <Text style={[styles.toggleLabel, !showMonth && styles.activeLabel]}>Tuần</Text>
+      <View style={[styles.toggleBar, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <Text style={[styles.toggleLabel, { color: colors.textMuted }, !showMonth && { color: colors.primary, fontWeight: '700' }]}>Tuần</Text>
         <Switch
           value={showMonth}
           onValueChange={handleShowMonthChange}
@@ -25,13 +27,13 @@ export default function CourseScheduleScreen() {
           thumbColor="#fff"
           style={styles.switch}
         />
-        <Text style={[styles.toggleLabel, showMonth && styles.activeLabel]}>Tháng</Text>
+        <Text style={[styles.toggleLabel, { color: colors.textMuted }, showMonth && { color: colors.primary, fontWeight: '700' }]}>Tháng</Text>
       </View>
 
       {/* Second toggle: Thời khóa biểu / Chi tiêu — only in month view */}
       {showMonth && (
-        <View style={styles.toggleBar}>
-          <Text style={[styles.toggleLabel, !showExpense && styles.activeLabel]}>Thời khóa biểu</Text>
+        <View style={[styles.toggleBar, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+          <Text style={[styles.toggleLabel, { color: colors.textMuted }, !showExpense && { color: colors.primary, fontWeight: '700' }]}>Thời khóa biểu</Text>
           <Switch
             value={showExpense}
             onValueChange={setShowExpense}
@@ -39,7 +41,7 @@ export default function CourseScheduleScreen() {
             thumbColor="#fff"
             style={styles.switch}
           />
-          <Text style={[styles.toggleLabel, showExpense && styles.activeExpenseLabel]}>Chi tiêu</Text>
+          <Text style={[styles.toggleLabel, { color: colors.textMuted }, showExpense && styles.activeExpenseLabel]}>Chi tiêu</Text>
         </View>
       )}
 

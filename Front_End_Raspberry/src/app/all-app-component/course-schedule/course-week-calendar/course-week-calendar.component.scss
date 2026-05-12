@@ -1,30 +1,16 @@
-// ── Variables ──
-$primary: #0ea5e9;
-$primary-light: #e0f2fe;
-$surface: #ffffff;
-$bg: #f8fafc;
-$text-primary: #1e293b;
-$text-secondary: #64748b;
-$text-muted: #94a3b8;
-$border: #e2e8f0;
-$today-bg: #eff6ff;
-$today-header-bg: #3b82f6;
-$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
-$radius: 12px;
+﻿$radius: 12px;
 $radius-sm: 8px;
 $time-gutter-width: 60px;
 
-// ── Container ──
 .week-calendar-container {
   max-width: 1200px;
   margin: 0 auto;
-  background: $surface;
+  background: var(--color-surface);
   border-radius: $radius;
-  box-shadow: $shadow-lg;
+  box-shadow: var(--shadow-lg);
   padding: 20px;
 }
 
-// ── Header ──
 .week-header {
   display: flex;
   align-items: center;
@@ -40,26 +26,26 @@ $time-gutter-width: 60px;
   transition: color 0.2s;
 
   &:hover .week-title {
-    color: $primary;
+    color: var(--color-primary);
   }
 }
 
 .week-title {
   font-size: 1.2rem;
   font-weight: 700;
-  color: $text-primary;
+  color: var(--color-text);
 }
 
 .swipe-hint {
   display: block;
   font-size: 0.65rem;
-  color: $text-muted;
+  color: var(--color-text-muted);
   margin-top: 4px;
 }
 
 .btn-nav {
-  background: $bg;
-  border: 1px solid $border;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -69,19 +55,18 @@ $time-gutter-width: 60px;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  color: $text-primary;
+  color: var(--color-text);
 
   &:hover {
-    background: $primary;
+    background: var(--color-primary);
     color: #fff;
-    border-color: $primary;
+    border-color: var(--color-primary);
   }
 }
 
-// ── Timetable Wrapper ──
 .timetable-wrapper {
   overflow-x: auto;
-  border: 1px solid $border;
+  border: 1px solid var(--color-border);
   border-radius: $radius-sm;
 }
 
@@ -89,16 +74,15 @@ $time-gutter-width: 60px;
   min-width: 700px;
 }
 
-// ── Timetable Header ──
 .timetable-header {
   display: grid;
   grid-template-columns: $time-gutter-width repeat(7, 1fr);
-  border-bottom: 2px solid $border;
-  background: $bg;
+  border-bottom: 2px solid var(--color-border);
+  background: var(--color-bg-alt);
 }
 
 .time-gutter-header {
-  border-right: 1px solid $border;
+  border-right: 1px solid var(--color-border);
 }
 
 .day-col-header {
@@ -106,7 +90,7 @@ $time-gutter-width: 60px;
   flex-direction: column;
   align-items: center;
   padding: 10px 4px;
-  border-right: 1px solid $border;
+  border-right: 1px solid var(--color-border);
   transition: background 0.2s;
 
   &:last-child {
@@ -114,7 +98,7 @@ $time-gutter-width: 60px;
   }
 
   &.today {
-    background: $today-header-bg;
+    background: var(--color-today-header-bg);
 
     .day-name, .day-date {
       color: #fff;
@@ -125,40 +109,38 @@ $time-gutter-width: 60px;
 .day-name {
   font-weight: 700;
   font-size: 0.85rem;
-  color: $text-primary;
+  color: var(--color-text);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
 .day-date {
   font-size: 0.75rem;
-  color: $text-secondary;
+  color: var(--color-text-sec);
   margin-top: 2px;
 }
 
 .day-lunar {
   font-size: 0.65rem;
-  color: $text-muted;
+  color: var(--color-text-muted);
   margin-top: 2px;
   line-height: 1;
 }
 
-// ── Timetable Body ──
 .timetable-body {
   display: grid;
   grid-template-columns: $time-gutter-width repeat(7, 1fr);
   position: relative;
 }
 
-// ── Time Gutter (left) ──
 .time-gutter {
-  border-right: 1px solid $border;
-  background: $bg;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
 }
 
 .time-slot {
   position: relative;
-  border-bottom: 1px solid $border;
+  border-bottom: 1px solid var(--color-border);
 
   &:last-child {
     border-bottom: none;
@@ -171,34 +153,32 @@ $time-gutter-width: 60px;
   right: 8px;
   font-size: 0.7rem;
   font-weight: 600;
-  color: $text-muted;
-  background: $bg;
+  color: var(--color-text-muted);
+  background: var(--color-bg-alt);
   padding: 0 2px;
 }
 
-// ── Day Columns ──
 .day-column {
   position: relative;
-  border-right: 1px solid $border;
+  border-right: 1px solid var(--color-border);
 
   &:last-child {
     border-right: none;
   }
 
   &.today-col {
-    background: $today-bg;
+    background: var(--color-today-bg);
   }
 }
 
 .hour-line {
-  border-bottom: 1px solid $border;
+  border-bottom: 1px solid var(--color-border);
 
   &:last-child {
     border-bottom: none;
   }
 }
 
-// ── Course Blocks ──
 .course-block {
   position: absolute;
   left: 3px;
@@ -245,7 +225,6 @@ $time-gutter-width: 60px;
   text-overflow: ellipsis;
 }
 
-// ── Current Time Line ──
 .current-time-line {
   position: absolute;
   left: 0;
@@ -266,14 +245,13 @@ $time-gutter-width: 60px;
   border-radius: 50%;
 }
 
-// ── Detail Panel (overlay) ──
 .detail-panel {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--color-overlay-heavy);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -287,7 +265,7 @@ $time-gutter-width: 60px;
 }
 
 .detail-card {
-  background: $surface;
+  background: var(--color-surface);
   border-radius: $radius;
   padding: 28px 32px;
   min-width: 380px;
@@ -299,7 +277,7 @@ $time-gutter-width: 60px;
   h3 {
     font-size: 1.2rem;
     font-weight: 700;
-    color: $text-primary;
+    color: var(--color-text);
     margin: 0 0 16px 0;
     padding-right: 30px;
   }
@@ -317,7 +295,7 @@ $time-gutter-width: 60px;
   background: none;
   border: none;
   font-size: 1.2rem;
-  color: $text-muted;
+  color: var(--color-text-muted);
   cursor: pointer;
   width: 30px;
   height: 30px;
@@ -328,8 +306,8 @@ $time-gutter-width: 60px;
   transition: all 0.2s;
 
   &:hover {
-    background: #fee2e2;
-    color: #ef4444;
+    background: var(--color-close-hover-bg);
+    color: var(--color-close-hover-text);
   }
 }
 
@@ -337,7 +315,7 @@ $time-gutter-width: 60px;
   width: 100%;
 
   tr {
-    border-bottom: 1px solid $border;
+    border-bottom: 1px solid var(--color-border);
 
     &:last-child {
       border-bottom: none;
@@ -347,18 +325,17 @@ $time-gutter-width: 60px;
   td {
     padding: 8px 4px;
     font-size: 0.9rem;
-    color: $text-primary;
+    color: var(--color-text);
   }
 
   .label {
     font-weight: 600;
-    color: $text-secondary;
+    color: var(--color-text-sec);
     white-space: nowrap;
     width: 120px;
   }
 }
 
-// ── Responsive ──
 @media (max-width: 768px) {
   .week-calendar-container {
     padding: 12px;

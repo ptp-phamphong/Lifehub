@@ -7,12 +7,303 @@
 @import "node_modules/bootstrap/dist/css/bootstrap.min.css";
 // @import "node_modules/bootstrap-icons/font/bootstrap-icons.css";
 
+// ═══════════════════════════════════════════════════════
+// ─── DESIGN TOKENS (CSS Custom Properties) ────────────
+// Best practice: define tokens once, reference everywhere.
+// Components use var(--token) → theme changes automatically.
+// ═══════════════════════════════════════════════════════
+:root {
+  // ── Core surfaces ──
+  --color-bg:           #f1f5f9;
+  --color-bg-alt:       #f8fafc;
+  --color-surface:      #ffffff;
+  --color-surface-alt:  #f9fafb;
+  --color-surface-hover:#fafbfc;
+
+  // ── Text ──
+  --color-text:         #1e293b;
+  --color-text-sec:     #64748b;
+  --color-text-muted:   #94a3b8;
+
+  // ── Borders ──
+  --color-border:       #e2e8f0;
+  --color-border-hover: #cbd5e1;
+  --color-border-heavy: #e2e8f0;
+
+  // ── Primary accent ──
+  --color-primary:      #0ea5e9;
+  --color-primary-hover:#0284c7;
+  --color-primary-light:#e0f2fe;
+  --color-primary-glow: rgba(14, 165, 233, 0.15);
+
+  // ── Danger / destructive ──
+  --color-danger:       #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-light: #fef2f2;
+  --color-danger-border:#fecaca;
+
+  // ── Success ──
+  --color-success:      #22c55e;
+  --color-success-light:#dcfce7;
+  --color-success-text: #166534;
+
+  // ── Warning ──
+  --color-warning-bg:   #fef9c3;
+  --color-warning-text: #92400e;
+  --color-warning-border:#fde68a;
+
+  // ── Shadows ──
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg:  0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.04);
+
+  // ── Calendar-specific ──
+  --color-today-bg:         #dbeafe;
+  --color-today-border:     #3b82f6;
+  --color-today-header-bg:  #3b82f6;
+
+  // ── Buttons: edit ──
+  --color-btn-edit-bg:      #e0f2fe;
+  --color-btn-edit-text:    #0ea5e9;
+  --color-btn-edit-border:  #7dd3fc;
+
+  // ── Buttons: delete ──
+  --color-btn-delete-bg:    #fef2f2;
+  --color-btn-delete-text:  #ef4444;
+  --color-btn-delete-border:#fecaca;
+
+  // ── Summary card ──
+  --color-summary-bg:   #e0f2fe;
+  --color-summary-text: #0ea5e9;
+
+  // ── Flow tabs ──
+  --color-flow-tabs-bg: #f8fafc;
+
+  // ── Form input ──
+  --color-input-bg:     #f8fafc;
+  --color-input-focus-bg:#ffffff;
+
+  // ── Spinner ──
+  --color-spinner-bg:   rgba(255, 255, 255, 0.95);
+  --color-spinner-text: #475569;
+  --color-spinner-ring: #e2e8f0;
+  --color-spinner-ring-top: #3b82f6;
+  --color-spinner-ring-right: #8b5cf6;
+
+  // ── Overlay ──
+  --color-overlay:      rgba(15, 23, 42, 0.35);
+  --color-overlay-heavy:rgba(0, 0, 0, 0.4);
+
+  // ── Dialog ──
+  --color-dialog-surface: #ffffff;
+
+  // ── System info cards ──
+  --card-cpu-bg:        linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%);
+  --card-cpu-border:    #fcd34d;
+  --card-cpu-value:     #b45309;
+  --card-ram-bg:        linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  --card-ram-border:    #7dd3fc;
+  --card-ram-value:     #0369a1;
+  --card-storage-bg:    linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%);
+  --card-storage-border:#86efac;
+  --card-storage-value: #15803d;
+
+  // ── Error ──
+  --color-error-bg:     #fef2f2;
+  --color-error-border: #fecaca;
+  --color-error-text:   #dc2626;
+
+  // ── Sidebar / Settings ──
+  --color-sidebar-bg:   #ffffff;
+  --color-sidebar-border:#dee2e6;
+  --color-sidebar-title:#0d6efd;
+  --color-sidebar-link: #495057;
+  --color-sidebar-active-bg:#0d6efd;
+  --color-sidebar-active-text:#ffffff;
+  --color-sidebar-hover-bg:#f0f4ff;
+
+  // ── Nav tabs ──
+  --color-nav-link:     #64748b;
+  --color-nav-hover-bg: #f0f4ff;
+  --color-nav-active-bg:#0d6efd;
+  --color-nav-active-text:#ffffff;
+
+  // ── Badge ──
+  --color-badge-active-bg:   #dcfce7;
+  --color-badge-active-text: #16a34a;
+  --color-badge-inactive-bg: #f1f5f9;
+  --color-badge-inactive-text:#64748b;
+
+  // ── Toggle ──
+  --color-toggle-track: #cbd5e1;
+
+  // ── Close button hover ──
+  --color-close-hover-bg:   #fee2e2;
+  --color-close-hover-text: #ef4444;
+
+  // ── Semester select ──
+  --color-semester-bg:  linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+
+  // ── Expense detail ──
+  --color-expense-item-bg:  #f8fafc;
+
+  // ── Course schedule specific ──
+  --color-course-code-bg:   #e0f2fe;
+  --color-course-code-text: #0ea5e9;
+
+  // ── Scrollbar ──
+  --color-scrollbar:    #cbd5e1;
+}
+
+body.dark-theme {
+  // ── Core surfaces ──
+  --color-bg:           #0f172a;
+  --color-bg-alt:       #1e293b;
+  --color-surface:      #1e293b;
+  --color-surface-alt:  #334155;
+  --color-surface-hover:#334155;
+
+  // ── Text ──
+  --color-text:         #e2e8f0;
+  --color-text-sec:     #94a3b8;
+  --color-text-muted:   #64748b;
+
+  // ── Borders ──
+  --color-border:       #334155;
+  --color-border-hover: #475569;
+  --color-border-heavy: #334155;
+
+  // ── Primary accent ──
+  --color-primary:      #2563eb;
+  --color-primary-hover:#1d4ed8;
+  --color-primary-light:#1e3a5f;
+  --color-primary-glow: rgba(37, 99, 235, 0.25);
+
+  // ── Danger / destructive ──
+  --color-danger:       #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-light: #450a0a;
+  --color-danger-border:#991b1b;
+
+  // ── Success ──
+  --color-success:      #22c55e;
+  --color-success-light:#064e3b;
+  --color-success-text: #6ee7b7;
+
+  // ── Warning ──
+  --color-warning-bg:   #78350f;
+  --color-warning-text: #fbbf24;
+  --color-warning-border:#92400e;
+
+  // ── Shadows ──
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md:  0 4px 6px rgba(0, 0, 0, 0.2);
+  --shadow-lg:  0 10px 25px rgba(0, 0, 0, 0.3);
+
+  // ── Calendar-specific ──
+  --color-today-bg:         #1e3a5f;
+  --color-today-border:     #2563eb;
+  --color-today-header-bg:  #1e3a5f;
+
+  // ── Buttons: edit ──
+  --color-btn-edit-bg:      #1e3a5f;
+  --color-btn-edit-text:    #60a5fa;
+  --color-btn-edit-border:  #2563eb;
+
+  // ── Buttons: delete ──
+  --color-btn-delete-bg:    #450a0a;
+  --color-btn-delete-text:  #fca5a5;
+  --color-btn-delete-border:#991b1b;
+
+  // ── Summary card ──
+  --color-summary-bg:   #1e3a5f;
+  --color-summary-text: #60a5fa;
+
+  // ── Flow tabs ──
+  --color-flow-tabs-bg: #0f172a;
+
+  // ── Form input ──
+  --color-input-bg:     #0f172a;
+  --color-input-focus-bg:#1e293b;
+
+  // ── Spinner ──
+  --color-spinner-bg:   rgba(30, 41, 59, 0.95);
+  --color-spinner-text: #94a3b8;
+  --color-spinner-ring: #334155;
+  --color-spinner-ring-top: #60a5fa;
+  --color-spinner-ring-right: #a78bfa;
+
+  // ── Overlay ──
+  --color-overlay:      rgba(0, 0, 0, 0.5);
+  --color-overlay-heavy:rgba(0, 0, 0, 0.6);
+
+  // ── Dialog ──
+  --color-dialog-surface: #1e293b;
+
+  // ── System info cards ──
+  --card-cpu-bg:        linear-gradient(135deg, #451a03 0%, #78350f 100%);
+  --card-cpu-border:    #92400e;
+  --card-cpu-value:     #fbbf24;
+  --card-ram-bg:        linear-gradient(135deg, #0c4a6e 0%, #164e63 100%);
+  --card-ram-border:    #155e75;
+  --card-ram-value:     #7dd3fc;
+  --card-storage-bg:    linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+  --card-storage-border:#047857;
+  --card-storage-value: #6ee7b7;
+
+  // ── Error ──
+  --color-error-bg:     #450a0a;
+  --color-error-border: #991b1b;
+  --color-error-text:   #fca5a5;
+
+  // ── Sidebar / Settings ──
+  --color-sidebar-bg:   #1e293b;
+  --color-sidebar-border:#334155;
+  --color-sidebar-title:#60a5fa;
+  --color-sidebar-link: #94a3b8;
+  --color-sidebar-active-bg:#2563eb;
+  --color-sidebar-active-text:#ffffff;
+  --color-sidebar-hover-bg:#334155;
+
+  // ── Nav tabs ──
+  --color-nav-link:     #94a3b8;
+  --color-nav-hover-bg: #334155;
+  --color-nav-active-bg:#2563eb;
+  --color-nav-active-text:#ffffff;
+
+  // ── Badge ──
+  --color-badge-active-bg:   #064e3b;
+  --color-badge-active-text: #6ee7b7;
+  --color-badge-inactive-bg: #334155;
+  --color-badge-inactive-text:#94a3b8;
+
+  // ── Toggle ──
+  --color-toggle-track: #334155;
+
+  // ── Close button hover ──
+  --color-close-hover-bg:   #450a0a;
+  --color-close-hover-text: #fca5a5;
+
+  // ── Semester select ──
+  --color-semester-bg:  #0f172a;
+
+  // ── Expense detail ──
+  --color-expense-item-bg:  #334155;
+
+  // ── Course schedule specific ──
+  --color-course-code-bg:   #1e3a5f;
+  --color-course-code-text: #60a5fa;
+
+  // ── Scrollbar ──
+  --color-scrollbar:    #475569;
+}
+
 html, body { height: 100%; }
 body {
   margin: 0;
   font-family: 'Inter', Roboto, 'Helvetica Neue', sans-serif;
-  background: #f1f5f9;
-  color: #1e293b;
+  background: var(--color-bg);
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -21,6 +312,11 @@ body {
 .mat-mdc-dialog-surface {
   border-radius: 16px !important;
   overflow: hidden;
+  background-color: var(--color-dialog-surface) !important;
+}
+
+.cdk-overlay-backdrop {
+  background-color: var(--color-overlay-heavy) !important;
 }
 
 // ─── Global Loading Spinner Overlay ───────────────────────
@@ -30,7 +326,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(15, 23, 42, 0.35);
+  background: var(--color-overlay);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -45,20 +341,18 @@ body {
   align-items: center;
   gap: 16px;
   padding: 32px 40px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--color-spinner-bg);
   border-radius: 20px;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
 .spinner-ring {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 4px solid #e2e8f0;
-  border-top-color: #3b82f6;
-  border-right-color: #8b5cf6;
+  border: 4px solid var(--color-spinner-ring);
+  border-top-color: var(--color-spinner-ring-top);
+  border-right-color: var(--color-spinner-ring-right);
   animation: spinRing 0.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 
@@ -66,7 +360,7 @@ body {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  color: #475569;
+  color: var(--color-spinner-text);
   letter-spacing: 0.3px;
 }
 
@@ -82,5 +376,89 @@ body {
   }
   to {
     opacity: 1;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// ─── GLOBAL DARK-AWARE OVERRIDES ──────────────────────
+// Only for 3rd-party elements that can't use component SCSS
+// ═══════════════════════════════════════════════════════
+
+// ── ng-select ──
+.ng-select {
+  .ng-select-container {
+    background-color: var(--color-input-bg) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text) !important;
+  }
+
+  .ng-dropdown-panel {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+  }
+
+  .ng-option {
+    background: var(--color-surface) !important;
+    color: var(--color-text) !important;
+
+    &.ng-option-marked,
+    &:hover {
+      background: var(--color-surface-alt) !important;
+    }
+
+    &.ng-option-selected {
+      background: var(--color-primary-light) !important;
+      color: var(--color-primary) !important;
+    }
+  }
+
+  .ng-value {
+    color: var(--color-text) !important;
+  }
+
+  .ng-input input {
+    color: var(--color-text) !important;
+  }
+
+  .ng-placeholder {
+    color: var(--color-text-muted) !important;
+  }
+}
+
+// ── Material form fields ──
+.mat-mdc-form-field {
+  .mdc-text-field {
+    background-color: var(--color-input-bg) !important;
+  }
+
+  .mat-mdc-input-element {
+    color: var(--color-text) !important;
+  }
+
+  .mdc-floating-label {
+    color: var(--color-text-sec) !important;
+  }
+
+  .mdc-line-ripple::before {
+    border-bottom-color: var(--color-border) !important;
+  }
+}
+
+// ── Global form inputs ──
+input[type='text'],
+input[type='number'],
+input[type='date'],
+select,
+textarea {
+  background: var(--color-input-bg);
+  color: var(--color-text);
+  border-color: var(--color-border);
+
+  &::placeholder { color: var(--color-text-muted); }
+
+  &:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
+    background: var(--color-input-focus-bg);
   }
 }

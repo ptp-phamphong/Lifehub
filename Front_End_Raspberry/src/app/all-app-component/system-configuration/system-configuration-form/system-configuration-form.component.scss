@@ -1,28 +1,21 @@
-$primary: #0ea5e9;
-$primary-hover: #0284c7;
-$danger: #ef4444;
-$surface: #ffffff;
-$text-primary: #1e293b;
-$text-secondary: #64748b;
-$border: #e2e8f0;
-$radius: 16px;
+﻿$radius: 16px;
 $radius-sm: 10px;
 
 .expense-form {
   max-width: 440px;
   margin: 0 auto;
   padding: 32px 28px 24px;
-  background: $surface;
+  background: var(--color-surface);
   border-radius: $radius;
 
   h2 {
     text-align: center;
     font-size: 1.35rem;
     font-weight: 700;
-    color: $text-primary;
+    color: var(--color-text);
     margin: 0 0 24px 0;
     padding-bottom: 16px;
-    border-bottom: 2px solid #f1f5f9;
+    border-bottom: 2px solid var(--color-border);
   }
 
   .form-group {
@@ -33,7 +26,7 @@ $radius-sm: 10px;
     label {
       font-weight: 600;
       font-size: 0.85rem;
-      color: $text-secondary;
+      color: var(--color-text-sec);
       margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: 0.3px;
@@ -41,29 +34,29 @@ $radius-sm: 10px;
 
     input[type='text'] {
       padding: 10px 14px;
-      border: 1.5px solid $border;
+      border: 1.5px solid var(--color-border);
       border-radius: $radius-sm;
       font-size: 15px;
-      color: $text-primary;
-      background: #f8fafc;
+      color: var(--color-text);
+      background: var(--color-input-bg);
       transition: all 0.2s ease;
       outline: none;
 
       &::placeholder {
-        color: #94a3b8;
+        color: var(--color-text-muted);
       }
 
       &:focus {
-        border-color: $primary;
-        background: $surface;
-        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        border-color: var(--color-primary);
+        background: var(--color-input-focus-bg);
+        box-shadow: 0 0 0 3px var(--color-primary-glow);
       }
     }
   }
 
   button[type='submit'] {
     width: 100%;
-    background: $primary;
+    background: var(--color-primary);
     color: #fff;
     padding: 12px;
     border: none;
@@ -72,12 +65,12 @@ $radius-sm: 10px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    box-shadow: var(--shadow-sm);
     margin-top: 6px;
 
     &:hover {
-      background: $primary-hover;
-      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+      background: var(--color-primary-hover);
+      box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
 
@@ -97,15 +90,15 @@ $radius-sm: 10px;
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      background: #fef2f2;
-      color: $danger;
-      border: 1.5px solid #fecaca;
+      background: var(--color-danger-light);
+      color: var(--color-danger);
+      border: 1.5px solid var(--color-danger-border);
       transition: all 0.2s ease;
 
       &:hover {
-        background: $danger;
+        background: var(--color-danger);
         color: #fff;
-        border-color: $danger;
+        border-color: var(--color-danger);
       }
     }
   }
@@ -115,6 +108,6 @@ $radius-sm: 10px;
     margin-top: 10px;
     font-weight: 500;
     font-size: 0.9rem;
-    color: $text-secondary;
+    color: var(--color-text-sec);
   }
 }

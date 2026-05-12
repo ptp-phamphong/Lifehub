@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 import SystemInfoScreen from './src/screens/SystemInfoScreen';
@@ -10,20 +10,42 @@ import SpeechToTextScreen from './src/screens/SpeechToTextScreen';
 import CourseScheduleScreen from './src/screens/CourseScheduleScreen';
 import NotificationMonitorScreen from './src/screens/NotificationMonitorScreen';
 import NotificationFilterScreen from './src/screens/NotificationFilterScreen';
+import { ThemeProvider, useTheme } from './src/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
-export default function App() {
+function AppNavigator() {
+  const { isDark, colors } = useTheme();
+
+  const navTheme = isDark
+    ? {
+        ...DarkTheme,
+        colors: {
+          ...DarkTheme.colors,
+          background: colors.background,
+          card: colors.headerBg,
+          text: colors.text,
+          border: colors.border,
+          primary: colors.primary,
+        },
+      }
+    : DefaultTheme;
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <Tab.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: '#0d6efd' },
+          headerStyle: { backgroundColor: colors.headerBg },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: 'bold' },
-          tabBarActiveTintColor: '#0d6efd',
-          tabBarInactiveTintColor: '#6c757d',
-          tabBarStyle: { paddingBottom: 4, height: 56 },
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarStyle: {
+            paddingBottom: 4,
+            height: 56,
+            backgroundColor: colors.tabBarBg,
+            borderTopColor: colors.tabBarBorder,
+          },
         }}
       >
         <Tab.Screen
@@ -91,7 +113,15 @@ export default function App() {
           }}
         /> */}
       </Tab.Navigator>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'light'} />
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppNavigator />
+    </ThemeProvider>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { getApiBaseUrl } from '../config';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { useTheme } from '../ThemeContext';
 
 interface SystemInfo {
   cpuTemperature: string;
@@ -14,6 +15,7 @@ export default function SystemInfoScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const { colors } = useTheme();
 
   const callApi = async () => {
     setLoading(true);
@@ -47,15 +49,15 @@ export default function SystemInfoScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Thông tin hệ thống</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Thông tin hệ thống</Text>
         <View style={styles.headerRight}>
           {lastUpdated && (
-            <Text style={styles.lastUpdated}>Cập nhật: {formatTime(lastUpdated)}</Text>
+            <Text style={[styles.lastUpdated, { color: colors.textMuted }]}>Cập nhật: {formatTime(lastUpdated)}</Text>
           )}
-          <TouchableOpacity style={styles.refreshBtn} onPress={callApi} disabled={loading}>
+          <TouchableOpacity style={[styles.refreshBtn, { backgroundColor: colors.primary }]} onPress={callApi} disabled={loading}>
             <Text style={[styles.refreshIcon, loading && styles.refreshIconSpin]}>↻</Text>
             <Text style={styles.refreshText}>{loading ? 'Đang tải...' : 'Làm mới'}</Text>
           </TouchableOpacity>
@@ -67,27 +69,27 @@ export default function SystemInfoScreen() {
       {/* Cards */}
       {result && (
         <View style={styles.cardsGrid}>
-          <View style={[styles.card, styles.cardCpu]}>
+          <View style={[styles.card, { backgroundColor: colors.cardCpuBg, borderColor: colors.cardCpuBorder }]}>
             <Text style={styles.cardIcon}>🌡️</Text>
             <View style={styles.cardContent}>
-              <Text style={styles.cardLabel}>NHIỆT ĐỘ CPU</Text>
-              <Text style={[styles.cardValue, styles.cardValueCpu]}>{result.cpuTemperature}°C</Text>
+              <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>NHIỆT ĐỘ CPU</Text>
+              <Text style={[styles.cardValue, { color: colors.cardCpuValue }]}>{result.cpuTemperature}°C</Text>
             </View>
           </View>
 
-          <View style={[styles.card, styles.cardRam]}>
+          <View style={[styles.card, { backgroundColor: colors.cardRamBg, borderColor: colors.cardRamBorder }]}>
             <Text style={styles.cardIcon}>🖥️</Text>
             <View style={styles.cardContent}>
-              <Text style={styles.cardLabel}>RAM KHẢ DỤNG</Text>
-              <Text style={[styles.cardValue, styles.cardValueRam]}>{result.ramAvailable}</Text>
+              <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>RAM KHẢ DỤNG</Text>
+              <Text style={[styles.cardValue, { color: colors.cardRamValue }]}>{result.ramAvailable}</Text>
             </View>
           </View>
 
-          <View style={[styles.card, styles.cardStorage]}>
+          <View style={[styles.card, { backgroundColor: colors.cardStorageBg, borderColor: colors.cardStorageBorder }]}>
             <Text style={styles.cardIcon}>💾</Text>
             <View style={styles.cardContent}>
-              <Text style={styles.cardLabel}>BỘ NHỚ TRỐNG</Text>
-              <Text style={[styles.cardValue, styles.cardValueStorage]}>{result.memoryAvailable}</Text>
+              <Text style={[styles.cardLabel, { color: colors.textSecondary }]}>BỘ NHỚ TRỐNG</Text>
+              <Text style={[styles.cardValue, { color: colors.cardStorageValue }]}>{result.memoryAvailable}</Text>
             </View>
           </View>
         </View>
@@ -95,9 +97,9 @@ export default function SystemInfoScreen() {
 
       {/* Error */}
       {error && (
-        <View style={styles.errorCard}>
+        <View style={[styles.errorCard, { backgroundColor: colors.errorBg, borderColor: colors.errorBorder }]}>
           <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorText}>Không thể kết nối: {error}</Text>
+          <Text style={[styles.errorText, { color: colors.errorText }]}>Không thể kết nối: {error}</Text>
         </View>
       )}
     </View>

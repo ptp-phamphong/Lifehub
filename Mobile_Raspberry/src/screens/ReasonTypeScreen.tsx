@@ -1,10 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../ThemeContext';
 
 export default function ReasonTypeScreen() {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>📋 Reason Type Settings</Text>
-      <Text style={styles.placeholder}>Cài đặt loại chi tiêu sẽ ở đây</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.primary }]}>📋 Reason Type Settings</Text>
+      <Text style={[styles.placeholder, { color: colors.textMuted }]}>Cài đặt loại chi tiêu sẽ ở đây</Text>
     </View>
   );
 }

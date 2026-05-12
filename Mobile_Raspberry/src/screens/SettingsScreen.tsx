@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { getApiBaseUrl, setApiBaseUrl, resetApiBaseUrl, isProduction } from '../config';
+import { useTheme } from '../ThemeContext';
 
 export default function SettingsScreen() {
   const [urlInput, setUrlInput] = useState(getApiBaseUrl());
   const [saved, setSaved] = useState(false);
+  const { colors, isDark } = useTheme();
 
   const handleSave = () => {
     const trimmed = urlInput.trim().replace(/\/+$/, ''); // bỏ trailing slash
@@ -42,27 +44,28 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>⚙️ Cài đặt</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.primary }]}>⚙️ Cài đặt</Text>
 
       {/* Environment Badge */}
-      <View style={styles.envBadge}>
-        <Text style={styles.envText}>
+      <View style={[styles.envBadge, { backgroundColor: colors.surfaceAlt }]}>
+        <Text style={[styles.envText, { color: colors.textSecondary }]}>
           {isProduction() ? '🟢 Production' : '🟡 Development'}
         </Text>
       </View>
 
       {/* API URL Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>API Base URL</Text>
-        <Text style={styles.hint}>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>API Base URL</Text>
+        <Text style={[styles.hint, { color: colors.textMuted }]}>
           Thay đổi URL để test với backend khác (local, Pi, ...)
         </Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { borderColor: colors.border, backgroundColor: colors.inputBg, color: colors.text }]}
           value={urlInput}
           onChangeText={setUrlInput}
           placeholder="http://localhost:5293"
+          placeholderTextColor={colors.textMuted}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
@@ -70,11 +73,11 @@ export default function SettingsScreen() {
 
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.btnPrimary} onPress={handleSave}>
+          <TouchableOpacity style={[styles.btnPrimary, { backgroundColor: colors.primary }]} onPress={handleSave}>
             <Text style={styles.btnText}>💾 Lưu</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.btnSecondary} onPress={handleReset}>
-            <Text style={styles.btnSecondaryText}>↩️ Reset</Text>
+          <TouchableOpacity style={[styles.btnSecondary, { backgroundColor: colors.surface, borderColor: colors.textMuted }]} onPress={handleReset}>
+            <Text style={[styles.btnSecondaryText, { color: colors.textSecondary }]}>↩️ Reset</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.btnSuccess} onPress={handleTestConnection}>
             <Text style={styles.btnText}>🔗 Test</Text>
@@ -87,16 +90,16 @@ export default function SettingsScreen() {
       </View>
 
       {/* Current URL Display */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>URL hiện tại</Text>
-        <View style={styles.urlDisplay}>
-          <Text style={styles.urlText} selectable>{getApiBaseUrl()}</Text>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>URL hiện tại</Text>
+        <View style={[styles.urlDisplay, { backgroundColor: colors.surfaceAlt }]}>
+          <Text style={[styles.urlText, { color: colors.textSecondary }]} selectable>{getApiBaseUrl()}</Text>
         </View>
       </View>
 
       {/* Quick URLs */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>URL nhanh</Text>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>URL nhanh</Text>
         {[
           { label: 'Local Windows', url: 'http://localhost:5293' },
           { label: 'Raspberry Pi (DuckDNS)', url: 'http://ptp-phamphong-pi.duckdns.org:3036/api' },
@@ -104,11 +107,11 @@ export default function SettingsScreen() {
         ].map((item) => (
           <TouchableOpacity
             key={item.label}
-            style={styles.quickUrl}
+            style={[styles.quickUrl, { borderBottomColor: colors.border }]}
             onPress={() => setUrlInput(item.url)}
           >
-            <Text style={styles.quickUrlLabel}>{item.label}</Text>
-            <Text style={styles.quickUrlValue}>{item.url}</Text>
+            <Text style={[styles.quickUrlLabel, { color: colors.primary }]}>{item.label}</Text>
+            <Text style={[styles.quickUrlValue, { color: colors.textMuted }]}>{item.url}</Text>
           </TouchableOpacity>
         ))}
       </View>

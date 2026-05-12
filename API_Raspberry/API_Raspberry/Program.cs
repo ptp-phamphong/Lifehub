@@ -71,6 +71,7 @@ builder.Services.AddScoped<INotificationFilterService, NotificationFilterService
 builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
 builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();
 builder.Services.AddScoped<IUehStudentScheduleService, UehStudentScheduleService>();
+builder.Services.AddScoped<IThemeSettingService, ThemeSettingService>();
 // AI Provider: đọc từ config để chọn Gemini hoặc Ollama
 var aiProvider = builder.Configuration.GetValue<string>("AiProvider") ?? "Gemini";
 if (string.Equals(aiProvider, "Ollama", StringComparison.OrdinalIgnoreCase))

@@ -7,26 +7,30 @@
 .settings-sidebar {
 	width: 260px;
 	min-width: 220px;
-	background: #ffffff;
-	border: 1px solid #dee2e6;
+	background: var(--color-sidebar-bg);
+	border: 1px solid var(--color-sidebar-border);
 	border-radius: 0.5rem;
 	padding: 0.75rem;
 }
 
 .settings-title {
 	margin: 0 0 0.75rem;
-	color: #0d6efd;
+	color: var(--color-sidebar-title);
 	font-weight: 700;
 }
 
 .settings-menu .nav-link {
-	color: #495057;
+	color: var(--color-sidebar-link);
 	font-weight: 600;
 }
 
 .settings-menu .nav-link.active {
-	background-color: #0d6efd;
-	color: #ffffff;
+	background-color: var(--color-sidebar-active-bg);
+	color: var(--color-sidebar-active-text);
+}
+
+.settings-menu .nav-link:hover:not(.active) {
+	background-color: var(--color-sidebar-hover-bg);
 }
 
 .settings-content {

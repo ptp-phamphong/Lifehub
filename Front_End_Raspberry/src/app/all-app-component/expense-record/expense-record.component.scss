@@ -1,31 +1,21 @@
-// ── Color Variables ──
-$primary: #0ea5e9;
-$primary-light: #e0f2fe;
-$primary-hover: #0284c7;
-$danger: #ef4444;
-$surface: #ffffff;
-$text-primary: #1e293b;
-$text-secondary: #64748b;
-$border: #e2e8f0;
-$border-hover: #cbd5e1;
-$radius: 16px;
+﻿$radius: 16px;
 $radius-sm: 10px;
 
 .expense-form {
   max-width: 440px;
   margin: 0 auto;
   padding: 32px 28px 24px;
-  background: $surface;
+  background: var(--color-surface);
   border-radius: $radius;
 
   h2 {
     text-align: center;
     font-size: 1.35rem;
     font-weight: 700;
-    color: $text-primary;
+    color: var(--color-text);
     margin: 0 0 24px 0;
     padding-bottom: 16px;
-    border-bottom: 2px solid #f1f5f9;
+    border-bottom: 2px solid var(--color-border);
   }
 
   .form-group {
@@ -36,7 +26,7 @@ $radius-sm: 10px;
     label {
       font-weight: 600;
       font-size: 0.85rem;
-      color: $text-secondary;
+      color: var(--color-text-sec);
       margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: 0.3px;
@@ -44,22 +34,22 @@ $radius-sm: 10px;
 
     input {
       padding: 10px 14px;
-      border: 1.5px solid $border;
+      border: 1.5px solid var(--color-border);
       border-radius: $radius-sm;
       font-size: 15px;
-      color: $text-primary;
-      background: #f8fafc;
+      color: var(--color-text);
+      background: var(--color-input-bg);
       transition: all 0.2s ease;
       outline: none;
 
       &::placeholder {
-        color: #94a3b8;
+        color: var(--color-text-muted);
       }
 
       &:focus {
-        border-color: $primary;
-        background: $surface;
-        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        border-color: var(--color-primary);
+        background: var(--color-input-focus-bg);
+        box-shadow: 0 0 0 3px var(--color-primary-glow);
       }
     }
 
@@ -69,10 +59,9 @@ $radius-sm: 10px;
     }
   }
 
-  // Submit button
   button[type='submit'] {
     width: 100%;
-    background: $primary;
+    background: var(--color-primary);
     color: #fff;
     padding: 12px;
     border: none;
@@ -81,12 +70,12 @@ $radius-sm: 10px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    box-shadow: var(--shadow-sm);
     margin-top: 6px;
 
     &:hover {
-      background: $primary-hover;
-      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+      background: var(--color-primary-hover);
+      box-shadow: var(--shadow-md);
       transform: translateY(-1px);
     }
 
@@ -95,7 +84,6 @@ $radius-sm: 10px;
     }
   }
 
-  // Cancel button
   .cancel-row {
     text-align: center;
     margin-top: 8px;
@@ -107,15 +95,15 @@ $radius-sm: 10px;
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      background: #fef2f2;
-      color: $danger;
-      border: 1.5px solid #fecaca;
+      background: var(--color-danger-light);
+      color: var(--color-danger);
+      border: 1.5px solid var(--color-danger-border);
       transition: all 0.2s ease;
 
       &:hover {
-        background: $danger;
+        background: var(--color-danger);
         color: #fff;
-        border-color: $danger;
+        border-color: var(--color-danger);
       }
     }
   }
@@ -125,11 +113,10 @@ $radius-sm: 10px;
     margin-top: 10px;
     font-weight: 500;
     font-size: 0.9rem;
-    color: $text-secondary;
+    color: var(--color-text-sec);
   }
 }
 
-// ── ng-select overrides ──
 ::ng-deep .ng-select {
   width: 100%;
   border: none !important;
@@ -137,9 +124,9 @@ $radius-sm: 10px;
 
   .ng-select-container {
     min-height: 42px !important;
-    border: 1.5px solid $border !important;
+    border: 1.5px solid var(--color-border) !important;
     border-radius: $radius-sm !important;
-    background-color: #f8fafc !important;
+    background-color: var(--color-input-bg) !important;
     transition: all 0.2s ease !important;
 
     .ng-value-container {
@@ -147,39 +134,38 @@ $radius-sm: 10px;
     }
 
     &:hover {
-      border-color: $border-hover !important;
+      border-color: var(--color-border-hover) !important;
     }
   }
 
   &.ng-select-focused .ng-select-container {
-    border-color: $primary !important;
-    background-color: $surface !important;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15) !important;
+    border-color: var(--color-primary) !important;
+    background-color: var(--color-input-focus-bg) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-glow) !important;
   }
 }
 
 ::ng-deep .ng-dropdown-panel {
   border-radius: $radius-sm;
-  border: 1.5px solid $border;
-  background: $surface !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface) !important;
+  box-shadow: var(--shadow-lg);
 
   .ng-option {
     padding: 10px 14px !important;
     transition: background 0.15s ease;
 
     &.ng-option-marked {
-      background: $primary-light !important;
+      background: var(--color-primary-light) !important;
     }
 
     &.ng-option-selected {
-      background: $primary !important;
+      background: var(--color-primary) !important;
       color: #fff !important;
     }
   }
 }
 
-// ── AI Toggle Switch ──
 .ai-toggle {
   display: flex;
   align-items: center;
@@ -187,142 +173,17 @@ $radius-sm: 10px;
   gap: 10px;
   margin-bottom: 20px;
   padding: 10px 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-border);
 
   span {
     font-size: 0.85rem;
     font-weight: 500;
-    color: $text-secondary;
+    color: var(--color-text-sec);
     transition: color 0.2s ease;
 
     &.active {
-      color: $primary;
+      color: var(--color-primary);
       font-weight: 700;
     }
-  }
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-
-  input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: $border;
-    transition: 0.3s;
-    border-radius: 24px;
-
-    &::before {
-      position: absolute;
-      content: '';
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-    }
-  }
-
-  input:checked + .slider {
-    background-color: $primary;
-  }
-
-  input:checked + .slider::before {
-    transform: translateX(20px);
-  }
-}
-
-// ── AI Input Section ──
-.ai-input-section {
-  textarea {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1.5px solid $border;
-    border-radius: $radius-sm;
-    font-size: 15px;
-    color: $text-primary;
-    background: #f8fafc;
-    resize: vertical;
-    font-family: inherit;
-    transition: all 0.2s ease;
-    outline: none;
-    box-sizing: border-box;
-
-    &::placeholder {
-      color: #94a3b8;
-    }
-
-    &:focus {
-      border-color: $primary;
-      background: $surface;
-      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-    }
-  }
-
-  button {
-    width: 100%;
-    background: #8b5cf6;
-    color: #fff;
-    padding: 12px;
-    border: none;
-    border-radius: $radius-sm;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
-    margin-top: 6px;
-
-    &:hover:not(:disabled) {
-      background: #7c3aed;
-      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
-      transform: translateY(-1px);
-    }
-
-    &:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-  }
-}
-
-.ai-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 12px;
-  color: $text-secondary;
-  font-size: 0.9rem;
-
-  .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2.5px solid $border;
-    border-top: 2.5px solid #8b5cf6;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
   }
 }

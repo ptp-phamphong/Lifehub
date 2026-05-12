@@ -12,6 +12,7 @@ import {
   Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../ThemeContext';
 import { NotificationFilterData } from '../models/notificationFilter.model';
 import {
   getAllFilters,
@@ -29,6 +30,7 @@ type FilterSection = {
 };
 
 export default function NotificationFilterScreen() {
+  const { colors, isDark } = useTheme();
   const [sections, setSections] = useState<FilterSection[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -146,14 +148,14 @@ export default function NotificationFilterScreen() {
   };
 
   const renderItem = ({ item }: { item: NotificationFilterData }) => (
-    <View style={[styles.filterCard, !item.isActive && styles.filterCardInactive]}>
+    <View style={[styles.filterCard, { backgroundColor: colors.surface }, !item.isActive && styles.filterCardInactive]}>
       <View style={styles.filterMain}>
         <View style={styles.filterInfo}>
-          <Text style={[styles.filterValue, !item.isActive && styles.textInactive]} numberOfLines={1}>
+          <Text style={[styles.filterValue, { color: colors.text }, !item.isActive && styles.textInactive]} numberOfLines={1}>
             {item.filterValue}
           </Text>
           {item.description ? (
-            <Text style={styles.filterDesc} numberOfLines={1}>
+            <Text style={[styles.filterDesc, { color: colors.textMuted }]} numberOfLines={1}>
               {item.description}
             </Text>
           ) : null}
@@ -162,11 +164,11 @@ export default function NotificationFilterScreen() {
           <Switch
             value={item.isActive}
             onValueChange={() => handleToggle(item)}
-            trackColor={{ false: '#ccc', true: '#8bc34a' }}
+            trackColor={{ false: colors.border, true: '#8bc34a' }}
             thumbColor={item.isActive ? '#4caf50' : '#f4f3f4'}
           />
-          <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(item)}>
-            <Text style={styles.deleteBtnText}>✕</Text>
+          <TouchableOpacity style={[styles.deleteBtn, { backgroundColor: isDark ? '#450a0a' : '#ffebee' }]} onPress={() => handleDelete(item)}>
+            <Text style={[styles.deleteBtnText, { color: isDark ? '#fca5a5' : '#d32f2f' }]}>✕</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -174,12 +176,12 @@ export default function NotificationFilterScreen() {
   );
 
   const renderSectionHeader = ({ section }: { section: FilterSection }) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>
+    <View style={[styles.sectionHeader, { backgroundColor: colors.surfaceAlt }]}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>
         {section.icon} {section.title} ({section.data.length})
       </Text>
       <TouchableOpacity
-        style={styles.addBtn}
+        style={[styles.addBtn, { backgroundColor: colors.primary }]}
         onPress={() => openAddModal(section.filterType)}
       >
         <Text style={styles.addBtnText}>+ Thêm</Text>
@@ -210,11 +212,11 @@ export default function NotificationFilterScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header info */}
-      <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>Bộ lọc thông báo</Text>
-        <Text style={styles.infoText}>
+      <View style={[styles.infoCard, { backgroundColor: isDark ? '#1e3a5f' : '#e3f2fd', borderColor: isDark ? '#2563eb' : '#1976d2' }]}>
+        <Text style={[styles.infoTitle, { color: isDark ? '#93c5fd' : '#1565c0' }]}>Bộ lọc thông báo</Text>
+        <Text style={[styles.infoText, { color: colors.textSecondary }]}>
           Quản lý các filter để tự động bỏ qua thông báo không cần thiết.
           Filter được đồng bộ từ server và cache trên thiết bị.
         </Text>
@@ -228,7 +230,7 @@ export default function NotificationFilterScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Chưa có filter nào. Kéo xuống để refresh.</Text>
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>Chưa có filter nào. Kéo xuống để refresh.</Text>
           </View>
         }
         stickySectionHeadersEnabled={false}
@@ -238,36 +240,38 @@ export default function NotificationFilterScreen() {
       {/* Add Filter Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Thêm filter mới</Text>
-            <Text style={styles.modalType}>{getTypeLabel()}</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Thêm filter mới</Text>
+            <Text style={[styles.modalType, { color: colors.primary }]}>{getTypeLabel()}</Text>
 
-            <Text style={styles.inputLabel}>Giá trị filter</Text>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Giá trị filter</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: colors.border, backgroundColor: colors.inputBg, color: colors.text }]}
               value={newFilterValue}
               onChangeText={setNewFilterValue}
               placeholder={getPlaceholder()}
+              placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
             />
 
-            <Text style={styles.inputLabel}>Mô tả (tùy chọn)</Text>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Mô tả (tùy chọn)</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: colors.border, backgroundColor: colors.inputBg, color: colors.text }]}
               value={newFilterDesc}
               onChangeText={setNewFilterDesc}
               placeholder="Mô tả ngắn gọn..."
+              placeholderTextColor={colors.textMuted}
             />
 
             <View style={styles.modalActions}>
               <TouchableOpacity
-                style={styles.modalCancelBtn}
+                style={[styles.modalCancelBtn, { backgroundColor: colors.surfaceAlt }]}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={styles.modalCancelText}>Hủy</Text>
+                <Text style={[styles.modalCancelText, { color: colors.textSecondary }]}>Hủy</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalSaveBtn} onPress={handleAdd}>
+              <TouchableOpacity style={[styles.modalSaveBtn, { backgroundColor: colors.primary }]} onPress={handleAdd}>
                 <Text style={styles.modalSaveText}>Thêm</Text>
               </TouchableOpacity>
             </View>

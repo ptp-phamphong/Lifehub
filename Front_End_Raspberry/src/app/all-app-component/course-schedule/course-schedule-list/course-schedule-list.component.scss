@@ -1,33 +1,18 @@
-// ── Color Variables ──
-$primary: #0ea5e9;
-$primary-light: #e0f2fe;
-$primary-hover: #0284c7;
-$danger: #ef4444;
-$danger-hover: #dc2626;
-$surface: #ffffff;
-$bg: #f8fafc;
-$text-primary: #1e293b;
-$text-secondary: #64748b;
-$border: #e2e8f0;
-$border-hover: #cbd5e1;
-$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.03);
-$shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.04);
-$radius: 12px;
+﻿$radius: 12px;
 $radius-sm: 8px;
 
 .course-table-container {
   padding: 28px 32px;
-  background: $surface;
+  background: var(--color-surface);
   border-radius: $radius;
-  box-shadow: $shadow-lg;
+  box-shadow: var(--shadow-lg);
   max-width: 100%;
   margin: 0 auto;
 
   h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: $text-primary;
+    color: var(--color-text);
     margin: 0 0 20px 0;
   }
 }
@@ -45,32 +30,32 @@ $radius-sm: 8px;
   max-width: 380px;
   height: 38px;
   padding: 0 40px 0 12px;
-  border: 1px solid $border;
+  border: 1px solid var(--color-border);
   border-radius: $radius-sm;
   background:
-    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%),
+    var(--color-semester-bg),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23475569' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
       no-repeat right 12px center;
-  color: $text-primary;
+  color: var(--color-text);
   font-size: 0.875rem;
   font-weight: 500;
-  box-shadow: $shadow-sm;
+  box-shadow: var(--shadow-sm);
   appearance: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 
   &:hover {
-    border-color: $border-hover;
+    border-color: var(--color-border-hover);
   }
 
   &:focus {
     outline: none;
-    border-color: $primary;
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
   }
 }
 
 .btn-add {
-  background: $primary;
+  background: var(--color-primary);
   color: #fff;
   border: none;
   padding: 9px 20px;
@@ -81,7 +66,7 @@ $radius-sm: 8px;
   transition: background 0.2s;
 
   &:hover {
-    background: $primary-hover;
+    background: var(--color-primary-hover);
   }
 }
 
@@ -143,12 +128,12 @@ $radius-sm: 8px;
   font-weight: 500;
   color: #10b981;
   padding: 6px 12px;
-  background: #ecfdf5;
+  background: var(--color-success-light);
   border-radius: 6px;
 
   &.import-error {
-    color: $danger;
-    background: #fef2f2;
+    color: var(--color-danger);
+    background: var(--color-danger-light);
   }
 }
 
@@ -156,31 +141,35 @@ $radius-sm: 8px;
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid $border;
+  border: 1px solid var(--color-border);
   border-radius: $radius-sm;
   overflow: hidden;
 
   th, td {
     padding: 10px 14px;
     text-align: left;
-    border-bottom: 1px solid $border;
+    border-bottom: 1px solid var(--color-border);
     font-size: 0.875rem;
   }
 
   th {
-    background: $bg;
-    color: $text-secondary;
+    background: var(--color-bg-alt);
+    color: var(--color-text-sec);
     font-weight: 600;
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.05em;
   }
 
+  td {
+    color: var(--color-text);
+  }
+
   tbody tr {
     transition: background 0.15s;
 
     &:hover {
-      background: #f1f5f9;
+      background: var(--color-surface-alt);
     }
 
     &:last-child td {
@@ -190,8 +179,8 @@ $radius-sm: 8px;
 }
 
 .course-code {
-  background: $primary-light;
-  color: $primary;
+  background: var(--color-course-code-bg);
+  color: var(--color-course-code-text);
   padding: 2px 8px;
   border-radius: 4px;
   font-weight: 600;
@@ -199,8 +188,8 @@ $radius-sm: 8px;
 }
 
 .semester-badge {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
   padding: 2px 8px;
   border-radius: 4px;
   font-weight: 600;
@@ -228,26 +217,26 @@ $radius-sm: 8px;
 }
 
 .btn-edit {
-  background: $primary;
+  background: var(--color-primary);
   color: #fff;
 
   &:hover {
-    background: $primary-hover;
+    background: var(--color-primary-hover);
   }
 }
 
 .btn-delete {
-  background: $danger;
+  background: var(--color-danger);
   color: #fff;
 
   &:hover {
-    background: $danger-hover;
+    background: var(--color-danger-hover);
   }
 }
 
 .empty-row {
   text-align: center;
-  color: $text-secondary;
+  color: var(--color-text-sec);
   padding: 30px 0 !important;
   font-style: italic;
 }
@@ -257,7 +246,7 @@ $radius-sm: 8px;
 }
 
 ::ng-deep .cdk-overlay-backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-overlay);
   z-index: 1000;
 }
 

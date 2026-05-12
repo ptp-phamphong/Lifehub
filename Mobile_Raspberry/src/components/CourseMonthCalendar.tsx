@@ -15,6 +15,7 @@ import { CourseSchedule } from '../models/courseSchedule.model';
 import { getCourseScheduleByMonth } from '../services/courseScheduleService';
 import { getExpensesByMonth } from '../services/expenseService';
 import { toLunarDate, formatLunarDateShort } from '../utils/lunarCalendar';
+import { useTheme } from '../ThemeContext';
 import { ExpenseRecord } from '../models/expense.model';
 import LoadingOverlay from './LoadingOverlay';
 
@@ -85,6 +86,10 @@ function formatDayOfWeekVN(d: Date): string {
 }
 
 // ─── Component ────────────────────────────────────────────
+interface Props {
+  showExpense?: boolean;
+}
+
 export default function CourseMonthCalendar({ showExpense = false }: Props) {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -94,6 +99,7 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
   const [selectedDayExpenses, setSelectedDayExpenses] = useState<{ date: Date; items: ExpenseRecord[] } | null>(null);
   const [loading, setLoading] = useState(false);
+  const { colors, isDark } = useTheme();
 
   // ── Swipe gesture handler ──────────────────────────────
   const swipeRef = useRef<PanResponderInstance | null>(null);
@@ -314,27 +320,27 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
   const monthYearLabel = `${MONTH_NAMES[currentMonth - 1]} ${currentYear}`;
 
   return (
-    <View style={styles.container} {...swipeRef.current?.panHandlers}>
+    <View style={[styles.container, { backgroundColor: colors.background }]} {...swipeRef.current?.panHandlers}>
       <LoadingOverlay visible={loading} />
       {/* Header Navigation */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={prevMonth} style={styles.navBtn}>
-          <Text style={styles.navText}>◀</Text>
+          <Text style={[styles.navText, { color: colors.primary }]}>◀</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={goToToday} style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{monthYearLabel}</Text>
-          <Text style={styles.swipeHint}>👆 Vuốt để chuyển tháng</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{monthYearLabel}</Text>
+          <Text style={[styles.swipeHint, { color: colors.textMuted }]}>👆 Vuốt để chuyển tháng</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={nextMonth} style={styles.navBtn}>
-          <Text style={styles.navText}>▶</Text>
+          <Text style={[styles.navText, { color: colors.primary }]}>▶</Text>
         </TouchableOpacity>
       </View>
 
       {/* Weekday headers */}
-      <View style={styles.weekdayRow}>
+      <View style={[styles.weekdayRow, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         {WEEKDAYS.map((wd) => (
           <View key={wd} style={styles.weekdayCell}>
-            <Text style={styles.weekdayText}>{wd}</Text>
+            <Text style={[styles.weekdayText, { color: colors.textSecondary }]}>{wd}</Text>
           </View>
         ))}
       </View>
@@ -348,8 +354,13 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
                 key={di}
                 style={[
                   styles.dayCell,
-                  !day.isCurrentMonth && styles.otherMonth,
-                  day.isToday && styles.todayCell,
+                  { backgroundColor: colors.surface },
+                  !day.isCurrentMonth && { backgroundColor: colors.surfaceAlt },
+                  day.isToday && {
+                    backgroundColor: isDark ? '#1e3a5f' : '#e0f2fe',
+                    borderColor: colors.primary,
+                    borderWidth: 1,
+                  },
                 ]}
                 activeOpacity={0.6}
                 onPress={() => {
@@ -366,8 +377,8 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
                 <Text
                   style={[
                     styles.dayNumber,
-                    !day.isCurrentMonth && styles.otherMonthText,
-                    day.isToday && styles.todayNumber,
+                    !day.isCurrentMonth && { color: colors.textMuted },
+                    day.isToday && { color: isDark ? '#93c5fd' : '#0369a1', fontWeight: '700' },
                   ]}
                 >
                   {day.day}
@@ -433,13 +444,13 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
           activeOpacity={1}
           onPress={() => setSelectedDay(null)}
         >
-          <View style={styles.detailCard} onStartShouldSetResponder={() => true}>
+          <View style={[styles.detailCard, { backgroundColor: colors.surface }]} onStartShouldSetResponder={() => true}>
             <TouchableOpacity style={styles.closeBtn} onPress={() => setSelectedDay(null)}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <Text style={[styles.closeBtnText, { color: colors.textMuted }]}>✕</Text>
             </TouchableOpacity>
             {selectedDay && (
               <>
-                <Text style={styles.detailTitle}>
+                <Text style={[styles.detailTitle, { color: colors.text }]}>
                   {formatDayOfWeekVN(selectedDay.date)}, {formatDateVN(selectedDay.date)}
                 </Text>
                 <ScrollView style={{ maxHeight: 320 }}>
@@ -481,11 +492,11 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
           activeOpacity={1}
           onPress={() => setSelectedDayExpenses(null)}
         >
-          <View style={styles.detailCard} onStartShouldSetResponder={() => true}>
+          <View style={[styles.detailCard, { backgroundColor: colors.surface }]} onStartShouldSetResponder={() => true}>
             <TouchableOpacity style={styles.closeBtn} onPress={() => setSelectedDayExpenses(null)}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <Text style={[styles.closeBtnText, { color: colors.textMuted }]}>✕</Text>
             </TouchableOpacity>
-            <Text style={styles.detailTitle}>
+            <Text style={[styles.detailTitle, { color: colors.text }]}>
               Chi tiêu ngày {selectedDayExpenses ? formatDateVN(selectedDayExpenses.date) : ''}
             </Text>
             <ScrollView style={{ maxHeight: 300 }}>
@@ -515,44 +526,44 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
           activeOpacity={1}
           onPress={() => setSelectedCourse(null)}
         >
-          <View style={styles.detailCard} onStartShouldSetResponder={() => true}>
+          <View style={[styles.detailCard, { backgroundColor: colors.surface }]} onStartShouldSetResponder={() => true}>
             <TouchableOpacity style={styles.closeBtn} onPress={() => setSelectedCourse(null)}>
-              <Text style={styles.closeBtnText}>✕</Text>
+              <Text style={[styles.closeBtnText, { color: colors.textMuted }]}>✕</Text>
             </TouchableOpacity>
-            <Text style={styles.detailTitle}>{selectedCourse?.courseName}</Text>
+            <Text style={[styles.detailTitle, { color: colors.text }]}>{selectedCourse?.courseName}</Text>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Mã môn:</Text>
-              <Text style={styles.detailValue}>{selectedCourse?.courseCode}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Mã môn:</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{selectedCourse?.courseCode}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Thứ:</Text>
-              <Text style={styles.detailValue}>{dayOfWeekLabel(selectedCourse?.dayOfWeek)}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Thứ:</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{dayOfWeekLabel(selectedCourse?.dayOfWeek)}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Giờ học:</Text>
-              <Text style={styles.detailValue}>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Giờ học:</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>
                 {selectedCourse?.startTime} - {selectedCourse?.endTime}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Ngày bắt đầu:</Text>
-              <Text style={styles.detailValue}>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Ngày bắt đầu:</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>
                 {selectedCourse?.startDate ? formatDateVN(new Date(selectedCourse.startDate)) : ''}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Ngày kết thúc:</Text>
-              <Text style={styles.detailValue}>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Ngày kết thúc:</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>
                 {selectedCourse?.endDate ? formatDateVN(new Date(selectedCourse.endDate)) : ''}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Phòng:</Text>
-              <Text style={styles.detailValue}>{selectedCourse?.room}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Phòng:</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{selectedCourse?.room}</Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Học kỳ:</Text>
-              <Text style={styles.detailValue}>{semesterLabel(selectedCourse)}</Text>
+              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Học kỳ:</Text>
+              <Text style={[styles.detailValue, { color: colors.text }]}>{semesterLabel(selectedCourse)}</Text>
             </View>
           </View>
         </TouchableOpacity>

@@ -16,6 +16,7 @@ import { ExpenseRecord } from '../models/expense.model';
 import { getExpenseById, addExpense, updateExpense } from '../services/expenseService';
 import { getAllReasonTypes } from '../services/reasonTypeService';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { useTheme } from '../ThemeContext';
 
 interface Props {
   visible: boolean;
@@ -32,6 +33,7 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
   const [expenseDate, setExpenseDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { colors } = useTheme();
 
   const isReasonTypeActive = (reasonType: ReasonType) => reasonType.active !== false;
 
@@ -152,43 +154,45 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}
       >
-        <View style={styles.content}>
+        <View style={[styles.content, { backgroundColor: colors.surface }]}>
           <ScrollView>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.primary }]}>
               {expenseId > 0 ? 'Sửa ghi chú chi tiêu' : 'Thêm ghi chú chi tiêu'}
             </Text>
 
             {/* Lý do */}
-            <Text style={styles.label}>Lý do</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Lý do</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: colors.border, backgroundColor: colors.inputBg, color: colors.text }]}
               value={reason}
               onChangeText={setReason}
               placeholder="Nhập lý do..."
+              placeholderTextColor={colors.textMuted}
             />
 
             {/* Số tiền */}
-            <Text style={styles.label}>Số tiền (VNĐ)</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Số tiền (VNĐ)</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { borderColor: colors.border, backgroundColor: colors.inputBg, color: colors.text }]}
               value={amount > 0 ? formatCurrency(amount) : ''}
               onChangeText={onAmountInput}
               placeholder="Nhập số tiền..."
+              placeholderTextColor={colors.textMuted}
               keyboardType="numeric"
             />
 
             {/* Loại lý do */}
-            <Text style={styles.label}>Loại lý do</Text>
-            <TouchableOpacity style={styles.input} onPress={() => setShowReasonPicker(true)}>
-              <Text style={selectedReasonName ? styles.pickerText : styles.pickerPlaceholder}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Loại lý do</Text>
+            <TouchableOpacity style={[styles.input, { borderColor: colors.border, backgroundColor: colors.inputBg }]} onPress={() => setShowReasonPicker(true)}>
+              <Text style={selectedReasonName ? [styles.pickerText, { color: colors.text }] : [styles.pickerPlaceholder, { color: colors.textMuted }]}>
                 {selectedReasonName ?? 'Chọn loại lý do...'}
               </Text>
             </TouchableOpacity>
 
             {/* Ngày chi tiêu */}
-            <Text style={styles.label}>Ngày chi tiêu</Text>
-            <TouchableOpacity style={styles.input} onPress={() => setShowDatePicker(true)}>
-              <Text style={styles.pickerText}>{formatDisplayDate(expenseDate)}</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Ngày chi tiêu</Text>
+            <TouchableOpacity style={[styles.input, { borderColor: colors.border, backgroundColor: colors.inputBg }]} onPress={() => setShowDatePicker(true)}>
+              <Text style={[styles.pickerText, { color: colors.text }]}>{formatDisplayDate(expenseDate)}</Text>
             </TouchableOpacity>
 
             {/* Native date picker */}
@@ -219,29 +223,29 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
             {/* Reason type picker modal */}
             <Modal visible={showReasonPicker} transparent animationType="fade">
               <View style={styles.pickerOverlay}>
-                <View style={styles.pickerContent}>
-                  <Text style={styles.pickerTitle}>Chọn loại lý do</Text>
+                <View style={[styles.pickerContent, { backgroundColor: colors.surface }]}>
+                  <Text style={[styles.pickerTitle, { color: colors.text }]}>Chọn loại lý do</Text>
                   <ScrollView>
                     <TouchableOpacity
-                      style={styles.pickerItem}
+                      style={[styles.pickerItem, { borderBottomColor: colors.border }]}
                       onPress={() => { setReasonTypeId(undefined); setShowReasonPicker(false); }}
                     >
-                      <Text style={styles.pickerItemText}>-- Không chọn --</Text>
+                      <Text style={[styles.pickerItemText, { color: colors.text }]}>-- Không chọn --</Text>
                     </TouchableOpacity>
                     {activeReasonTypes.map(rt => (
                       <TouchableOpacity
                         key={rt.id}
-                        style={[styles.pickerItem, rt.id === reasonTypeId && styles.pickerItemActive]}
+                        style={[styles.pickerItem, { borderBottomColor: colors.border }, rt.id === reasonTypeId && { backgroundColor: colors.surfaceAlt }]}
                         onPress={() => { setReasonTypeId(rt.id); setShowReasonPicker(false); }}
                       >
-                        <Text style={[styles.pickerItemText, rt.id === reasonTypeId && styles.pickerItemTextActive]}>
+                        <Text style={[styles.pickerItemText, { color: colors.text }, rt.id === reasonTypeId && { color: colors.primary, fontWeight: '600' }]}>
                           {getReasonTypeLabel(rt)}
                         </Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
                   <TouchableOpacity style={styles.pickerClose} onPress={() => setShowReasonPicker(false)}>
-                    <Text style={styles.pickerCloseText}>Đóng</Text>
+                    <Text style={[styles.pickerCloseText, { color: colors.textMuted }]}>Đóng</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -250,14 +254,14 @@ export default function ExpenseFormModal({ visible, expenseId, onClose }: Props)
             {/* Actions */}
             <View style={styles.actions}>
               <TouchableOpacity
-                style={[styles.submitBtn, loading && { opacity: 0.6 }]}
+                style={[styles.submitBtn, { backgroundColor: colors.primary }, loading && { opacity: 0.6 }]}
                 onPress={handleSubmit}
                 disabled={loading}
               >
                 <Text style={styles.submitBtnText}>{loading ? 'Đang lưu...' : 'Lưu'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => onClose(false)}>
-                <Text style={styles.cancelBtnText}>Hủy</Text>
+              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: colors.surface, borderColor: colors.danger }]} onPress={() => onClose(false)}>
+                <Text style={[styles.cancelBtnText, { color: colors.danger }]}>Hủy</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

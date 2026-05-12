@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Modal, StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../ThemeContext';
 
 interface Props {
   visible: boolean;
@@ -9,6 +10,7 @@ interface Props {
 export default function LoadingOverlay({ visible, message = 'Đang tải...' }: Props) {
   const spinAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const { colors, isDark } = useTheme();
 
   useEffect(() => {
     if (visible) {
@@ -47,11 +49,11 @@ export default function LoadingOverlay({ visible, message = 'Đang tải...' }: 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
       <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.97)' : 'rgba(255, 255, 255, 0.97)' }]}>
           <Animated.View style={[styles.ring, { transform: [{ rotate: spin }] }]}>
             <View style={styles.ringInner} />
           </Animated.View>
-          <Text style={styles.text}>{message}</Text>
+          <Text style={[styles.text, { color: colors.textSecondary }]}>{message}</Text>
         </View>
       </Animated.View>
     </Modal>

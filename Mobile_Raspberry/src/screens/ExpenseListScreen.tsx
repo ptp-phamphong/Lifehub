@@ -24,6 +24,7 @@ import MonthPagination from '../components/MonthPagination';
 import FilterReasonType from '../components/FilterReasonType';
 import ExpenseFormModal from '../components/ExpenseFormModal';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { useTheme } from '../ThemeContext';
 
 export default function ExpenseListScreen() {
   const now = new Date();
@@ -49,6 +50,7 @@ export default function ExpenseListScreen() {
   // Sort
   const [sortColumn, setSortColumn] = useState<string>('createdDate');
   const [sortDirection, setSortDirection] = useState<string>('desc');
+  const { colors, isDark } = useTheme();
 
   // Form modal
   const [formVisible, setFormVisible] = useState(false);
@@ -225,20 +227,20 @@ export default function ExpenseListScreen() {
 
   // ── Render row ────────────────────────────────────────
   const renderItem = ({ item }: { item: ExpenseRecord }) => (
-    <View style={styles.row}>
+    <View style={[styles.row, { backgroundColor: colors.surface }]}>
       <View style={styles.rowMain}>
-        <Text style={styles.rowReason} numberOfLines={1}>{item.reason}</Text>
-        <Text style={styles.rowType}>{getReasonTypeLabel(item.reasonType)}</Text>
-        <Text style={styles.rowDate}>{formatDate(item.createdDate)}</Text>
+        <Text style={[styles.rowReason, { color: colors.text }]} numberOfLines={1}>{item.reason}</Text>
+        <Text style={[styles.rowType, { color: colors.textSecondary }]}>{getReasonTypeLabel(item.reasonType)}</Text>
+        <Text style={[styles.rowDate, { color: colors.textMuted }]}>{formatDate(item.createdDate)}</Text>
       </View>
       <View style={styles.rowRight}>
-        <Text style={styles.rowAmount}>{formatCurrency(item.amount)}</Text>
+        <Text style={[styles.rowAmount, { color: colors.primary }]}>{formatCurrency(item.amount)}</Text>
         <View style={styles.rowActions}>
-          <TouchableOpacity onPress={() => openEdit(item.id!)} style={styles.editBtn}>
-            <Text style={styles.editBtnText}>Sửa</Text>
+          <TouchableOpacity onPress={() => openEdit(item.id!)} style={[styles.editBtn, { backgroundColor: isDark ? '#1e3a5f' : '#e7f1ff' }]}>
+            <Text style={[styles.editBtnText, { color: colors.primary }]}>Sửa</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleDelete(item)} style={styles.deleteBtn}>
-            <Text style={styles.deleteBtnText}>Xoá</Text>
+          <TouchableOpacity onPress={() => handleDelete(item)} style={[styles.deleteBtn, { backgroundColor: isDark ? '#450a0a' : '#fff0f0' }]}>
+            <Text style={[styles.deleteBtnText, { color: colors.danger }]}>Xoá</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -247,35 +249,35 @@ export default function ExpenseListScreen() {
 
   // ── Main Render ───────────────────────────────────────
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Summary */}
-      <View style={styles.summaryBox}>
+      <View style={[styles.summaryBox, { backgroundColor: colors.surface }]}>
         {!showAll && monthSum > 0 && (
-          <Text style={styles.summaryText}>
-            Tổng tháng {selectedMonth}/{selectedYear}: <Text style={styles.bold}>{formatCurrency(monthSum)}</Text>
+          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
+            Tổng tháng {selectedMonth}/{selectedYear}: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(monthSum)}</Text>
           </Text>
         )}
         {showAll && allSum > 0 && (
-          <Text style={styles.summaryText}>
-            Tổng toàn bộ: <Text style={styles.bold}>{formatCurrency(allSum)}</Text>
+          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
+            Tổng toàn bộ: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(allSum)}</Text>
           </Text>
         )}
         {showAll && allFilteredSum > 0 && (
-          <Text style={styles.summaryText}>
-            Lịch sử theo filter: <Text style={styles.bold}>{formatCurrency(allFilteredSum)}</Text>
+          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
+            Lịch sử theo filter: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(allFilteredSum)}</Text>
           </Text>
         )}
         {weekSum > 0 && (
-          <Text style={styles.summaryText}>
-            Tổng tuần hiện tại: <Text style={styles.bold}>{formatCurrency(weekSum)}</Text>
+          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
+            Tổng tuần hiện tại: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(weekSum)}</Text>
           </Text>
         )}
       </View>
 
       {/* Toggle show all */}
       <View style={styles.toggleRow}>
-        <Switch value={showAll} onValueChange={toggleShowAll} trackColor={{ true: '#0d6efd' }} />
-        <Text style={styles.toggleLabel}>Hiển thị toàn bộ lịch sử</Text>
+        <Switch value={showAll} onValueChange={toggleShowAll} trackColor={{ true: colors.primary }} />
+        <Text style={[styles.toggleLabel, { color: colors.textSecondary }]}>Hiển thị toàn bộ lịch sử</Text>
       </View>
 
       {/* Month pagination (only if not show-all) */}
@@ -288,7 +290,7 @@ export default function ExpenseListScreen() {
       )}
 
       {/* Add button */}
-      <TouchableOpacity style={styles.addBtn} onPress={openAdd}>
+      <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.primary }]} onPress={openAdd}>
         <Text style={styles.addBtnText}>＋ Thêm mới</Text>
       </TouchableOpacity>
 
@@ -308,7 +310,7 @@ export default function ExpenseListScreen() {
 
       {/* Sort Bar */}
       <View style={styles.sortBar}>
-        <Text style={styles.sortLabel}>Sắp xếp:</Text>
+        <Text style={[styles.sortLabel, { color: colors.textMuted }]}>Sắp xếp:</Text>
         {[
           { key: 'createdDate', label: 'Ngày' },
           { key: 'amount', label: 'Số tiền' },
@@ -317,10 +319,10 @@ export default function ExpenseListScreen() {
         ].map(col => (
           <TouchableOpacity
             key={col.key}
-            style={[styles.sortChip, sortColumn === col.key && styles.sortChipActive]}
+            style={[styles.sortChip, { backgroundColor: colors.surface, borderColor: colors.border }, sortColumn === col.key && { backgroundColor: colors.summaryBg, borderColor: colors.primary }]}
             onPress={() => onSort(col.key)}
           >
-            <Text style={[styles.sortChipText, sortColumn === col.key && styles.sortChipTextActive]}>
+            <Text style={[styles.sortChipText, { color: colors.textMuted }, sortColumn === col.key && { color: colors.primary, fontWeight: '700' }]}>
               {col.label}{getSortIcon(col.key)}
             </Text>
           </TouchableOpacity>
@@ -336,7 +338,7 @@ export default function ExpenseListScreen() {
           renderItem={renderItem}
           style={styles.list}
           contentContainerStyle={records.length === 0 ? styles.emptyList : undefined}
-          ListEmptyComponent={<Text style={styles.emptyText}>Không có dữ liệu</Text>}
+          ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textMuted }]}>Không có dữ liệu</Text>}
         />
       )}
 

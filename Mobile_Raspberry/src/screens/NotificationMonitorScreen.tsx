@@ -13,6 +13,7 @@ import {
   Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../ThemeContext';
 import { NotificationData } from '../models/notification.model';
 import {
   getStoredNotifications,
@@ -49,6 +50,7 @@ async function checkPermissionStatus(): Promise<string> {
 }
 
 export default function NotificationMonitorScreen() {
+  const { colors, isDark } = useTheme();
   const [notifications, setNotifications] = useState<NotificationData[]>([]);
   const [permissionStatus, setPermissionStatus] = useState<string>('unknown');
   const [debugInfo, setDebugInfo] = useState<string>('');
@@ -217,7 +219,7 @@ export default function NotificationMonitorScreen() {
     const iconBase64 = info?.icon;
 
     return (
-    <View style={styles.notificationCard}>
+    <View style={[styles.notificationCard, { backgroundColor: colors.surface }]}>
       <View style={styles.cardHeader}>
         <View style={styles.appRow}>
           {iconBase64 ? (
@@ -228,12 +230,12 @@ export default function NotificationMonitorScreen() {
           ) : (
             <Text style={styles.appEmoji}>📱</Text>
           )}
-          <Text style={styles.appName} numberOfLines={1}>
+          <Text style={[styles.appName, { color: colors.primary }]} numberOfLines={1}>
             {displayName}
           </Text>
         </View>
         <View style={styles.cardActions}>
-          <Text style={styles.time}>{item.time}</Text>
+          <Text style={[styles.time, { color: colors.textMuted }]}>{item.time}</Text>
           {item.id != null && (
             <TouchableOpacity style={styles.deleteItemBtn} onPress={() => handleDeleteOne(item)}>
               <Text style={styles.deleteItemBtnText}>✕</Text>
@@ -242,11 +244,11 @@ export default function NotificationMonitorScreen() {
         </View>
       </View>
       {item.title !== '(không có tiêu đề)' && (
-        <Text style={styles.title} numberOfLines={2}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
           {item.title}
         </Text>
       )}
-      <Text style={styles.text} numberOfLines={4}>
+      <Text style={[styles.text, { color: colors.textSecondary }]} numberOfLines={4}>
         {item.text}
       </Text>
     </View>
@@ -255,7 +257,7 @@ export default function NotificationMonitorScreen() {
 
   const renderAppGroupItem = ({ item }: { item: AppGroup }) => (
     <TouchableOpacity
-      style={styles.appGroupCard}
+      style={[styles.appGroupCard, { backgroundColor: colors.surface }]}
       onPress={() => setSelectedApp(item.packageName)}
       activeOpacity={0.8}
     >
@@ -269,10 +271,10 @@ export default function NotificationMonitorScreen() {
           <Text style={styles.appGroupEmoji}>📱</Text>
         )}
         <View style={styles.appGroupTextWrap}>
-          <Text style={styles.appGroupName} numberOfLines={1}>
+          <Text style={[styles.appGroupName, { color: colors.text }]} numberOfLines={1}>
             {item.displayName}
           </Text>
-          <Text style={styles.appGroupPackage} numberOfLines={1}>
+          <Text style={[styles.appGroupPackage, { color: colors.textMuted }]} numberOfLines={1}>
             {item.packageName}
           </Text>
         </View>
@@ -290,10 +292,10 @@ export default function NotificationMonitorScreen() {
     groupedByApp.find((g) => g.packageName === selectedApp)?.displayName ?? selectedApp ?? '';
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Permission Status */}
-      <View style={[styles.statusCard, isPermissionGranted ? styles.statusOk : styles.statusError]}>
-        <Text style={styles.statusText}>
+      <View style={[styles.statusCard, isPermissionGranted ? (isDark ? { backgroundColor: '#065f46', borderColor: '#059669' } : styles.statusOk) : (isDark ? { backgroundColor: '#78350f', borderColor: '#b45309' } : styles.statusError)]}>
+        <Text style={[styles.statusText, { color: colors.text }]}>
           {isPermissionGranted
             ? '✅ Đang lắng nghe thông báo'
             : '⚠️ Chưa cấp quyền đọc thông báo'}
@@ -307,8 +309,8 @@ export default function NotificationMonitorScreen() {
 
       {/* Debug Info - xóa sau khi xác nhận hoạt động */}
       {debugInfo ? (
-        <View style={{ margin: 12, marginBottom: 0, padding: 10, backgroundColor: '#eee', borderRadius: 6 }}>
-          <Text style={{ fontSize: 11, fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier', color: '#333' }}>
+        <View style={{ margin: 12, marginBottom: 0, padding: 10, backgroundColor: colors.surfaceAlt, borderRadius: 6 }}>
+          <Text style={{ fontSize: 11, fontFamily: Platform.OS === 'android' ? 'monospace' : 'Courier', color: colors.textSecondary }}>
             {debugInfo}
           </Text>
         </View>
@@ -316,46 +318,46 @@ export default function NotificationMonitorScreen() {
 
       {/* View + Sort Buttons */}
       <View style={styles.sortRow}>
-        <Text style={styles.sortLabel}>Hiển thị:</Text>
+        <Text style={[styles.sortLabel, { color: colors.textSecondary }]}>Hiển thị:</Text>
         <TouchableOpacity
-          style={[styles.sortBtn, viewMode === 'grouped' && styles.sortBtnActive]}
+          style={[styles.sortBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, viewMode === 'grouped' && { backgroundColor: colors.primary, borderColor: colors.primary }]}
           onPress={() => {
             setViewMode('grouped');
             setSelectedApp(null);
           }}
         >
-          <Text style={[styles.sortBtnText, viewMode === 'grouped' && styles.sortBtnTextActive]}>
+          <Text style={[styles.sortBtnText, { color: colors.textSecondary }, viewMode === 'grouped' && styles.sortBtnTextActive]}>
             Theo app
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.sortBtn, viewMode === 'all' && styles.sortBtnActive]}
+          style={[styles.sortBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, viewMode === 'all' && { backgroundColor: colors.primary, borderColor: colors.primary }]}
           onPress={() => {
             setViewMode('all');
             setSelectedApp(null);
           }}
         >
-          <Text style={[styles.sortBtnText, viewMode === 'all' && styles.sortBtnTextActive]}>
+          <Text style={[styles.sortBtnText, { color: colors.textSecondary }, viewMode === 'all' && styles.sortBtnTextActive]}>
             Tất cả
           </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.sortRow}>
-        <Text style={styles.sortLabel}>Sắp xếp:</Text>
+        <Text style={[styles.sortLabel, { color: colors.textSecondary }]}>Sắp xếp:</Text>
         <TouchableOpacity
-          style={[styles.sortBtn, sortBy === 'createddate' && styles.sortBtnActive]}
+          style={[styles.sortBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, sortBy === 'createddate' && { backgroundColor: colors.primary, borderColor: colors.primary }]}
           onPress={() => handleSortChange('createddate')}
         >
-          <Text style={[styles.sortBtnText, sortBy === 'createddate' && styles.sortBtnTextActive]}>
+          <Text style={[styles.sortBtnText, { color: colors.textSecondary }, sortBy === 'createddate' && styles.sortBtnTextActive]}>
             Thời gian {getSortIcon('createddate')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.sortBtn, sortBy === 'app' && styles.sortBtnActive]}
+          style={[styles.sortBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, sortBy === 'app' && { backgroundColor: colors.primary, borderColor: colors.primary }]}
           onPress={() => handleSortChange('app')}
         >
-          <Text style={[styles.sortBtnText, sortBy === 'app' && styles.sortBtnTextActive]}>
+          <Text style={[styles.sortBtnText, { color: colors.textSecondary }, sortBy === 'app' && styles.sortBtnTextActive]}>
             Ứng dụng {getSortIcon('app')}
           </Text>
         </TouchableOpacity>
@@ -363,20 +365,20 @@ export default function NotificationMonitorScreen() {
 
       {/* Action Buttons */}
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.emailBtn} onPress={() => handleSendEmail(displayNotifications)}>
+        <TouchableOpacity style={[styles.emailBtn, { backgroundColor: colors.primary }]} onPress={() => handleSendEmail(displayNotifications)}>
           <Text style={styles.emailBtnText}>📧 Gửi Email ({displayNotifications.length})</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
+        <TouchableOpacity style={[styles.clearBtn, { backgroundColor: colors.danger }]} onPress={handleClear}>
           <Text style={styles.clearBtnText}>🗑️ Xóa tất cả</Text>
         </TouchableOpacity>
       </View>
 
       {isAppDetailView && (
         <View style={styles.detailHeader}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => setSelectedApp(null)}>
-            <Text style={styles.backBtnText}>← Quay lại list app</Text>
+          <TouchableOpacity style={[styles.backBtn, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]} onPress={() => setSelectedApp(null)}>
+            <Text style={[styles.backBtnText, { color: colors.textSecondary }]}>← Quay lại list app</Text>
           </TouchableOpacity>
-          <Text style={styles.detailTitle} numberOfLines={1}>
+          <Text style={[styles.detailTitle, { color: colors.primary }]} numberOfLines={1}>
             {selectedAppName}
           </Text>
         </View>
@@ -391,7 +393,7 @@ export default function NotificationMonitorScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Chưa có app nào có thông báo.\nKéo xuống để refresh.</Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>Chưa có app nào có thông báo.\nKéo xuống để refresh.</Text>
             </View>
           }
           contentContainerStyle={groupedByApp.length === 0 ? styles.emptyList : undefined}

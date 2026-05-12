@@ -1,0 +1,39 @@
+<div class="theme-settings-container">
+  <h2>🎨 Cài đặt giao diện</h2>
+
+  <div *ngIf="loading" class="loading-msg">Đang tải...</div>
+
+  <div *ngIf="!loading" class="theme-options">
+    <!-- Web Dark Mode -->
+    <div class="theme-card" (click)="onToggleWebDark()">
+      <div class="theme-info">
+        <span class="theme-icon">🌐</span>
+        <div class="theme-text">
+          <span class="theme-label">Web Dark Mode</span>
+          <span class="theme-desc">Bật chế độ tối cho giao diện web</span>
+        </div>
+      </div>
+      <label class="toggle-switch" (click)="$event.stopPropagation()">
+        <input type="checkbox" [checked]="setting.webDarkMode" (change)="onToggleWebDark()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <!-- Mobile Dark Mode -->
+    <div class="theme-card" (click)="onToggleMobileDark()">
+      <div class="theme-info">
+        <span class="theme-icon">📱</span>
+        <div class="theme-text">
+          <span class="theme-label">Mobile Dark Mode</span>
+          <span class="theme-desc">Bật chế độ tối cho ứng dụng di động</span>
+        </div>
+      </div>
+      <label class="toggle-switch" (click)="$event.stopPropagation()">
+        <input type="checkbox" [checked]="setting.mobileDarkMode" (change)="onToggleMobileDark()" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div *ngIf="saving" class="saving-indicator">💾 Đang lưu...</div>
+  </div>
+</div>

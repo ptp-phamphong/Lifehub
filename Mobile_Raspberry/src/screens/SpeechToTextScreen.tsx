@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import { Audio } from 'expo-av';
 import { transcribeAudio } from '../services/speechToTextService';
+import { useTheme } from '../ThemeContext';
 
 export default function SpeechToTextScreen() {
+  const { colors } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcribedText, setTranscribedText] = useState('');
@@ -97,9 +99,9 @@ export default function SpeechToTextScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>🎤 Speech to Text</Text>
-      <Text style={styles.subtitle}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.primary }]}>🎤 Speech to Text</Text>
+      <Text style={[styles.subtitle, { color: colors.textMuted }]}>
         Nhấn nút để ghi âm, hệ thống sẽ chuyển giọng nói thành văn bản.
       </Text>
 
@@ -108,6 +110,7 @@ export default function SpeechToTextScreen() {
         <TouchableOpacity
           style={[
             styles.recordButton,
+            { backgroundColor: colors.primary },
             isRecording && styles.recordButtonActive,
           ]}
           onPress={isRecording ? stopRecording : startRecording}
@@ -125,7 +128,7 @@ export default function SpeechToTextScreen() {
         {isRecording && (
           <View style={styles.durationContainer}>
             <Text style={styles.recordingIndicator}>● REC</Text>
-            <Text style={styles.durationText}>
+            <Text style={[styles.durationText, { color: colors.text }]}>
               {formatDuration(recordingDuration)}
             </Text>
           </View>
@@ -135,8 +138,8 @@ export default function SpeechToTextScreen() {
       {/* Loading khi đang transcribe */}
       {isTranscribing && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0d6efd" />
-          <Text style={styles.loadingText}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>
             Đang chuyển giọng nói thành văn bản...
           </Text>
         </View>
@@ -145,9 +148,9 @@ export default function SpeechToTextScreen() {
       {/* Kết quả */}
       {transcribedText !== '' && (
         <View style={styles.resultContainer}>
-          <Text style={styles.resultLabel}>📝 Kết quả:</Text>
-          <View style={styles.resultBox}>
-            <Text style={styles.resultText}>{transcribedText}</Text>
+          <Text style={[styles.resultLabel, { color: colors.text }]}>📝 Kết quả:</Text>
+          <View style={[styles.resultBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.resultText, { color: colors.text }]}>{transcribedText}</Text>
           </View>
         </View>
       )}
