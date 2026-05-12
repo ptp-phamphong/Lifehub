@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { getApiBaseUrl } from '../config';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 interface SystemInfo {
   cpuTemperature: string;
@@ -61,9 +62,7 @@ export default function SystemInfoScreen() {
         </View>
       </View>
 
-      {loading && !result && (
-        <ActivityIndicator size="large" color="#0ea5e9" style={styles.loader} />
-      )}
+      <LoadingOverlay visible={loading && !result} />
 
       {/* Cards */}
       {result && (

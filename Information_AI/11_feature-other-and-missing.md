@@ -124,3 +124,4 @@
 | GPIO button | ✅ | N/A | N/A |
 | Excel import (courses) | ✅ | ✅ | ❌ |
 | Settings/config | ✅ | ❌ | ⚠️ Commented out |
+| **Global Loading Spinner** | N/A | ✅ HTTP Interceptor | ✅ LoadingOverlay component |

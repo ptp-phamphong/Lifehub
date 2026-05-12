@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
   FlatList,
+  Alert,
   StyleSheet,
   Switch,
   Text,
@@ -24,6 +23,7 @@ import { getAllReasonTypes } from '../services/reasonTypeService';
 import MonthPagination from '../components/MonthPagination';
 import FilterReasonType from '../components/FilterReasonType';
 import ExpenseFormModal from '../components/ExpenseFormModal';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 export default function ExpenseListScreen() {
   const now = new Date();
@@ -328,9 +328,8 @@ export default function ExpenseListScreen() {
       </View>
 
       {/* List */}
-      {loading ? (
-        <ActivityIndicator size="large" color="#0d6efd" style={styles.loader} />
-      ) : (
+      <LoadingOverlay visible={loading} />
+      {!loading && (
         <FlatList
           data={records}
           keyExtractor={item => String(item.id)}

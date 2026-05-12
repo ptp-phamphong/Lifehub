@@ -14,6 +14,7 @@ import {
 import { CourseSchedule } from '../models/courseSchedule.model';
 import { getCourseScheduleByMonth } from '../services/courseScheduleService';
 import { toLunarDate, formatLunarDateVN } from '../utils/lunarCalendar';
+import LoadingOverlay from './LoadingOverlay';
 
 // ─── Types ────────────────────────────────────────────────
 interface WeekDay {
@@ -109,6 +110,7 @@ export default function CourseWeekCalendar() {
   const [courses, setCourses] = useState<CourseSchedule[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<CourseSchedule | null>(null);
   const [selectedDay, setSelectedDay] = useState<WeekDay | null>(null);
+  const [loading, setLoading] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   // ── Swipe gesture handler ──────────────────────────────
@@ -168,6 +170,7 @@ export default function CourseWeekCalendar() {
 
   // ── Load courses ────────────────────────────────────────
   const loadCourses = useCallback(async () => {
+    setLoading(true);
     try {
       const month1 = mondayDate.getMonth() + 1;
       const year1 = mondayDate.getFullYear();
@@ -195,6 +198,8 @@ export default function CourseWeekCalendar() {
     } catch (err) {
       console.error('Lỗi khi tải thời khóa biểu:', err);
       setCourses([]);
+    } finally {
+      setLoading(false);
     }
   }, [mondayDate]);
 
@@ -306,6 +311,7 @@ export default function CourseWeekCalendar() {
 
   return (
     <View style={styles.container} {...swipeRef.current?.panHandlers}>
+      <LoadingOverlay visible={loading} />
       {/* Header Navigation */}
       <View style={styles.header}>
         <TouchableOpacity onPress={prevWeek} style={styles.navBtn}>

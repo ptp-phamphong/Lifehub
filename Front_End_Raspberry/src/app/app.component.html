@@ -1,1 +1,9 @@
+<!-- Global Loading Spinner Overlay -->
+<div class="loading-overlay" *ngIf="loadingService.loading$ | async">
+  <div class="spinner-container">
+    <div class="spinner-ring"></div>
+    <p class="spinner-text">Đang tải...</p>
+  </div>
+</div>
+
 <router-outlet></router-outlet>

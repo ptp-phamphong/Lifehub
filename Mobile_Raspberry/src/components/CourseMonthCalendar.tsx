@@ -16,6 +16,7 @@ import { getCourseScheduleByMonth } from '../services/courseScheduleService';
 import { getExpensesByMonth } from '../services/expenseService';
 import { toLunarDate, formatLunarDateShort } from '../utils/lunarCalendar';
 import { ExpenseRecord } from '../models/expense.model';
+import LoadingOverlay from './LoadingOverlay';
 
 // ─── Types ────────────────────────────────────────────────
 interface CalendarDay {
@@ -92,6 +93,7 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
   const [selectedCourse, setSelectedCourse] = useState<CourseSchedule | null>(null);
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
   const [selectedDayExpenses, setSelectedDayExpenses] = useState<{ date: Date; items: ExpenseRecord[] } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // ── Swipe gesture handler ──────────────────────────────
   const swipeRef = useRef<PanResponderInstance | null>(null);
@@ -124,12 +126,15 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
 
   // ── Load data ──────────────────────────────────────────
   const loadMonth = useCallback(async () => {
+    setLoading(true);
     try {
       const data = await getCourseScheduleByMonth(currentMonth, currentYear);
       setCourses(data);
     } catch (err) {
       console.error('Lỗi khi tải thời khóa biểu:', err);
       setCourses([]);
+    } finally {
+      setLoading(false);
     }
   }, [currentMonth, currentYear]);
 
@@ -310,6 +315,7 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
 
   return (
     <View style={styles.container} {...swipeRef.current?.panHandlers}>
+      <LoadingOverlay visible={loading} />
       {/* Header Navigation */}
       <View style={styles.header}>
         <TouchableOpacity onPress={prevMonth} style={styles.navBtn}>
