@@ -37,8 +37,23 @@ ReasonTypeController → IReasonTypeService → IReasonTypeRepository → AppDbC
 - `ReasonName` (string, required)
 - `Active` (bool)
 - `SortOrder` (int?, nullable)
+- `DefaultFilterType` (int, required, default: 1)
 
 Table name: `reasonType`
+
+### DefaultFilterType enum values
+
+| Value | Meaning | Behavior |
+|---|---|---|
+| 1 | Không có mặc định | No default filter applied |
+| 2 | Mặc định lọc theo | Auto-selected in "Lọc theo lý do" filter on expense list |
+| 3 | Mặc định lọc theo không phải | Auto-selected in "Lọc theo không phải lý do" filter on expense list |
+
+### Migrations for DefaultFilterType
+
+1. `AddDefaultFilterTypeColumn` — adds nullable `DefaultFilterType` column
+2. `SetDefaultValueForDefaultFilterType` — sets DB default value to 1, updates existing NULL rows to 1
+3. `MakeDefaultFilterTypeRequired` — makes column NOT NULL
 
 ### Default ordering
 
@@ -89,6 +104,7 @@ Table name: `reasonType`
 
 - Reason name (required)
 - Sort order (optional number)
+- Default filter type (required, radio buttons: "Không có mặc định" / "Mặc định lọc theo" / "Mặc định lọc theo không phải")
 - Active status (boolean, shown on edit)
 
 ## React Native Mobile

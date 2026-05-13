@@ -99,13 +99,19 @@ export class ExpenseRecordListComponent implements OnInit {
     }
 
     this.activeTab = tab;
-    this.showAll = false;
     this.expenseRecords = [];
     this.sumThisMonth = 0;
     this.sumThisWeek = 0;
     this.sumAll = 0;
     this.sumAllFiltered = 0;
-    this.loadExpensesByMonth(this.selectedMonth, this.selectedYear);
+
+    if (tab === 'income') {
+      this.showAll = true;
+      this.loadAllExpenses();
+    } else {
+      this.showAll = false;
+      this.loadExpensesByMonth(this.selectedMonth, this.selectedYear);
+    }
   }
 
   onMonthChanged(event: { month: number, year: number }) {
@@ -231,9 +237,29 @@ export class ExpenseRecordListComponent implements OnInit {
     this.http.get<ReasonType[]>(`${environment.apiBaseUrl}/GetAllReasonType`).subscribe({
         next: (data) => {
           this.reasonTypes = data.map(reasonType => this.toReasonTypeOption(reasonType));
+          this.applyDefaultFilters(data);
         },
         error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
       });
+  }
+
+  private applyDefaultFilters(reasonTypes: ReasonType[]) {
+    const defaultIn = reasonTypes
+      .filter(r => r.defaultFilterType === 2)
+      .map(r => r.id!);
+    const defaultOut = reasonTypes
+      .filter(r => r.defaultFilterType === 3)
+      .map(r => r.id!);
+
+    if (defaultIn.length > 0) {
+      this.reasonTypeIdsFilterIn = defaultIn;
+    }
+    if (defaultOut.length > 0) {
+      this.reasonTypeIdsFilterOut = defaultOut;
+    }
+    if (defaultIn.length > 0 || defaultOut.length > 0) {
+      this.loadExpenses();
+    }
   }
 
   formatCurrency(amount?: number): string {

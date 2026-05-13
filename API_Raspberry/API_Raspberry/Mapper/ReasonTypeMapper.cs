@@ -23,6 +23,7 @@ namespace API_Raspberry.Mapper
                 ReasonName = entity.ReasonName,
                 Active = entity.Active,
                 SortOrder = entity.SortOrder,
+                DefaultFilterType = entity.DefaultFilterType,
             };
         }
 
@@ -38,6 +39,7 @@ namespace API_Raspberry.Mapper
                 ReasonName = dto.ReasonName,
                 SortOrder = dto.SortOrder,
                 Active = true,
+                DefaultFilterType = dto.DefaultFilterType,
             };
         }
 
@@ -46,6 +48,7 @@ namespace API_Raspberry.Mapper
             entity.ReasonName = dto.ReasonName;
             entity.SortOrder = dto.SortOrder;
             entity.Active = dto.Active;
+            entity.DefaultFilterType = dto.DefaultFilterType;
         }
     }
 }

@@ -26,7 +26,7 @@
   <!-- Toolbar -->
   <div class="toolbar">
     <button class="btn-add" (click)="openEditDialog(0)">{{ addButtonLabel }}</button>
-    <label class="show-all-checkbox">
+    <label class="show-all-checkbox" *ngIf="isExpenseTab">
       <input type="checkbox" [checked]="showAll" (change)="toggleShowAll()" />
       Hiển thị toàn bộ lịch sử
     </label>

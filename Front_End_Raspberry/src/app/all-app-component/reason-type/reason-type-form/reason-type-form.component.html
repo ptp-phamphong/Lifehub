@@ -12,6 +12,24 @@
       <input id="sortOrder" type="number" [(ngModel)]="sortOrder" name="sortOrder" placeholder="Nhập số thứ tự..." />
     </div>
 
+    <div class="form-group">
+      <label>Loại lọc mặc định <span class="required-mark">*</span></label>
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="defaultFilterType" [(ngModel)]="defaultFilterType" [value]="1" />
+          Không có mặc định
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="defaultFilterType" [(ngModel)]="defaultFilterType" [value]="2" />
+          Mặc định lọc theo
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="defaultFilterType" [(ngModel)]="defaultFilterType" [value]="3" />
+          Mặc định lọc theo không phải
+        </label>
+      </div>
+    </div>
+
     <div class="form-group form-group-checkbox">
       <label for="active">Hoạt động</label>
       <label class="toggle">

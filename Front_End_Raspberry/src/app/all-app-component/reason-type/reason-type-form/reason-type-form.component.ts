@@ -13,6 +13,7 @@ export class ReasonTypeFormComponent {
   reasonName: string = '';
   sortOrder?: number = 0;
   active: boolean = true;
+  defaultFilterType: number = 1;
   message: string = '';
   id: number = 0;
 
@@ -37,6 +38,7 @@ export class ReasonTypeFormComponent {
           this.reasonName = record?.reasonName != null ? record.reasonName : '';
           this.sortOrder = record?.sortOrder != null ? record.sortOrder : null;
           this.active = record?.active;
+          this.defaultFilterType = record?.defaultFilterType != null ? record.defaultFilterType : 1;
           console.log(res);
         },
         error: (err) => {
@@ -53,10 +55,16 @@ export class ReasonTypeFormComponent {
       return;
     }
 
+    if (!this.defaultFilterType) {
+      this.message = '⚠️ Vui lòng chọn loại lọc mặc định.';
+      return;
+    }
+
     const payload : ReasonType = {
       reasonName: this.reasonName,
       sortOrder: this.sortOrder,
-      active: this.active
+      active: this.active,
+      defaultFilterType: this.defaultFilterType
     };
     if (this.id > 0) {
 

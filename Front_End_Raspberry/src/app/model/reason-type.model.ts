@@ -3,5 +3,6 @@ export class ReasonType{
     reasonName?: string;
     active?: boolean;
     sortOrder?: number;
+    defaultFilterType?: number;
     displayName?: string;
 }

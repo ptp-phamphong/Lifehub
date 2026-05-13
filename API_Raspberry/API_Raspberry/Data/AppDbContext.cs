@@ -48,6 +48,7 @@ namespace API_Raspberry.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.ReasonName).IsRequired();
+                entity.Property(e => e.DefaultFilterType).HasDefaultValue(1);
             });
 
             // SemesterMetadata

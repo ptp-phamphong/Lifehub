@@ -15,5 +15,8 @@ namespace API_Raspberry.Model
         public bool Active { get; set; }
 
         public int? SortOrder { get; set; }
+
+        [Required]
+        public int DefaultFilterType { get; set; }
     }
 }

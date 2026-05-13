@@ -148,7 +148,14 @@ export default function ExpenseListScreen() {
   // ── Initial load ──────────────────────────────────────
   useEffect(() => {
     getAllReasonTypes()
-      .then(setReasonTypes)
+      .then(data => {
+        setReasonTypes(data);
+        // Apply default filters from ReasonType settings
+        const defaultIn = data.filter(r => r.defaultFilterType === 2).map(r => r.id!);
+        const defaultOut = data.filter(r => r.defaultFilterType === 3).map(r => r.id!);
+        if (defaultIn.length > 0) setFilterIn(defaultIn);
+        if (defaultOut.length > 0) setFilterOut(defaultOut);
+      })
       .catch(err => console.error('Lỗi tải reason types:', err));
   }, []);
 

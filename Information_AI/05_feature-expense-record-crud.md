@@ -95,6 +95,18 @@ Service applies additional sorting after query using LINQ on the result list. Su
 - Column sorting supported.
 - Shows summaries: month total, week total, overall total.
 
+### Tab behavior differences
+
+- **Tiền chi (Expense)**: Defaults to show current month. Has a "Hiển thị toàn bộ lịch sử" checkbox to toggle between month view and all history.
+- **Tiền thu (Income)**: Always defaults to "show all history" mode (no month filter). The toggle checkbox is hidden for income tab.
+
+### Default filters from ReasonType
+
+On load, the expense list reads `defaultFilterType` from each reason type:
+- Reason types with `defaultFilterType = 2` are auto-selected in the "Lọc theo lý do" filter.
+- Reason types with `defaultFilterType = 3` are auto-selected in the "Lọc theo không phải lý do" filter.
+- This applies to both Angular web and React Native mobile.
+
 ### ReasonType active/inactive behavior
 
 - Expense add/edit form dropdown only shows active reason types (`active = true`).

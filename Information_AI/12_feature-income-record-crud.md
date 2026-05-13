@@ -69,7 +69,9 @@ IncomeRecordController -> IIncomeService -> IIncomeRepository -> AppDbContext
 - Uses income endpoints for list, CRUD, and sums
 - Hides reason-type filter section
 - Hides reason-type column in table
-- Keeps month pagination, show-all toggle, sorting, and summary cards
+- Keeps month pagination, sorting, and summary cards
+- **Defaults to "show all history" mode** (showAll = true) when switching to income tab
+- The "Hiển thị toàn bộ lịch sử" checkbox is hidden for the income tab since it always shows all
 
 ## Mobile
 

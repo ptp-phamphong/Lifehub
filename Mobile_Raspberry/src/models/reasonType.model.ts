@@ -3,4 +3,5 @@ export interface ReasonType {
   reasonName?: string;
   active?: boolean;
   sortOrder?: number;
+  defaultFilterType?: number;
 }
