@@ -18,7 +18,7 @@ Version note:
 ## 2. Backend
 
 Platform:
-- ASP.NET Core Web API on `.NET 9` (`net9.0`)
+- ASP.NET Core Web API on `.NET 10` (`net10.0`)
 - Language: C#
 - ORM: Entity Framework Core code-first
 
@@ -28,12 +28,13 @@ Main NuGet packages from `API_Raspberry/API_Raspberry/API_Raspberry.csproj`:
 |---|---:|---|
 | Azure.AI.OpenAI | 2.1.0 | AI integration support |
 | ClosedXML | 0.105.0 | Excel import/export work |
+| HtmlAgilityPack | 1.12.4 | HTML parsing for UEH schedule import |
 | Microsoft.EntityFrameworkCore | 9.0.16 | ORM core |
 | Microsoft.EntityFrameworkCore.Design | 9.0.16 | EF design-time tooling |
 | Microsoft.EntityFrameworkCore.Tools | 9.0.16 | EF CLI/tooling support |
 | Pomelo.EntityFrameworkCore.MySql | 9.0.0 | MySQL provider for EF Core |
-| Swashbuckle.AspNetCore | 6.6.2 | Swagger/OpenAPI |
-| System.Device.Gpio | 4.0.1 | Raspberry Pi GPIO button integration |
+| Swashbuckle.AspNetCore | 10.1.7 | Swagger/OpenAPI |
+| System.Device.Gpio | 4.2.0 | Raspberry Pi GPIO button integration |
 | Whisper.net | 1.9.0 | Speech-to-text integration |
 | Whisper.net.Runtime | 1.9.0 | Runtime for Whisper |
 
