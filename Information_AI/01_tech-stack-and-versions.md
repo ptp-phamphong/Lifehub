@@ -13,12 +13,12 @@ How it is used:
 
 Version note:
 - The MySQL server version itself is not pinned anywhere in this repository.
-- The MySQL EF provider version used by the backend is `Pomelo.EntityFrameworkCore.MySql 8.0.2`.
+- The MySQL EF provider version used by the backend is `Pomelo.EntityFrameworkCore.MySql 9.0.0`.
 
 ## 2. Backend
 
 Platform:
-- ASP.NET Core Web API on `.NET 8` (`net8.0`)
+- ASP.NET Core Web API on `.NET 9` (`net9.0`)
 - Language: C#
 - ORM: Entity Framework Core code-first
 
@@ -28,10 +28,10 @@ Main NuGet packages from `API_Raspberry/API_Raspberry/API_Raspberry.csproj`:
 |---|---:|---|
 | Azure.AI.OpenAI | 2.1.0 | AI integration support |
 | ClosedXML | 0.105.0 | Excel import/export work |
-| Microsoft.EntityFrameworkCore | 8.0.11 | ORM core |
-| Microsoft.EntityFrameworkCore.Design | 8.0.11 | EF design-time tooling |
-| Microsoft.EntityFrameworkCore.Tools | 8.0.11 | EF CLI/tooling support |
-| Pomelo.EntityFrameworkCore.MySql | 8.0.2 | MySQL provider for EF Core |
+| Microsoft.EntityFrameworkCore | 9.0.16 | ORM core |
+| Microsoft.EntityFrameworkCore.Design | 9.0.16 | EF design-time tooling |
+| Microsoft.EntityFrameworkCore.Tools | 9.0.16 | EF CLI/tooling support |
+| Pomelo.EntityFrameworkCore.MySql | 9.0.0 | MySQL provider for EF Core |
 | Swashbuckle.AspNetCore | 6.6.2 | Swagger/OpenAPI |
 | System.Device.Gpio | 4.0.1 | Raspberry Pi GPIO button integration |
 | Whisper.net | 1.9.0 | Speech-to-text integration |
