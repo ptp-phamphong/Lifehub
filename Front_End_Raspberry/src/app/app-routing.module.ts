@@ -10,11 +10,15 @@ import { SettingsTabComponent } from './all-app-component/settings-tab/settings-
 import { SemesterMetadataListComponent } from './all-app-component/semester-metadata/semester-metadata-list/semester-metadata-list.component';
 import { SystemConfigurationListComponent } from './all-app-component/system-configuration/system-configuration-list/system-configuration-list.component';
 import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme-settings.component';
+import { AuthGuard } from './guards/auth.guard';
+import { LoginComponent } from './all-app-component/login/login.component';
 
 const routes: Routes = [
+  { path: 'login', component: LoginComponent },
   {
     path: '',
     component: MainTabComponent,
+    canActivate: [AuthGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'system-info' },
       { path: 'system-info', component: SystemInfoTabComponent },

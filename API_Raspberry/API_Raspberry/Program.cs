@@ -1,8 +1,11 @@
+using System.Text;
 using API_Raspberry.Data;
 using API_Raspberry.Mapper;
 using API_Raspberry.Repository;
 using API_Raspberry.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -93,6 +96,44 @@ else
 builder.Services.AddHttpClient();
 
 // ----------------------------
+// 6.5 Dependency Injection - Auth
+// ----------------------------
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// ----------------------------
+// 6.6 JWT Authentication
+// ----------------------------
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+var secretKey = jwtSettings["SecretKey"];
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+// ----------------------------
 // 7️⃣ Các service mặc định
 // ----------------------------
 builder.Services.AddControllers();
@@ -134,6 +175,7 @@ if (app.Environment.IsDevelopment())
 // 🔥 Thêm dòng này để bật CORS (quan trọng)
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

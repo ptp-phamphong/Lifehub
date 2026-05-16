@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, ActivityIndicator, View } from 'react-native';
 import SystemInfoScreen from './src/screens/SystemInfoScreen';
 import ExpenseListScreen from './src/screens/ExpenseListScreen';
 import ReasonTypeScreen from './src/screens/ReasonTypeScreen';
@@ -10,6 +11,8 @@ import SpeechToTextScreen from './src/screens/SpeechToTextScreen';
 import CourseScheduleScreen from './src/screens/CourseScheduleScreen';
 import NotificationMonitorScreen from './src/screens/NotificationMonitorScreen';
 import NotificationFilterScreen from './src/screens/NotificationFilterScreen';
+import LoginScreen from './src/screens/LoginScreen';
+import { isAuthenticated } from './src/services/authService';
 import { ThemeProvider, useTheme } from './src/ThemeContext';
 
 const Tab = createBottomTabNavigator();
@@ -121,7 +124,35 @@ function AppNavigator() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppNavigator />
+      <AppWithAuth />
     </ThemeProvider>
   );
+}
+
+function AppWithAuth() {
+  const { colors } = useTheme();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const authenticated = await isAuthenticated();
+    setIsLoggedIn(authenticated);
+  };
+
+  if (isLoggedIn === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return <LoginScreen onLoginSuccess={() => setIsLoggedIn(true)} />;
+  }
+
+  return <AppNavigator />;
 }

@@ -15,6 +15,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE, MatNativeDateModule, NativeDateAdapter } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { LoadingInterceptor } from './interceptors/loading.interceptor';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { LoginComponent } from './all-app-component/login/login.component';
 
 const MY_DATE_FORMATS = {
   parse: {
@@ -87,6 +89,7 @@ import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme
         SystemConfigurationListComponent,
         SystemConfigurationFormComponent,
         ThemeSettingsComponent,
+        LoginComponent,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,
@@ -103,6 +106,7 @@ import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme
         { provide: DateAdapter, useClass: AppDateAdapter },
         { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
         { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },
+        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
         provideHttpClient(withInterceptorsFromDi()),
     ] })
 export class AppModule { }

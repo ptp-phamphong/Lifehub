@@ -35,7 +35,8 @@
       "./plugins/withNotificationListener",
       "./plugins/withNotificationIdentityFields",
       "./plugins/withAppInfoModule",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {
