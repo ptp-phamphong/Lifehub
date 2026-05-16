@@ -18,12 +18,16 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy
-            .AllowAnyOrigin()    // Cho phép tất cả domain gọi API
-            .AllowAnyMethod()    // Cho phép mọi phương thức: GET, POST, PUT, DELETE, ...
-            .AllowAnyHeader();   // Cho phép mọi header
+            .WithOrigins(
+                "https://ptp-phamphong-pi.duckdns.org:3443",  // Web production
+                "http://localhost:4200",                          // Angular dev
+                "http://localhost:8081"                          //  Mobile dev
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();  // Cần thiết cho cookie/auth header
     });
 });
-
 // ----------------------------
 // 2️⃣ Database - Entity Framework + MySQL
 // ----------------------------
