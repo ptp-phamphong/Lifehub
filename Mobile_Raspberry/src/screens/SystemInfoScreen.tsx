@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getApiBaseUrl } from '../config';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { useTheme } from '../ThemeContext';
+import { apiFetch } from '../services/apiClient';
 
 interface SystemInfo {
   cpuTemperature: string;
@@ -20,9 +20,8 @@ export default function SystemInfoScreen() {
   const callApi = async () => {
     setLoading(true);
     setError(null);
-    const url = `${getApiBaseUrl()}/SystemInfo`;
     try {
-      const response = await fetch(url);
+      const response = await apiFetch('/SystemInfo');
       if (!response.ok) {
         setError(`HTTP ${response.status}: ${response.statusText}`);
         return;

@@ -23,26 +23,26 @@ export class AuthService {
       password
     }).pipe(
       tap(response => {
-        sessionStorage.setItem(this.TOKEN_KEY, response.token);
-        sessionStorage.setItem(this.EXPIRATION_KEY, response.expiration);
+        localStorage.setItem(this.TOKEN_KEY, response.token);
+        localStorage.setItem(this.EXPIRATION_KEY, response.expiration);
       })
     );
   }
 
   logout(): void {
-    sessionStorage.removeItem(this.TOKEN_KEY);
-    sessionStorage.removeItem(this.EXPIRATION_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.EXPIRATION_KEY);
   }
 
   getToken(): string | null {
-    return sessionStorage.getItem(this.TOKEN_KEY);
+    return localStorage.getItem(this.TOKEN_KEY);
   }
 
   isAuthenticated(): boolean {
     const token = this.getToken();
     if (!token) return false;
 
-    const expiration = sessionStorage.getItem(this.EXPIRATION_KEY);
+    const expiration = localStorage.getItem(this.EXPIRATION_KEY);
     if (!expiration) return false;
 
     return new Date(expiration) > new Date();

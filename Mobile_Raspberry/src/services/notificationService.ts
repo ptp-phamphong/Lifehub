@@ -3,6 +3,7 @@ import { getApiBaseUrl } from '../config';
 import { NotificationData } from '../models/notification.model';
 import { shouldIgnoreNotification } from './notificationFilterService';
 import { getAppName } from './appInfoService';
+import { getToken } from './authService';
 
 const STORAGE_KEY = 'captured_notifications';
 const MAX_NOTIFICATIONS = 500;
@@ -185,9 +186,13 @@ function enqueuePersist(work: () => Promise<void>): Promise<void> {
  */
 export async function storeNotification(notification: NotificationData): Promise<void> {
   try {
+    const token = await getToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch(`${getApiBaseUrl()}/AddPhoneNotification`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         app: notification.app,
         appName: notification.appName,
@@ -222,8 +227,13 @@ export async function getStoredNotifications(
   sortDirection: string = 'desc'
 ): Promise<NotificationData[]> {
   try {
+    const token = await getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch(
-      `${getApiBaseUrl()}/GetAllPhoneNotifications?sortBy=${sortBy}&sortDirection=${sortDirection}`
+      `${getApiBaseUrl()}/GetAllPhoneNotifications?sortBy=${sortBy}&sortDirection=${sortDirection}`,
+      { headers }
     );
     if (res.ok) {
       const remote = (await res.json()) as NotificationData[];
@@ -250,8 +260,13 @@ async function getStoredNotificationsLocal(): Promise<NotificationData[]> {
  */
 export async function deleteNotification(id: number): Promise<boolean> {
   try {
+    const token = await getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch(`${getApiBaseUrl()}/DeletePhoneNotification/${id}`, {
       method: 'DELETE',
+      headers,
     });
     return res.ok;
   } catch (e) {
@@ -264,8 +279,13 @@ export async function deleteNotification(id: number): Promise<boolean> {
  */
 export async function clearNotifications(): Promise<void> {
   try {
+    const token = await getToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     await fetch(`${getApiBaseUrl()}/DeleteAllPhoneNotifications`, {
       method: 'DELETE',
+      headers,
     });
   } catch (e) {
     // fallback
@@ -279,9 +299,13 @@ export async function clearNotifications(): Promise<void> {
  */
 export async function sendNotificationsEmail(notifications: NotificationData[]): Promise<{ success: boolean; message: string }> {
   try {
+    const token = await getToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
     const res = await fetch(`${getApiBaseUrl()}/SendNotificationEmail`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ notifications }),
     });
 

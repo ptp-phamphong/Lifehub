@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getApiBaseUrl } from '../config';
 import { NotificationFilterData, FLAG_NAME_TO_BIT } from '../models/notificationFilter.model';
+import { apiGet, apiPost, apiPut, apiDelete } from './apiClient';
 
 const FILTER_CACHE_KEY = 'notification_filter_cache';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 phút
@@ -15,53 +15,32 @@ interface FilterCache {
 // ============================
 
 export async function getAllFilters(): Promise<NotificationFilterData[]> {
-  const res = await fetch(`${getApiBaseUrl()}/GetAllNotificationFilters`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return (await res.json()) as NotificationFilterData[];
+  return apiGet<NotificationFilterData[]>('/GetAllNotificationFilters');
 }
 
 export async function getActiveFilters(): Promise<NotificationFilterData[]> {
-  const res = await fetch(`${getApiBaseUrl()}/GetActiveNotificationFilters`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return (await res.json()) as NotificationFilterData[];
+  return apiGet<NotificationFilterData[]>('/GetActiveNotificationFilters');
 }
 
 export async function addFilter(
   filter: Omit<NotificationFilterData, 'id' | 'isActive' | 'createdDate'>
 ): Promise<number> {
-  const res = await fetch(`${getApiBaseUrl()}/AddNotificationFilter`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(filter),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
+  return apiPost<number>('/AddNotificationFilter', filter);
 }
 
 export async function updateFilter(
   id: number,
   update: { filterValue: string; description: string; isActive: boolean }
 ): Promise<void> {
-  const res = await fetch(`${getApiBaseUrl()}/UpdateNotificationFilter/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(update),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await apiPut<void>(`/UpdateNotificationFilter/${id}`, update);
 }
 
 export async function deleteFilter(id: number): Promise<void> {
-  const res = await fetch(`${getApiBaseUrl()}/DeleteNotificationFilter/${id}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await apiDelete(`/DeleteNotificationFilter/${id}`);
 }
 
 export async function seedDefaultFilters(): Promise<void> {
-  const res = await fetch(`${getApiBaseUrl()}/SeedNotificationFilters`, {
-    method: 'POST',
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  await apiPost<void>('/SeedNotificationFilters', {});
 }
 
 // ============================

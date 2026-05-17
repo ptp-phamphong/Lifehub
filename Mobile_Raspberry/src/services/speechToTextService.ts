@@ -1,5 +1,6 @@
 import { getApiBaseUrl } from '../config';
 import { Platform } from 'react-native';
+import { getToken } from './authService';
 
 export interface SpeechToTextResult {
   text: string;
@@ -32,9 +33,14 @@ export async function transcribeAudio(
     } as any);
   }
 
+  const token = await getToken();
+  const authHeaders: Record<string, string> = {};
+  if (token) authHeaders['Authorization'] = `Bearer ${token}`;
+
   const res = await fetch(`${getApiBaseUrl()}/SpeechToText`, {
     method: 'POST',
     body: formData,
+    headers: authHeaders,
     // Không set Content-Type header - fetch tự thêm boundary cho multipart
   });
 
