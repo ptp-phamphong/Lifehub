@@ -130,6 +130,21 @@ The HTML returned by UEH contains a `<table>` with the following column structur
 4. Call `ICourseScheduleImportService.ImportFromHtml(html, semesterMetadataId)`.
 5. Return result with count and imported data.
 
+The same reset-import flow can also run automatically through the backend hosted service `ScheduleImportBackgroundService`.
+
+Runtime configuration:
+
+```json
+"ScheduleImportJob": {
+  "Enabled": true,
+  "IntervalMinutes": 120
+}
+```
+
+- `Enabled`: turn automatic refresh on or off
+- `IntervalMinutes`: run frequency in minutes
+- Recommended migration step: remove any old Raspberry Pi `crontab` entry for `reset_schedule.sh` to avoid duplicate imports
+
 See `07_feature-course-schedule-crud.md` for the full course schedule feature documentation.
 
 ---

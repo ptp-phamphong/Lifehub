@@ -1,6 +1,6 @@
 # Feature: Course Schedule CRUD
 
-Manages university course schedules with full CRUD, Excel import, and bulk delete by semester metadata.
+Manages university course schedules with full CRUD, Excel import, manual UEH reset-import, and optional background refresh by semester metadata.
 
 ## Backend
 
@@ -92,6 +92,28 @@ Returns courses where the course's `[StartDate, EndDate]` range overlaps with th
 3. Deletes all existing courses for the current semester (`DeleteBySemesterMetadataId`).
 4. Calls `ImportFromHtml()` to parse and re-insert from fresh HTML.
 5. Returns count, semesterMetadataId, yearStudy, termId, data.
+
+### Background refresh job
+
+- Hosted service: `ScheduleImportBackgroundService`
+- Registration: `Program.cs` via `AddHostedService<ScheduleImportBackgroundService>()`
+- Trigger source: in-app `BackgroundService`, not Linux `crontab`
+- Config in `appsettings.json`:
+
+```json
+"ScheduleImportJob": {
+  "Enabled": true,
+  "IntervalMinutes": 120
+}
+```
+
+- Behavior:
+  - waits briefly after app startup
+  - finds `SemesterMetadata` where `IsCurrentSemester = true`
+  - fetches fresh UEH HTML via `IUehStudentScheduleService`
+  - clears current semester courses
+  - re-imports them via `ImportFromHtml()`
+- If migrating from the old Raspberry Pi cron script, remove the old `crontab` entry so the job does not run twice.
 
 Credentials for UEH login are read in this order:
 

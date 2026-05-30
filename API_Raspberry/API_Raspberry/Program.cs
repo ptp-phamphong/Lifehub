@@ -140,6 +140,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHostedService<ButtonListener>();
+builder.Services.AddHostedService<ScheduleImportBackgroundService>();
 
 var app = builder.Build();
 
