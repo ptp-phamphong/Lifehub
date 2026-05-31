@@ -1,0 +1,36 @@
+<div class="expense-table-container">
+  <h2>Quan ly nguoi dung</h2>
+
+  <div class="toolbar">
+    <button class="btn-add" (click)="openCreateDialog()">+ Them user</button>
+  </div>
+
+  <table class="expense-table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Username</th>
+        <th>Name</th>
+        <th>Active</th>
+        <th>Hanh dong</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.id }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.name }}</td>
+        <td>
+          <span class="badge" [class.badge-active]="user.active" [class.badge-inactive]="!user.active">
+            {{ user.active ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+        <td class="col-actions">
+          <button class="btn-action btn-edit" (click)="openEditDialog(user)">Sua</button>
+          <button class="btn-action btn-password" (click)="openChangePasswordDialog(user)">Doi MK</button>
+          <button class="btn-action btn-delete" (click)="deleteUser(user)">Xoa</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

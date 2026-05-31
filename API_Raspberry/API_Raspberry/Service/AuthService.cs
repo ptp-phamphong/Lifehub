@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using API_Raspberry.Dto;
+using API_Raspberry.Repository;
 using Microsoft.IdentityModel.Tokens;
 
 namespace API_Raspberry.Service
@@ -9,21 +10,22 @@ namespace API_Raspberry.Service
     public class AuthService : IAuthService
     {
         private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
 
-        public AuthService(IConfiguration configuration)
+        public AuthService(IConfiguration configuration, IUserRepository userRepository)
         {
             _configuration = configuration;
+            _userRepository = userRepository;
         }
 
         public LoginResponseDto Authenticate(LoginDto login)
         {
-            var validUsername = _configuration["Auth:Username"] ?? "admin";
-            var validPasswordHash = _configuration["Auth:PasswordHash"];
+            var user = _userRepository.GetByUsername(login.Username);
 
-            if (!string.Equals(login.Username, validUsername, StringComparison.OrdinalIgnoreCase))
+            if (user == null || !user.Active)
                 return null;
 
-            if (!BCrypt.Net.BCrypt.Verify(login.Password, validPasswordHash))
+            if (!BCrypt.Net.BCrypt.Verify(login.Password, user.Password))
                 return null;
 
             var jwtSettings = _configuration.GetSection("Jwt");
@@ -37,7 +39,7 @@ namespace API_Raspberry.Service
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, login.Username),
+                new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, "Admin"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };

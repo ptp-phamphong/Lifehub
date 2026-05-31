@@ -17,6 +17,7 @@ namespace API_Raspberry.Data
         public DbSet<CourseSchedule> CourseSchedules { get; set; }
         public DbSet<PhoneNotification> PhoneNotifications { get; set; }
         public DbSet<NotificationFilter> NotificationFilters { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -103,6 +104,17 @@ namespace API_Raspberry.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.FilterType).IsRequired();
                 entity.Property(e => e.FilterValue).IsRequired();
+            });
+
+            // User
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Username).IsRequired();
+                entity.Property(e => e.Password).IsRequired();
+                entity.Property(e => e.Name).IsRequired();
+                entity.Property(e => e.Active).HasDefaultValue(true);
+                entity.HasIndex(e => e.Username).IsUnique();
             });
         }
     }

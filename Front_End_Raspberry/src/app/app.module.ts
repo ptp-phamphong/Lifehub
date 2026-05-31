@@ -68,6 +68,8 @@ import { SemesterMetadataFormComponent } from './all-app-component/semester-meta
 import { SystemConfigurationListComponent } from './all-app-component/system-configuration/system-configuration-list/system-configuration-list.component';
 import { SystemConfigurationFormComponent } from './all-app-component/system-configuration/system-configuration-form/system-configuration-form.component';
 import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme-settings.component';
+import { UserListComponent } from './all-app-component/user-management/user-list/user-list.component';
+import { UserFormComponent } from './all-app-component/user-management/user-form/user-form.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -89,6 +91,8 @@ import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme
         SystemConfigurationListComponent,
         SystemConfigurationFormComponent,
         ThemeSettingsComponent,
+        UserListComponent,
+        UserFormComponent,
         LoginComponent,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,

@@ -10,6 +10,7 @@ import { SettingsTabComponent } from './all-app-component/settings-tab/settings-
 import { SemesterMetadataListComponent } from './all-app-component/semester-metadata/semester-metadata-list/semester-metadata-list.component';
 import { SystemConfigurationListComponent } from './all-app-component/system-configuration/system-configuration-list/system-configuration-list.component';
 import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme-settings.component';
+import { UserListComponent } from './all-app-component/user-management/user-list/user-list.component';
 import { AuthGuard } from './guards/auth.guard';
 import { LoginComponent } from './all-app-component/login/login.component';
 
@@ -33,7 +34,8 @@ const routes: Routes = [
           { path: 'course-schedule-settings', component: CourseScheduleListComponent },
           { path: 'semester-settings', component: SemesterMetadataListComponent },
           { path: 'system-configuration-settings', component: SystemConfigurationListComponent },
-          { path: 'theme-settings', component: ThemeSettingsComponent }
+          { path: 'theme-settings', component: ThemeSettingsComponent },
+          { path: 'user-settings', component: UserListComponent }
         ]
       },
       { path: 'reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },

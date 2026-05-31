@@ -96,8 +96,10 @@ else
 builder.Services.AddHttpClient();
 
 // ----------------------------
-// 6.5 Dependency Injection - Auth
+// 6.5 Dependency Injection - User & Auth
 // ----------------------------
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // ----------------------------
@@ -156,6 +158,21 @@ try
     // Seed default notification filters
     var filterService = scope.ServiceProvider.GetRequiredService<INotificationFilterService>();
     filterService.SeedDefaults();
+
+    // Seed default user if no users exist
+    if (!db.Users.Any())
+    {
+        var defaultPasswordHash = builder.Configuration["Auth:PasswordHash"];
+        var defaultUsername = builder.Configuration["Auth:Username"] ?? "admin";
+        db.Users.Add(new API_Raspberry.Model.User
+        {
+            Username = defaultUsername,
+            Password = defaultPasswordHash,
+            Name = defaultUsername,
+            Active = true
+        });
+        db.SaveChanges();
+    }
 }
 catch (Exception ex)
 {
@@ -185,5 +202,5 @@ app.MapControllers();
 // 7️⃣ Lắng nghe cổng nội bộ cố định cho Caddy reverse proxy
 // ----------------------------
 app.Run("http://127.0.0.1:5000");
-//   app.Run();
+//    app.Run();
 

@@ -1,0 +1,108 @@
+$radius: 16px;
+$radius-sm: 10px;
+
+.expense-form {
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 32px 28px 24px;
+  background: var(--color-surface);
+  border-radius: $radius;
+
+  h2 {
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 24px 0;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--color-text-sec);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    input[type='text'],
+    input[type='password'],
+    select {
+      padding: 10px 14px;
+      border: 1.5px solid var(--color-border);
+      border-radius: $radius-sm;
+      font-size: 15px;
+      color: var(--color-text);
+      background: var(--color-input-bg);
+      transition: all 0.2s ease;
+      outline: none;
+
+      &::placeholder {
+        color: var(--color-text-muted);
+      }
+
+      &:focus {
+        border-color: var(--color-primary);
+        background: var(--color-input-focus-bg);
+        box-shadow: 0 0 0 3px var(--color-primary-glow);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  button[type='submit'] {
+    width: 100%;
+    background: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: $radius-sm;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--color-primary-hover);
+    }
+  }
+
+  .message {
+    margin-top: 12px;
+    text-align: center;
+    color: #dc3545;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .cancel-row {
+    margin-top: 10px;
+    text-align: center;
+
+    button {
+      background: transparent;
+      border: 1.5px solid var(--color-border);
+      border-radius: $radius-sm;
+      padding: 8px 24px;
+      color: var(--color-text-sec);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: var(--color-surface-alt);
+      }
+    }
+  }
+}
