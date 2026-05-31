@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
+  SectionList,
   Alert,
   StyleSheet,
   Switch,
@@ -51,6 +52,9 @@ export default function ExpenseListScreen() {
   const [sortColumn, setSortColumn] = useState<string>('createdDate');
   const [sortDirection, setSortDirection] = useState<string>('desc');
   const { colors, isDark } = useTheme();
+
+  // Group by day
+  const [groupByDay, setGroupByDay] = useState(false);
 
   // Form modal
   const [formVisible, setFormVisible] = useState(false);
@@ -170,6 +174,22 @@ export default function ExpenseListScreen() {
   };
 
   const toggleShowAll = () => setShowAll(prev => !prev);
+  const toggleGroupByDay = () => setGroupByDay(prev => !prev);
+
+  const groupedSections = (): { title: string; data: ExpenseRecord[] }[] => {
+    if (!groupByDay) return [];
+    const groups: { [key: string]: ExpenseRecord[] } = {};
+    for (const record of records) {
+      const dateKey = record.createdDate
+        ? new Date(record.createdDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : 'Không rõ ngày';
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(record);
+    }
+    return Object.keys(groups).map(date => ({ title: date, data: groups[date] }));
+  };
 
   const onFilterInChange = (ids: number[]) => {
     setFilterIn(ids);
@@ -287,6 +307,18 @@ export default function ExpenseListScreen() {
         <Text style={[styles.toggleLabel, { color: colors.textSecondary }]}>Hiển thị toàn bộ lịch sử</Text>
       </View>
 
+      {/* Toggle group by day (only when not show-all) */}
+      {!showAll && (
+        <TouchableOpacity
+          style={[styles.groupDayBtn, { borderColor: colors.border, backgroundColor: groupByDay ? colors.summaryBg : colors.surface }, groupByDay && { borderColor: colors.primary }]}
+          onPress={toggleGroupByDay}
+        >
+          <Text style={[styles.groupDayBtnText, { color: groupByDay ? colors.primary : colors.textSecondary }]}>
+            {groupByDay ? '📅 Đang gom theo ngày' : '📋 Gom theo ngày'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       {/* Month pagination (only if not show-all) */}
       {!showAll && (
         <MonthPagination
@@ -338,11 +370,31 @@ export default function ExpenseListScreen() {
 
       {/* List */}
       <LoadingOverlay visible={loading} />
-      {!loading && (
+      {!loading && !groupByDay && (
         <FlatList
           data={records}
           keyExtractor={item => String(item.id)}
           renderItem={renderItem}
+          style={styles.list}
+          contentContainerStyle={records.length === 0 ? styles.emptyList : undefined}
+          ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textMuted }]}>Không có dữ liệu</Text>}
+        />
+      )}
+      {!loading && groupByDay && (
+        <SectionList
+          sections={groupedSections()}
+          keyExtractor={item => String(item.id)}
+          renderItem={renderItem}
+          renderSectionHeader={({ section: { title, data } }) => {
+            const sectionTotal = data.reduce((sum, r) => sum + (r.amount || 0), 0);
+            return (
+              <View style={[styles.sectionHeader, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.sectionHeaderDate, { color: colors.text }]}>{title}</Text>
+                <Text style={[styles.sectionHeaderTotal, { color: colors.primary }]}>{formatCurrency(sectionTotal)}</Text>
+                <Text style={[styles.sectionHeaderCount, { color: colors.textMuted, backgroundColor: colors.summaryBg }]}>{data.length} mục</Text>
+              </View>
+            );
+          }}
           style={styles.list}
           contentContainerStyle={records.length === 0 ? styles.emptyList : undefined}
           ListEmptyComponent={<Text style={[styles.emptyText, { color: colors.textMuted }]}>Không có dữ liệu</Text>}
@@ -469,5 +521,44 @@ const styles = StyleSheet.create({
   sortChipTextActive: {
     color: '#0ea5e9',
     fontWeight: '700',
+  },
+  // Group by day
+  groupDayBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  groupDayBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 4,
+    marginTop: 10,
+  },
+  sectionHeaderDate: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  sectionHeaderTotal: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  sectionHeaderCount: {
+    fontSize: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
 });

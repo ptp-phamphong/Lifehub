@@ -100,6 +100,29 @@ Service applies additional sorting after query using LINQ on the result list. Su
 - **Tiền chi (Expense)**: Defaults to show current month. Has a "Hiển thị toàn bộ lịch sử" checkbox to toggle between month view and all history.
 - **Tiền thu (Income)**: Always defaults to "show all history" mode (no month filter). The toggle checkbox is hidden for income tab.
 
+### Group by day (UI-only feature)
+
+When viewing by month (not "show all history"), a toggle button appears in the toolbar:
+- **Off** (default): Records display in a flat table/list as before.
+- **On**: Records are grouped by date (dd/MM/yyyy). Each group shows a header with the date and item count, followed by the records for that day.
+
+**Behavior:**
+- The button is hidden when "Hiển thị toàn bộ lịch sử" is active (to avoid long UI).
+- Grouping is done entirely on the client side — no backend changes needed.
+- Sorting still applies within the flat data before grouping.
+- Both "Tiền chi" and "Tiền thu" tabs support the toggle when in month view.
+
+**Angular implementation:**
+- `groupByDay: boolean` property on the component.
+- `groupedRecords` getter computes date groups from `expenseRecords`.
+- Template switches between flat `<table>` and grouped `<div *ngFor>` with per-group tables.
+- Button uses `.btn-group-day` CSS class with `.active` state.
+
+**React Native implementation:**
+- `groupByDay` state toggle.
+- `groupedSections()` function returns `{ title, data }[]` for `SectionList`.
+- Conditionally renders `FlatList` (flat) or `SectionList` (grouped) with section headers.
+
 ### Default filters from ReasonType
 
 On load, the expense list reads `defaultFilterType` from each reason type:
@@ -179,3 +202,4 @@ deleteExpenseById(id: number): Promise<void>
 | State management | Component fields | useState hooks |
 | Month pagination | Shared component | Shared component |
 | Sorting | Column click | Column click |
+| Group by day | `*ngIf` switches flat table / grouped tables | Conditional FlatList / SectionList |

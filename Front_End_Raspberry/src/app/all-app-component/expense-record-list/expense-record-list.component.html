@@ -30,6 +30,9 @@
       <input type="checkbox" [checked]="showAll" (change)="toggleShowAll()" />
       Hiển thị toàn bộ lịch sử
     </label>
+    <button class="btn-group-day" *ngIf="!showAll" [class.active]="groupByDay" (click)="toggleGroupByDay()">
+      {{ groupByDay ? '📅 Đang gom theo ngày' : '📋 Gom theo ngày' }}
+    </button>
   </div>
 
   <app-month-pagination *ngIf="!showAll" (monthChanged)="onMonthChanged($event)"></app-month-pagination>
@@ -53,8 +56,8 @@
     </div>
   </div>
 
-  <!-- Table -->
-  <table class="expense-table">
+  <!-- Table (flat view) -->
+  <table class="expense-table" *ngIf="!groupByDay">
     <thead>
       <tr>
         <th class="sortable" (click)="onSort('id')">Id <span class="sort-icon">{{getSortIcon('id')}}</span></th>
@@ -79,4 +82,40 @@
       </tr>
     </tbody>
   </table>
+
+  <!-- Table (grouped by day) -->
+  <div *ngIf="groupByDay">
+    <div *ngFor="let group of groupedRecords" class="day-group">
+      <div class="day-group-header">
+        <span class="day-group-date">{{ group.date }}</span>
+        <span class="day-group-total">{{ formatCurrency(group.total) }}</span>
+        <span class="day-group-count">{{ group.records.length }} mục</span>
+      </div>
+      <table class="expense-table">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>{{dateLabel}}</th>
+            <th>Lý do</th>
+            <th *ngIf="isExpenseTab">Loại lý do</th>
+            <th>Số tiền</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of group.records">
+            <td>{{ item.id }}</td>
+            <td>{{ item.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ item.reason }}</td>
+            <td *ngIf="isExpenseTab">{{ getReasonTypeLabel(item.reasonType) }}</td>
+            <td class="col-amount">{{ formatCurrency(item.amount) }}</td>
+            <td class="col-actions">
+              <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
+              <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoá</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

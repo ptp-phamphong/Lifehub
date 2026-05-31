@@ -29,6 +29,7 @@ export class ExpenseRecordListComponent implements OnInit {
   sortColumn: string = 'createdDate';
   sortDirection: string = 'desc';
   activeTab: 'expense' | 'income' = 'expense';
+  groupByDay: boolean = false;
   
   constructor(private http: HttpClient,
     private dialog: MatDialog,
@@ -70,6 +71,29 @@ export class ExpenseRecordListComponent implements OnInit {
 
   get addButtonLabel(): string {
     return this.isExpenseTab ? '+ Thêm mới chi tiêu' : '+ Thêm mới thu vào';
+  }
+
+  toggleGroupByDay() {
+    this.groupByDay = !this.groupByDay;
+  }
+
+  get groupedRecords(): { date: string; records: ExpenseRecord[]; total: number }[] {
+    if (!this.groupByDay) return [];
+    const groups: { [key: string]: ExpenseRecord[] } = {};
+    for (const record of this.expenseRecords) {
+      const dateKey = record.createdDate
+        ? new Date(record.createdDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : 'Không rõ ngày';
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(record);
+    }
+    return Object.keys(groups).map(date => ({
+      date,
+      records: groups[date],
+      total: groups[date].reduce((sum, r) => sum + (r.amount || 0), 0)
+    }));
   }
 
   private isReasonTypeActive(reasonType?: ReasonType): boolean {
