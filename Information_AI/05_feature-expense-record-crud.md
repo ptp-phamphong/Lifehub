@@ -122,6 +122,18 @@ When viewing by month (not "show all history"), a toggle button appears in the t
 - `groupByDay` state toggle.
 - `groupedSections()` function returns `{ title, data }[]` for `SectionList`.
 - Conditionally renders `FlatList` (flat) or `SectionList` (grouped) with section headers.
+- `showAll` and `groupByDay` controls are shown on the same toolbar row. In show-all mode, group-by-day button remains visible but disabled.
+
+### Mobile list-space optimization controls
+
+React Native expense screen includes compact controls to maximize list viewport:
+
+- **Summary collapse**: Summary card has a header arrow button to quickly hide/show totals (`month`, `week`, `all`, `filtered`).
+- **Filter/sort collapse**: Filter area is hidden by default and can be expanded with a toggle button (`Mở lọc/sắp xếp`).
+- **Sort popup menu**: Replaces inline sort chips with a modal menu for:
+  - Sort column: `Ngày`, `Số tiền`, `Lý do`, `Loại`
+  - Sort direction: `Tăng dần` / `Giảm dần`
+- **Inline top controls**: `Hiển thị toàn bộ lịch sử` and `Gom theo ngày` are aligned on one row.
 
 ### Default filters from ReasonType
 

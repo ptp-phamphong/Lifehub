@@ -3,6 +3,7 @@ import {
   FlatList,
   SectionList,
   Alert,
+  Modal,
   StyleSheet,
   Switch,
   Text,
@@ -52,6 +53,9 @@ export default function ExpenseListScreen() {
   const [sortColumn, setSortColumn] = useState<string>('createdDate');
   const [sortDirection, setSortDirection] = useState<string>('desc');
   const { colors, isDark } = useTheme();
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [controlsExpanded, setControlsExpanded] = useState(false);
+  const [summaryExpanded, setSummaryExpanded] = useState(true);
 
   // Group by day
   const [groupByDay, setGroupByDay] = useState(false);
@@ -175,6 +179,8 @@ export default function ExpenseListScreen() {
 
   const toggleShowAll = () => setShowAll(prev => !prev);
   const toggleGroupByDay = () => setGroupByDay(prev => !prev);
+  const toggleControlsExpanded = () => setControlsExpanded(prev => !prev);
+  const toggleSummaryExpanded = () => setSummaryExpanded(prev => !prev);
 
   const groupedSections = (): { title: string; data: ExpenseRecord[] }[] => {
     if (!groupByDay) return [];
@@ -213,6 +219,18 @@ export default function ExpenseListScreen() {
   const getSortIcon = (column: string): string => {
     if (sortColumn !== column) return '';
     return sortDirection === 'asc' ? ' ▲' : ' ▼';
+  };
+
+  const getSortLabel = (column: string): string => {
+    if (column === 'createdDate') return 'Ngày';
+    if (column === 'amount') return 'Số tiền';
+    if (column === 'reason') return 'Lý do';
+    if (column === 'reasonType') return 'Loại';
+    return column;
+  };
+
+  const setSortDirectionValue = (direction: string) => {
+    setSortDirection(direction);
   };
 
   const openAdd = () => {
@@ -279,94 +297,123 @@ export default function ExpenseListScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Summary */}
       <View style={[styles.summaryBox, { backgroundColor: colors.surface }]}>
-        {!showAll && monthSum > 0 && (
-          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
-            Tổng tháng {selectedMonth}/{selectedYear}: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(monthSum)}</Text>
-          </Text>
-        )}
-        {showAll && allSum > 0 && (
-          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
-            Tổng toàn bộ: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(allSum)}</Text>
-          </Text>
-        )}
-        {showAll && allFilteredSum > 0 && (
-          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
-            Lịch sử theo filter: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(allFilteredSum)}</Text>
-          </Text>
-        )}
-        {weekSum > 0 && (
-          <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
-            Tổng tuần hiện tại: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(weekSum)}</Text>
-          </Text>
+        <View style={styles.summaryHeaderRow}>
+          <Text style={[styles.summaryHeaderTitle, { color: colors.text }]}>Tổng quan</Text>
+          <TouchableOpacity onPress={toggleSummaryExpanded} style={[styles.summaryCollapseBtn, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}>
+            <Text style={[styles.summaryCollapseBtnText, { color: colors.textSecondary }]}>{summaryExpanded ? '▲' : '▼'}</Text>
+          </TouchableOpacity>
+        </View>
+        {summaryExpanded && (
+          <>
+            {!showAll && monthSum > 0 && (
+              <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
+                Tổng tháng {selectedMonth}/{selectedYear}: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(monthSum)}</Text>
+              </Text>
+            )}
+            {showAll && allSum > 0 && (
+              <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
+                Tổng toàn bộ: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(allSum)}</Text>
+              </Text>
+            )}
+            {showAll && allFilteredSum > 0 && (
+              <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
+                Lịch sử theo filter: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(allFilteredSum)}</Text>
+              </Text>
+            )}
+            {weekSum > 0 && (
+              <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
+                Tổng tuần hiện tại: <Text style={[styles.bold, { color: colors.text }]}>{formatCurrency(weekSum)}</Text>
+              </Text>
+            )}
+          </>
         )}
       </View>
 
-      {/* Toggle show all */}
-      <View style={styles.toggleRow}>
-        <Switch value={showAll} onValueChange={toggleShowAll} trackColor={{ true: colors.primary }} />
-        <Text style={[styles.toggleLabel, { color: colors.textSecondary }]}>Hiển thị toàn bộ lịch sử</Text>
-      </View>
-
-      {/* Toggle group by day (only when not show-all) */}
-      {!showAll && (
+      {/* One-line controls: show-all + group-by-day */}
+      <View style={styles.topToggleRow}>
+        <View style={styles.toggleRow}>
+          <Switch value={showAll} onValueChange={toggleShowAll} trackColor={{ true: colors.primary }} />
+          <Text style={[styles.toggleLabel, { color: colors.textSecondary }]}>Hiển thị toàn bộ lịch sử</Text>
+        </View>
         <TouchableOpacity
-          style={[styles.groupDayBtn, { borderColor: colors.border, backgroundColor: groupByDay ? colors.summaryBg : colors.surface }, groupByDay && { borderColor: colors.primary }]}
+          style={[
+            styles.groupDayBtn,
+            { borderColor: colors.border, backgroundColor: groupByDay ? colors.summaryBg : colors.surface },
+            groupByDay && { borderColor: colors.primary },
+            showAll && { opacity: 0.45 },
+          ]}
           onPress={toggleGroupByDay}
+          disabled={showAll}
         >
           <Text style={[styles.groupDayBtnText, { color: groupByDay ? colors.primary : colors.textSecondary }]}>
             {groupByDay ? '📅 Đang gom theo ngày' : '📋 Gom theo ngày'}
           </Text>
         </TouchableOpacity>
-      )}
+      </View>
 
       {/* Month pagination (only if not show-all) */}
       {!showAll && (
-        <MonthPagination
-          initialMonth={selectedMonth}
-          initialYear={selectedYear}
-          onMonthChanged={onMonthChanged}
-        />
+        <View style={styles.monthAndActionRow}>
+          <TouchableOpacity style={[styles.addBtnInline, { backgroundColor: colors.primary }]} onPress={openAdd}>
+            <Text style={styles.addBtnText}>＋ Thêm mới</Text>
+          </TouchableOpacity>
+          <MonthPagination
+            initialMonth={selectedMonth}
+            initialYear={selectedYear}
+            onMonthChanged={onMonthChanged}
+            compact
+            containerStyle={styles.monthPaginationInline}
+          />
+        </View>
       )}
 
-      {/* Add button */}
-      <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.primary }]} onPress={openAdd}>
-        <Text style={styles.addBtnText}>＋ Thêm mới</Text>
-      </TouchableOpacity>
+      {/* Keep add button available in show-all mode */}
+      {showAll && (
+        <TouchableOpacity style={[styles.addBtn, { backgroundColor: colors.primary }]} onPress={openAdd}>
+          <Text style={styles.addBtnText}>＋ Thêm mới</Text>
+        </TouchableOpacity>
+      )}
 
-      {/* Filters */}
-      <FilterReasonType
-        label="Lọc theo lý do"
-        reasonTypes={reasonTypes}
-        selectedIds={filterIn}
-        onSelectionChange={onFilterInChange}
-      />
-      <FilterReasonType
-        label="Lọc theo không phải lý do"
-        reasonTypes={reasonTypes}
-        selectedIds={filterOut}
-        onSelectionChange={onFilterOutChange}
-      />
-
-      {/* Sort Bar */}
-      <View style={styles.sortBar}>
-        <Text style={[styles.sortLabel, { color: colors.textMuted }]}>Sắp xếp:</Text>
-        {[
-          { key: 'createdDate', label: 'Ngày' },
-          { key: 'amount', label: 'Số tiền' },
-          { key: 'reason', label: 'Lý do' },
-          { key: 'reasonType', label: 'Loại' },
-        ].map(col => (
-          <TouchableOpacity
-            key={col.key}
-            style={[styles.sortChip, { backgroundColor: colors.surface, borderColor: colors.border }, sortColumn === col.key && { backgroundColor: colors.summaryBg, borderColor: colors.primary }]}
-            onPress={() => onSort(col.key)}
-          >
-            <Text style={[styles.sortChipText, { color: colors.textMuted }, sortColumn === col.key && { color: colors.primary, fontWeight: '700' }]}>
-              {col.label}{getSortIcon(col.key)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      {/* Filter + sort collapsible */}
+      <View style={styles.controlHeaderRow}>
+        <TouchableOpacity
+          style={[styles.controlToggleBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+          onPress={toggleControlsExpanded}
+        >
+          <Text style={[styles.controlToggleBtnText, { color: colors.textSecondary }]}>
+            {controlsExpanded ? '▲ Thu gọn lọc/sắp xếp' : '▼ Mở lọc/sắp xếp'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.sortMenuBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+          onPress={() => setSortModalVisible(true)}
+        >
+          <Text style={[styles.sortMenuBtnText, { color: colors.textSecondary }]}>
+            Sắp xếp: {getSortLabel(sortColumn)}{getSortIcon(sortColumn)}
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {controlsExpanded && (
+        <View style={styles.filtersInlineRow}>
+          <FilterReasonType
+            label="Không theo lý do"
+            reasonTypes={reasonTypes}
+            selectedIds={filterOut}
+            onSelectionChange={onFilterOutChange}
+            containerStyle={styles.filterInlineItem}
+            placeholderText="Không theo..."
+          />
+          <FilterReasonType
+            label="Theo lý do"
+            reasonTypes={reasonTypes}
+            selectedIds={filterIn}
+            onSelectionChange={onFilterInChange}
+            containerStyle={styles.filterInlineItem}
+            placeholderText="Theo lý do..."
+          />
+        </View>
+      )}
 
       {/* List */}
       <LoadingOverlay visible={loading} />
@@ -407,6 +454,64 @@ export default function ExpenseListScreen() {
         expenseId={editingId}
         onClose={onFormClose}
       />
+
+      {/* Sort modal */}
+      <Modal visible={sortModalVisible} transparent animationType="fade">
+        <View style={styles.sortModalOverlay}>
+          <View style={[styles.sortModalContent, { backgroundColor: colors.surface }]}> 
+            <Text style={[styles.sortModalTitle, { color: colors.text }]}>Sắp xếp danh sách</Text>
+            <Text style={[styles.sortModalSubTitle, { color: colors.textMuted }]}>Chọn cột</Text>
+            {[
+              { key: 'createdDate', label: 'Ngày' },
+              { key: 'amount', label: 'Số tiền' },
+              { key: 'reason', label: 'Lý do' },
+              { key: 'reasonType', label: 'Loại' },
+            ].map(col => (
+              <TouchableOpacity
+                key={col.key}
+                style={[
+                  styles.sortOptionBtn,
+                  { borderColor: colors.border, backgroundColor: colors.surfaceAlt },
+                  sortColumn === col.key && { borderColor: colors.primary, backgroundColor: colors.summaryBg },
+                ]}
+                onPress={() => onSort(col.key)}
+              >
+                <Text style={[styles.sortOptionText, { color: sortColumn === col.key ? colors.primary : colors.text }]}>
+                  {sortColumn === col.key ? '●' : '○'} {col.label}{getSortIcon(col.key)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <Text style={[styles.sortModalSubTitle, { color: colors.textMuted }]}>Hướng sắp xếp</Text>
+            <View style={styles.sortDirectionRow}>
+              <TouchableOpacity
+                style={[
+                  styles.sortDirectionBtn,
+                  { borderColor: colors.border, backgroundColor: colors.surfaceAlt },
+                  sortDirection === 'asc' && { borderColor: colors.primary, backgroundColor: colors.summaryBg },
+                ]}
+                onPress={() => setSortDirectionValue('asc')}
+              >
+                <Text style={[styles.sortDirectionText, { color: sortDirection === 'asc' ? colors.primary : colors.text }]}>Tăng dần ▲</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.sortDirectionBtn,
+                  { borderColor: colors.border, backgroundColor: colors.surfaceAlt },
+                  sortDirection === 'desc' && { borderColor: colors.primary, backgroundColor: colors.summaryBg },
+                ]}
+                onPress={() => setSortDirectionValue('desc')}
+              >
+                <Text style={[styles.sortDirectionText, { color: sortDirection === 'desc' ? colors.primary : colors.text }]}>Giảm dần ▼</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.sortModalActionRow}>
+              <TouchableOpacity style={[styles.sortModalActionBtn, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]} onPress={() => setSortModalVisible(false)}>
+                <Text style={[styles.sortModalActionText, { color: colors.textSecondary }]}>Đóng</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -429,27 +534,82 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
+  summaryHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  summaryHeaderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  summaryCollapseBtn: {
+    borderWidth: 1,
+    width: 28,
+    height: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  summaryCollapseBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
   summaryText: { fontSize: 14, color: '#495057', marginBottom: 2 },
   bold: { fontWeight: 'bold', color: '#212529' },
   // Toggle
+  topToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+    marginBottom: 4,
+  },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    flex: 1,
   },
   toggleLabel: { marginLeft: 8, fontSize: 14, color: '#495057' },
+  monthAndActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+    marginBottom: 6,
+    gap: 8,
+  },
+  monthPaginationInline: {
+    flex: 1,
+  },
   // Add button
   addBtn: {
     backgroundColor: '#0d6efd',
     paddingVertical: 10,
     borderRadius: 6,
     alignItems: 'center',
-    marginVertical: 8,
+    marginTop: 6,
+    marginBottom: 8,
+  },
+  addBtnInline: {
+    backgroundColor: '#0d6efd',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
   },
   addBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  filtersInlineRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  filterInlineItem: {
+    flex: 1,
+    marginTop: 6,
+  },
   // List
   loader: { marginTop: 24 },
-  list: { marginTop: 8 },
+  list: { marginTop: 6 },
   emptyList: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText: { fontSize: 15, color: '#adb5bd' },
   // Row
@@ -486,53 +646,109 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   deleteBtnText: { color: '#dc3545', fontSize: 13, fontWeight: '600' },
-  // Sort bar
-  sortBar: {
+  controlHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
     gap: 6,
-    marginTop: 8,
+    marginTop: 6,
     marginBottom: 4,
   },
-  sortLabel: {
-    fontSize: 13,
-    color: '#6c757d',
-    fontWeight: '600',
-    marginRight: 2,
-  },
-  sortChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#fff',
+  controlToggleBtn: {
     borderWidth: 1,
-    borderColor: '#dee2e6',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    flex: 1,
   },
-  sortChipActive: {
-    backgroundColor: '#e0f2fe',
-    borderColor: '#0ea5e9',
+  controlToggleBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
-  sortChipText: {
+  sortMenuBtn: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    maxWidth: '53%',
+  },
+  sortMenuBtnText: {
     fontSize: 12,
-    color: '#6c757d',
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  sortChipTextActive: {
-    color: '#0ea5e9',
+  sortModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    padding: 22,
+  },
+  sortModalContent: {
+    borderRadius: 12,
+    padding: 14,
+  },
+  sortModalTitle: {
+    fontSize: 16,
     fontWeight: '700',
+    marginBottom: 8,
+  },
+  sortModalSubTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginTop: 6,
+  },
+  sortOptionBtn: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    marginBottom: 6,
+  },
+  sortOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sortDirectionRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  sortDirectionBtn: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    flex: 1,
+    alignItems: 'center',
+  },
+  sortDirectionText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  sortModalActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 12,
+  },
+  sortModalActionBtn: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  sortModalActionText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   // Group by day
   groupDayBtn: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    alignSelf: 'flex-start',
-    marginBottom: 4,
+    alignSelf: 'stretch',
+    justifyContent: 'center',
   },
   groupDayBtnText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   sectionHeader: {

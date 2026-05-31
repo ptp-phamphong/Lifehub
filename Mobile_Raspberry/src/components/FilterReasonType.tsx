@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View, StyleProp, ViewStyle } from 'react-native';
 import { ReasonType } from '../models/reasonType.model';
 import { useTheme } from '../ThemeContext';
 
@@ -8,9 +8,18 @@ interface Props {
   reasonTypes: ReasonType[];
   selectedIds: number[];
   onSelectionChange: (ids: number[]) => void;
+  containerStyle?: StyleProp<ViewStyle>;
+  placeholderText?: string;
 }
 
-export default function FilterReasonType({ label, reasonTypes, selectedIds, onSelectionChange }: Props) {
+export default function FilterReasonType({
+  label,
+  reasonTypes,
+  selectedIds,
+  onSelectionChange,
+  containerStyle,
+  placeholderText,
+}: Props) {
   const [modalVisible, setModalVisible] = useState(false);
   const { colors } = useTheme();
 
@@ -37,11 +46,11 @@ export default function FilterReasonType({ label, reasonTypes, selectedIds, onSe
     .join(', ');
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
       <TouchableOpacity style={[styles.selector, { borderColor: colors.border, backgroundColor: colors.surface }]} onPress={() => setModalVisible(true)}>
         <Text style={selectedNames ? [styles.selectedText, { color: colors.text }] : [styles.placeholder, { color: colors.textMuted }]} numberOfLines={1}>
-          {selectedNames || 'Chọn loại lý do...'}
+          {selectedNames || placeholderText || 'Chọn loại lý do...'}
         </Text>
       </TouchableOpacity>
 
