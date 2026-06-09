@@ -201,6 +201,6 @@ app.MapControllers();
 // ----------------------------
 // 7️⃣ Lắng nghe cổng nội bộ cố định cho Caddy reverse proxy
 // ----------------------------
-app.Run("http://127.0.0.1:5000");
-//    app.Run();
+//app.Run("http://127.0.0.1:5000");
+    app.Run();
 
