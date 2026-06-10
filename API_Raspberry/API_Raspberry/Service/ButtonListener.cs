@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Device.Gpio;
 using System.IO;
 using System.Threading;
@@ -12,7 +14,7 @@ namespace API_Raspberry.Service
         private readonly int _pin = 27;
         private readonly GpioController _controller;
 
-        private readonly string _logFile = "/home/pi/BotApp/button.log";
+        private readonly string _logFile;
         private static readonly object _fileLock = new object();
         private readonly List<string> emails = new List<string>() 
         {
@@ -21,9 +23,10 @@ namespace API_Raspberry.Service
             "pvtoan66@gmail.com",
         };
 
-        public ButtonListener()
+        public ButtonListener(IConfiguration configuration)
         {
             _controller = new GpioController();
+            _logFile = ResolveLogFilePath(configuration);
 
             try
             {
@@ -35,11 +38,37 @@ namespace API_Raspberry.Service
                 Console.WriteLine($"⚠️ GPIO pin {_pin} could not be opened: {ex.Message}");
             }
 
-            // Tạo file nếu chưa có
+            // Tạo thư mục + file log nếu chưa có
+            var logDir = Path.GetDirectoryName(_logFile);
+            if (!string.IsNullOrWhiteSpace(logDir))
+            {
+                Directory.CreateDirectory(logDir);
+            }
+
             if (!File.Exists(_logFile))
             {
                 File.WriteAllText(_logFile, $"== Log started at {DateTime.Now} ==\n");
             }
+        }
+
+        private static string ResolveLogFilePath(IConfiguration configuration)
+        {
+            var configuredPath = configuration["ButtonListener:LogFilePath"];
+
+            if (!string.IsNullOrWhiteSpace(configuredPath))
+            {
+                return Path.IsPathRooted(configuredPath)
+                    ? configuredPath
+                    : Path.Combine(AppContext.BaseDirectory, configuredPath);
+            }
+
+            var userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (!string.IsNullOrWhiteSpace(userHome))
+            {
+                return Path.Combine(userHome, "BotApp", "button.log");
+            }
+
+            return Path.Combine(AppContext.BaseDirectory, "button.log");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -108,7 +137,10 @@ namespace API_Raspberry.Service
 
         public override void Dispose()
         {
-            _controller.ClosePin(_pin);
+            if (_controller.IsPinOpen(_pin))
+            {
+                _controller.ClosePin(_pin);
+            }
             _controller.Dispose();
             base.Dispose();
         }
