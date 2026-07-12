@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "https://ptp-phamphong-pi.duckdns.org:3443",  // Web production
+                "https://ptp-phamphong-pi.duckdns.org",  // Web production
                 "http://localhost:4200",                          // Angular dev
                 "http://localhost:8081"                          //  Mobile dev
             )
