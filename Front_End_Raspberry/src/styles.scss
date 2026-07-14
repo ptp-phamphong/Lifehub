@@ -156,6 +156,11 @@
 }
 
 body.dark-theme {
+  // Tell the browser to render native controls (select popups, date
+  // inputs, scrollbars) in dark — without this, open <select> option
+  // lists paint on a white background with light text = unreadable.
+  color-scheme: dark;
+
   // ── Core surfaces ──
   --color-bg:           #0f172a;
   --color-bg-alt:       #1e293b;
@@ -412,8 +417,20 @@ body {
     }
   }
 
+  // Selected chips in multi-select: ng-select's default light-blue chip
+  // background stays put in dark mode, leaving light text on light blue
+  // (invisible). Give the chip a theme-aware background so the label is
+  // readable in both light and dark.
   .ng-value {
+    background: var(--color-primary-light) !important;
     color: var(--color-text) !important;
+
+    .ng-value-label { color: var(--color-text) !important; }
+    .ng-value-icon {
+      color: var(--color-text) !important;
+      border-right-color: var(--color-border) !important;
+      &:hover { background: var(--color-surface-alt) !important; }
+    }
   }
 
   .ng-input input {
@@ -461,4 +478,11 @@ textarea {
     box-shadow: 0 0 0 3px var(--color-primary-glow);
     background: var(--color-input-focus-bg);
   }
+}
+
+// Native <select> option list: color-scheme handles most browsers, but set
+// colors explicitly so the popup options stay readable everywhere.
+select option {
+  background: var(--color-input-bg);
+  color: var(--color-text);
 }
