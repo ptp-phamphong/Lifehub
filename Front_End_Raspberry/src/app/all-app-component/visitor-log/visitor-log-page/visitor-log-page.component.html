@@ -1,0 +1,96 @@
+<div class="visitor-log-container">
+
+  <div class="page-head">
+    <h2>Nhat ky truy cap</h2>
+    <p class="page-sub">Ai da ghe tham portfolio, xem trang nao, luc nao va quay lai bao nhieu lan.</p>
+  </div>
+
+  <!-- Bo loc chung cho moi tab -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Khoang thoi gian</label>
+      <div class="range-buttons">
+        <button
+          *ngFor="let option of rangeOptions"
+          class="range-btn"
+          [class.active]="selectedRange === option.days"
+          (click)="selectedRange = option.days; applyFilter()">
+          {{ option.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label for="area">Khu vuc</label>
+      <select id="area" [(ngModel)]="selectedArea" (change)="applyFilter()">
+        <option [ngValue]="null">Tat ca</option>
+        <option [ngValue]="1">Portfolio</option>
+        <option [ngValue]="2">Trang login</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="path">Trang chua chu</label>
+      <input id="path" type="text" [(ngModel)]="pathContains" (keyup.enter)="applyFilter()" placeholder="vi du: about" />
+    </div>
+
+    <div class="filter-group checks">
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="excludeSelf" (change)="applyFilter()" />
+        <span>An traffic cua toi</span>
+      </label>
+      <label class="check">
+        <input type="checkbox" [(ngModel)]="excludeBots" (change)="applyFilter()" />
+        <span>An bot</span>
+      </label>
+    </div>
+
+    <button class="btn-apply" (click)="applyFilter()">Loc</button>
+  </div>
+
+  <!-- Dang xem rieng mot khach -->
+  <div class="visitor-filter-note" *ngIf="filter?.visitorId">
+    Dang xem rieng khach <code>{{ filter.visitorId }}</code>
+    <button class="btn-clear" (click)="clearVisitorFilter()">Bo loc nay</button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Tong quan</button>
+    <button class="tab-btn" [class.active]="activeTab === 'visits'" (click)="setTab('visits')">Luot truy cap</button>
+    <button class="tab-btn" [class.active]="activeTab === 'visitors'" (click)="setTab('visitors')">Khach</button>
+    <button class="tab-btn" [class.active]="activeTab === 'myips'" (click)="setTab('myips')">IP cua toi</button>
+  </div>
+
+  <div class="tab-content">
+    <app-visitor-overview
+      *ngIf="activeTab === 'overview'"
+      [summary]="summary"
+      [history]="history">
+    </app-visitor-overview>
+
+    <app-visitor-log-list
+      *ngIf="activeTab === 'visits'"
+      [baseFilter]="filter"
+      (dataChanged)="onDataChanged()"
+      (showVisitor)="showVisitor($event)">
+    </app-visitor-log-list>
+
+    <app-visitor-profile-list
+      *ngIf="activeTab === 'visitors'"
+      [baseFilter]="filter"
+      (dataChanged)="onDataChanged()"
+      (showVisitor)="showVisitor($event)">
+    </app-visitor-profile-list>
+
+    <app-known-ip-list
+      *ngIf="activeTab === 'myips'"
+      (dataChanged)="onDataChanged()">
+    </app-known-ip-list>
+  </div>
+
+  <!-- Giay phep CC-BY cua DB-IP yeu cau dan link ve trang chu khi hien du lieu vi tri -->
+  <p class="attribution">
+    Du lieu vi tri: <a href="https://db-ip.com" target="_blank" rel="noopener">IP Geolocation by DB-IP</a>
+  </p>
+</div>

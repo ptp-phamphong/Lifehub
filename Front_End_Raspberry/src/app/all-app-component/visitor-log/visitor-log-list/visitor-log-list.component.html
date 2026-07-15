@@ -1,0 +1,109 @@
+<div class="log-table-wrapper">
+
+  <div class="table-toolbar">
+    <div class="result-count" *ngIf="result">
+      <strong>{{ result.totalCount }}</strong> luot truy cap
+      <span *ngIf="result.totalPages > 1"> - trang {{ result.page }}/{{ result.totalPages }}</span>
+    </div>
+
+    <div class="page-size">
+      <label for="pageSize">Moi trang</label>
+      <select id="pageSize" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+        <option *ngFor="let size of pageSizes" [ngValue]="size">{{ size }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-scroll">
+    <table class="expense-table">
+      <thead>
+        <tr>
+          <th class="sortable" (click)="onSort('visitedAt')">
+            Thoi gian <span class="sort-icon">{{ getSortIcon('visitedAt') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('path')">
+            Trang <span class="sort-icon">{{ getSortIcon('path') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('ipAddress')">
+            IP <span class="sort-icon">{{ getSortIcon('ipAddress') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('countryCode')">
+            Vi tri <span class="sort-icon">{{ getSortIcon('countryCode') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('referrerDomain')">
+            Nguon <span class="sort-icon">{{ getSortIcon('referrerDomain') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('browser')">
+            Trinh duyet <span class="sort-icon">{{ getSortIcon('browser') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('deviceType')">
+            Thiet bi <span class="sort-icon">{{ getSortIcon('deviceType') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('durationMs')">
+            Thoi gian doc <span class="sort-icon">{{ getSortIcon('durationMs') }}</span>
+          </th>
+          <th>Hanh dong</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngIf="result && !result.items.length">
+          <td class="empty-row" colspan="9">
+            Khong co du lieu. Neu vua bat tracking thi hay thu truy cap portfolio mot lan.
+          </td>
+        </tr>
+
+        <tr *ngFor="let row of result?.items" [class.row-self]="row.isSelf" [class.row-bot]="row.isBot">
+          <td class="col-time">{{ row.visitedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+
+          <td class="col-path">
+            <span [title]="row.pageTitle || row.path">{{ row.path }}</span>
+            <span class="badge badge-login" *ngIf="row.eventType !== 1">{{ eventTypeLabel(row) }}</span>
+            <span class="badge badge-detail" *ngIf="row.detail">{{ row.detail }}</span>
+          </td>
+
+          <td class="col-ip">
+            {{ row.ipAddress || '-' }}
+            <span class="badge badge-self" *ngIf="row.isSelf">{{ row.knownLabel || 'Cua toi' }}</span>
+            <span class="badge badge-bot" *ngIf="row.isBot">bot</span>
+          </td>
+
+          <td>{{ locationLabel(row) }}</td>
+          <td class="col-ref"><span [title]="row.referrer || ''">{{ row.referrerDomain || '-' }}</span></td>
+          <td>{{ row.browser || '-' }}</td>
+          <td>{{ row.deviceType || '-' }}</td>
+          <td>{{ formatDuration(row.durationMs) }}</td>
+
+          <td class="col-actions">
+            <button
+              class="btn-action btn-edit"
+              *ngIf="row.visitorId"
+              (click)="showVisitor.emit(row.visitorId!)"
+              title="Xem tat ca luot truy cap cua khach nay">Khach</button>
+
+            <button
+              class="btn-action btn-delete"
+              *ngIf="row.ipAddress && !row.isSelf"
+              (click)="markAsMine(row)"
+              title="Danh dau IP nay la cua toi (an khoi thong ke)">La toi</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Phan trang: xu ly o server nen bang bao nhieu dong cung khong cham -->
+  <div class="pager" *ngIf="result && result.totalPages > 1">
+    <button class="btn-page" [disabled]="result.page <= 1" (click)="goToPage(1)">&laquo;</button>
+    <button class="btn-page" [disabled]="result.page <= 1" (click)="goToPage(result.page - 1)">Truoc</button>
+
+    <button
+      class="btn-page"
+      *ngFor="let p of pageWindow"
+      [class.active]="p === result.page"
+      (click)="goToPage(p)">{{ p }}</button>
+
+    <button class="btn-page" [disabled]="result.page >= result.totalPages" (click)="goToPage(result.page + 1)">Sau</button>
+    <button class="btn-page" [disabled]="result.page >= result.totalPages" (click)="goToPage(result.totalPages)">&raquo;</button>
+  </div>
+</div>

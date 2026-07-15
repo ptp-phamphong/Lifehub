@@ -17,6 +17,9 @@ Files:
 - `12_feature-income-record-crud.md`: Income Record CRUD (web + backend), with tab integration in expense-record-list route.
 - `13_feature-semester-metadata-crud.md`: Semester metadata CRUD (web + backend) with current semester validation on Angular form.
 - `14_feature-system-configuration-crud.md`: System configuration CRUD (web + backend) for special key-value settings.
+- `15_feature-ueh-student-schedule.md`: UEH student portal SSO login + timetable HTML import.
+- `16_feature-theme-settings.md`: Dark mode / theme settings for web and mobile.
+- `17_feature-visitor-analytics.md`: Visitor analytics for the public portfolio + login-attempt audit (admin tab).
 
 Scope covered:
 - Database: MySQL

@@ -11,6 +11,7 @@ import { SemesterMetadataListComponent } from './all-app-component/semester-meta
 import { SystemConfigurationListComponent } from './all-app-component/system-configuration/system-configuration-list/system-configuration-list.component';
 import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme-settings.component';
 import { UserListComponent } from './all-app-component/user-management/user-list/user-list.component';
+import { VisitorLogPageComponent } from './all-app-component/visitor-log/visitor-log-page/visitor-log-page.component';
 import { AuthGuard } from './guards/auth.guard';
 import { LoginComponent } from './all-app-component/login/login.component';
 
@@ -35,7 +36,8 @@ const routes: Routes = [
           { path: 'semester-settings', component: SemesterMetadataListComponent },
           { path: 'system-configuration-settings', component: SystemConfigurationListComponent },
           { path: 'theme-settings', component: ThemeSettingsComponent },
-          { path: 'user-settings', component: UserListComponent }
+          { path: 'user-settings', component: UserListComponent },
+          { path: 'visitor-log-settings', component: VisitorLogPageComponent }
         ]
       },
       { path: 'reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },

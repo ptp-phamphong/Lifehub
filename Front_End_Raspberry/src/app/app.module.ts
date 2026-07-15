@@ -70,6 +70,12 @@ import { SystemConfigurationFormComponent } from './all-app-component/system-con
 import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme-settings.component';
 import { UserListComponent } from './all-app-component/user-management/user-list/user-list.component';
 import { UserFormComponent } from './all-app-component/user-management/user-form/user-form.component';
+import { VisitorLogPageComponent } from './all-app-component/visitor-log/visitor-log-page/visitor-log-page.component';
+import { VisitorOverviewComponent } from './all-app-component/visitor-log/visitor-overview/visitor-overview.component';
+import { VisitorLogListComponent } from './all-app-component/visitor-log/visitor-log-list/visitor-log-list.component';
+import { VisitorProfileListComponent } from './all-app-component/visitor-log/visitor-profile-list/visitor-profile-list.component';
+import { KnownIpListComponent } from './all-app-component/visitor-log/known-ip-list/known-ip-list.component';
+import { VisitTrendChartComponent } from './all-app-component/visitor-log/visit-trend-chart/visit-trend-chart.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -94,6 +100,12 @@ import { UserFormComponent } from './all-app-component/user-management/user-form
         UserListComponent,
         UserFormComponent,
         LoginComponent,
+        VisitorLogPageComponent,
+        VisitorOverviewComponent,
+        VisitorLogListComponent,
+        VisitorProfileListComponent,
+        KnownIpListComponent,
+        VisitTrendChartComponent,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,

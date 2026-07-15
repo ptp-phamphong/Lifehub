@@ -1,0 +1,55 @@
+<div class="known-ip-wrapper">
+
+  <p class="intro">
+    IP nao dang o day va duoc bat <strong>La toi</strong> se bi an khoi thong ke khi bo loc
+    "An traffic cua toi" dang bat. Moi lan ban dang nhap thanh cong vao trang admin,
+    IP do se <strong>tu dong</strong> duoc them vao day - nen IP nha co doi cung khong sao.
+  </p>
+
+  <div class="add-form">
+    <input type="text" [(ngModel)]="newIp" placeholder="Dia chi IP (vi du 113.161.20.10)" />
+    <input type="text" [(ngModel)]="newLabel" placeholder="Ten goi (Nha, 4G, Cong ty...)" />
+    <button class="btn-add" (click)="add()">+ Them IP</button>
+  </div>
+
+  <div class="message" *ngIf="message">{{ message }}</div>
+
+  <div class="table-scroll">
+    <table class="expense-table">
+      <thead>
+        <tr>
+          <th>IP</th>
+          <th>Trinh duyet (VisitorId)</th>
+          <th>Ten goi</th>
+          <th>La toi</th>
+          <th>Ngay them</th>
+          <th>Hanh dong</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngIf="!knownIps.length">
+          <td class="empty-row" colspan="6">Chua danh dau IP nao.</td>
+        </tr>
+
+        <tr *ngFor="let item of knownIps">
+          <td>{{ item.ipAddress || '-' }}</td>
+          <td class="col-visitor">{{ item.visitorId || '-' }}</td>
+          <td>{{ item.label || '-' }}</td>
+          <td>
+            <span class="badge" [class.badge-active]="item.isSelf" [class.badge-inactive]="!item.isSelf">
+              {{ item.isSelf ? 'Co' : 'Khong' }}
+            </span>
+          </td>
+          <td>{{ item.createdDate ? (item.createdDate | date: 'dd/MM/yyyy') : '-' }}</td>
+          <td class="col-actions">
+            <button class="btn-action btn-edit" (click)="toggleSelf(item)">
+              {{ item.isSelf ? 'Bo danh dau' : 'Danh dau la toi' }}
+            </button>
+            <button class="btn-action btn-delete" (click)="remove(item)">Xoa</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

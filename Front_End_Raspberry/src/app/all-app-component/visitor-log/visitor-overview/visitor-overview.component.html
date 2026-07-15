@@ -1,0 +1,99 @@
+<div class="overview" *ngIf="summary">
+
+  <!-- KPI -->
+  <div class="summary-section">
+    <div class="summary-card">
+      <div class="summary-label">Luot xem</div>
+      <div class="summary-value">{{ summary.totalViews }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Khach</div>
+      <div class="summary-value">{{ summary.uniqueVisitors }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Khach quay lai</div>
+      <div class="summary-value">{{ summary.returningVisitors }}</div>
+      <div class="summary-hint">tu 2 phien tro len</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Phien</div>
+      <div class="summary-value">{{ summary.sessions }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Thoi gian doc TB</div>
+      <div class="summary-value">{{ formatDuration(summary.avgDurationSeconds) }}</div>
+    </div>
+    <div class="summary-card" [class.alert]="summary.failedLogins > 0">
+      <div class="summary-label">Login that bai</div>
+      <div class="summary-value">{{ summary.failedLogins }}</div>
+      <div class="summary-hint">tren tong {{ summary.loginAttempts }} lan thu</div>
+    </div>
+  </div>
+
+  <!-- Bieu do theo ngay (tinh tu du lieu tho) -->
+  <app-visit-trend-chart
+    [points]="summary.dailySeries"
+    title="Luot xem theo ngay">
+  </app-visit-trend-chart>
+
+  <!-- Chi hien khi chon "Tat ca": du lieu tu bang tong hop nen van con
+       ke ca sau khi du lieu tho da bi xoa theo han luu tru. -->
+  <app-visit-trend-chart
+    *ngIf="history?.length"
+    [points]="history"
+    title="Lich su dai han (tu bang tong hop theo ngay - khong tinh bot va traffic cua toi)">
+  </app-visit-trend-chart>
+
+  <!-- Bang xep hang -->
+  <div class="rank-grid">
+    <div class="rank-card">
+      <h3>Trang duoc xem nhieu nhat</h3>
+      <div class="rank-empty" *ngIf="!summary.topPages.length">Chua co du lieu</div>
+      <div class="rank-row" *ngFor="let item of summary.topPages">
+        <div class="rank-bar" [style.width]="barWidth(item.count, summary.topPages)"></div>
+        <span class="rank-label" [title]="item.label">{{ item.label }}</span>
+        <span class="rank-count">{{ item.count }}</span>
+      </div>
+    </div>
+
+    <div class="rank-card">
+      <h3>Nguon truy cap</h3>
+      <div class="rank-empty" *ngIf="!summary.topReferrers.length">Chua co du lieu</div>
+      <div class="rank-row" *ngFor="let item of summary.topReferrers">
+        <div class="rank-bar" [style.width]="barWidth(item.count, summary.topReferrers)"></div>
+        <span class="rank-label" [title]="item.label">{{ item.label }}</span>
+        <span class="rank-count">{{ item.count }}</span>
+      </div>
+    </div>
+
+    <div class="rank-card">
+      <h3>Quoc gia</h3>
+      <div class="rank-empty" *ngIf="!summary.topCountries.length">Chua co du lieu</div>
+      <div class="rank-row" *ngFor="let item of summary.topCountries">
+        <div class="rank-bar" [style.width]="barWidth(item.count, summary.topCountries)"></div>
+        <span class="rank-label" [title]="item.label">{{ item.label }}</span>
+        <span class="rank-count">{{ item.count }}</span>
+      </div>
+    </div>
+
+    <div class="rank-card">
+      <h3>Thiet bi</h3>
+      <div class="rank-empty" *ngIf="!summary.topDevices.length">Chua co du lieu</div>
+      <div class="rank-row" *ngFor="let item of summary.topDevices">
+        <div class="rank-bar" [style.width]="barWidth(item.count, summary.topDevices)"></div>
+        <span class="rank-label">{{ item.label }}</span>
+        <span class="rank-count">{{ item.count }}</span>
+      </div>
+    </div>
+
+    <div class="rank-card">
+      <h3>Trinh duyet</h3>
+      <div class="rank-empty" *ngIf="!summary.topBrowsers.length">Chua co du lieu</div>
+      <div class="rank-row" *ngFor="let item of summary.topBrowsers">
+        <div class="rank-bar" [style.width]="barWidth(item.count, summary.topBrowsers)"></div>
+        <span class="rank-label">{{ item.label }}</span>
+        <span class="rank-count">{{ item.count }}</span>
+      </div>
+    </div>
+  </div>
+</div>

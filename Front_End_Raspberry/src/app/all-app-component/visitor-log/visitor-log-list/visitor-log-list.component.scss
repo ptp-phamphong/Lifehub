@@ -1,0 +1,222 @@
+$radius: 12px;
+$radius-sm: 8px;
+
+.log-table-wrapper {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  padding: 16px 18px;
+}
+
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.result-count {
+  font-size: 0.88rem;
+  color: var(--color-text-sec);
+}
+
+.page-size {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--color-text-sec);
+
+  select {
+    padding: 5px 8px;
+    border-radius: $radius-sm;
+    border: 1px solid var(--color-border);
+    background: var(--color-input-bg);
+    color: var(--color-text);
+  }
+}
+
+/* Bang rong hon man hinh thi cuon ngang trong khung nay,
+   khong bao gio lam ca trang bi cuon ngang. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.expense-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.86rem;
+
+  th,
+  td {
+    padding: 9px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--color-bg-alt);
+    color: var(--color-text-sec);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  tbody tr:hover {
+    background: var(--color-surface-alt);
+  }
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+
+.sort-icon {
+  font-size: 0.7rem;
+  margin-left: 4px;
+}
+
+.empty-row {
+  padding: 28px 10px;
+  text-align: center;
+  color: var(--color-text-muted);
+  white-space: normal;
+}
+
+/* Traffic cua minh / bot: van hien thi duoc nhung lam mo di cho de luot */
+.row-self,
+.row-bot {
+  opacity: 0.62;
+}
+
+/* Cat bot chu dai bang span BEN TRONG td - dat display:inline-block thang len <td>
+   se pha vo layout cua bang (o do khong con la table-cell nua). */
+.col-path > span:first-child,
+.col-ref > span {
+  display: inline-block;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.badge-self {
+  background: var(--color-badge-active-bg);
+  color: var(--color-badge-active-text);
+}
+
+.badge-bot {
+  background: var(--color-badge-inactive-bg);
+  color: var(--color-badge-inactive-text);
+}
+
+.badge-login {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.badge-detail {
+  background: var(--color-surface-alt);
+  color: var(--color-text-sec);
+}
+
+/* Bang rong hon man hinh -> cuon ngang. Ghim cot hanh dong ben phai
+   de cac nut khong bao gio bi cat mat. */
+.col-actions {
+  display: flex;
+  gap: 6px;
+  position: sticky;
+  right: 0;
+  background: var(--color-surface);
+  box-shadow: -6px 0 8px -6px var(--color-overlay);
+}
+
+.expense-table thead th:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  background: var(--color-bg-alt);
+}
+
+.expense-table tbody tr:hover .col-actions {
+  background: var(--color-surface-alt);
+}
+
+.btn-action {
+  padding: 4px 9px;
+  border-radius: $radius-sm;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.btn-edit {
+  background: var(--color-btn-edit-bg);
+  color: var(--color-btn-edit-text);
+  border-color: var(--color-btn-edit-border);
+}
+
+.btn-delete {
+  background: var(--color-btn-delete-bg);
+  color: var(--color-btn-delete-text);
+  border-color: var(--color-btn-delete-border);
+}
+
+/* Phan trang */
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.btn-page {
+  min-width: 36px;
+  padding: 5px 10px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  &.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}

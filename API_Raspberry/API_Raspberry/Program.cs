@@ -1,9 +1,11 @@
+using System.Net;
 using System.Text;
 using API_Raspberry.Data;
 using API_Raspberry.Mapper;
 using API_Raspberry.Repository;
 using API_Raspberry.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -11,6 +13,23 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
     ContentRootPath = AppContext.BaseDirectory
+});
+
+// ----------------------------
+// 0️⃣ Forwarded headers (BẮT BUỘC cho visitor log)
+// ----------------------------
+// Caddy reverse-proxy tới 127.0.0.1:5000, nên nếu không có middleware này thì
+// HttpContext.Connection.RemoteIpAddress luôn là 127.0.0.1 và toàn bộ khách truy cập
+// sẽ bị ghi nhận là "localhost". Caddy tự set X-Forwarded-For và không có CDN/Cloudflare
+// đứng trước, nên phần tử đầu tiên của header chính là IP thật của khách.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;                      // chỉ có duy nhất Caddy đứng trước
+    options.KnownProxies.Clear();
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Add(IPAddress.Loopback);  // Caddy chạy trên chính máy Pi
+    options.KnownProxies.Add(IPAddress.IPv6Loopback);
 });
 
 // ----------------------------
@@ -24,7 +43,8 @@ builder.Services.AddCors(options =>
             .WithOrigins(
                 "https://ptp-phamphong-pi.duckdns.org",  // Web production
                 "http://localhost:4200",                          // Angular dev
-                "http://localhost:8081"                          //  Mobile dev
+                "http://localhost:8081",                         //  Mobile dev
+                "http://localhost:3000"                          // Portfolio (Next.js) dev
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -50,6 +70,8 @@ builder.Services.AddScoped<ICourseScheduleMapper, CourseScheduleMapper>();
 builder.Services.AddScoped<IPhoneNotificationMapper, PhoneNotificationMapper>();
 builder.Services.AddScoped<INotificationFilterMapper, NotificationFilterMapper>();
 builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
+builder.Services.AddScoped<IVisitEventMapper, VisitEventMapper>();
+builder.Services.AddScoped<IVisitorKnownIpMapper, VisitorKnownIpMapper>();
 
 // ----------------------------
 // 4️⃣ Dependency Injection - Repositories
@@ -62,6 +84,9 @@ builder.Services.AddScoped<ISystemConfigurationRepository, SystemConfigurationRe
 builder.Services.AddScoped<ICourseScheduleRepository, CourseScheduleRepository>();
 builder.Services.AddScoped<IPhoneNotificationRepository, PhoneNotificationRepository>();
 builder.Services.AddScoped<INotificationFilterRepository, NotificationFilterRepository>();
+builder.Services.AddScoped<IVisitEventRepository, VisitEventRepository>();
+builder.Services.AddScoped<IVisitorKnownIpRepository, VisitorKnownIpRepository>();
+builder.Services.AddScoped<IVisitorDailyStatRepository, VisitorDailyStatRepository>();
 
 // ----------------------------
 // 5️⃣ Dependency Injection - Services
@@ -79,6 +104,13 @@ builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
 builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();
 builder.Services.AddScoped<IUehStudentScheduleService, UehStudentScheduleService>();
 builder.Services.AddScoped<IThemeSettingService, ThemeSettingService>();
+builder.Services.AddScoped<IRequestEnrichmentService, RequestEnrichmentService>();
+builder.Services.AddScoped<IVisitorLogSettingsService, VisitorLogSettingsService>();
+builder.Services.AddScoped<IVisitEventService, VisitEventService>();
+builder.Services.AddScoped<IVisitorAnalyticsService, VisitorAnalyticsService>();
+
+// GeoIp là Singleton: file .mmdb chỉ mở một lần, DatabaseReader vốn thread-safe.
+builder.Services.AddSingleton<IGeoIpService, GeoIpService>();
 // AI Provider: đọc từ config để chọn Gemini hoặc Ollama
 var aiProvider = builder.Configuration.GetValue<string>("AiProvider") ?? "Gemini";
 if (string.Equals(aiProvider, "Ollama", StringComparison.OrdinalIgnoreCase))
@@ -143,6 +175,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHostedService<ButtonListener>();
 builder.Services.AddHostedService<ScheduleImportBackgroundService>();
+builder.Services.AddHostedService<VisitorLogMaintenanceService>();
 
 var app = builder.Build();
 
@@ -158,6 +191,10 @@ try
     // Seed default notification filters
     var filterService = scope.ServiceProvider.GetRequiredService<INotificationFilterService>();
     filterService.SeedDefaults();
+
+    // Seed cấu hình mặc định cho visitor log (lưu trong bảng systemConfiguration)
+    var visitorLogSettingsService = scope.ServiceProvider.GetRequiredService<IVisitorLogSettingsService>();
+    visitorLogSettingsService.SeedDefaults();
 
     // Seed default user if no users exist
     if (!db.Users.Any())
@@ -189,6 +226,10 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection(); // Caddy xử lý HTTPS, API chỉ cần HTTP nội bộ
+
+// Phải đứng ĐẦU pipeline: middleware sau đó (và mọi controller) mới thấy được IP thật
+// của khách thay vì 127.0.0.1 của Caddy.
+app.UseForwardedHeaders();
 
 // 🔥 Thêm dòng này để bật CORS (quan trọng)
 app.UseCors("AllowAll");

@@ -1,0 +1,122 @@
+$radius: 12px;
+$radius-sm: 8px;
+
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* KPI - dung lai kieu the summary cua man hinh chi tieu */
+.summary-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.summary-card {
+  flex: 1 1 150px;
+  min-width: 150px;
+  padding: 14px 16px;
+  background: var(--color-summary-bg);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+
+  &.alert {
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-light);
+  }
+}
+
+.summary-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.summary-value {
+  margin-top: 4px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-summary-text);
+}
+
+.summary-hint {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* Bang xep hang */
+.rank-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.rank-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  padding: 16px 18px;
+
+  h3 {
+    margin: 0 0 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+}
+
+.rank-empty {
+  padding: 12px 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.rank-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: $radius-sm;
+  overflow: hidden;
+
+  & + .rank-row {
+    margin-top: 2px;
+  }
+}
+
+/* Thanh nen the hien ty le - dat duoi chu bang z-index */
+.rank-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--color-primary-light);
+  border-radius: $radius-sm;
+  z-index: 0;
+}
+
+.rank-label,
+.rank-count {
+  position: relative;
+  z-index: 1;
+}
+
+.rank-label {
+  flex: 1;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-sec);
+}

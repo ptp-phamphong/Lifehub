@@ -1,0 +1,83 @@
+<div class="log-table-wrapper">
+  <div class="table-toolbar">
+    <div class="result-count">
+      <strong>{{ visitors.length }}</strong> khach
+      <span class="hint">- moi dong la mot nguoi (theo trinh duyet), khong phai mot luot xem</span>
+    </div>
+  </div>
+
+  <div class="table-scroll">
+    <table class="expense-table">
+      <thead>
+        <tr>
+          <th class="sortable" (click)="onSort('views')">
+            Luot xem <span class="sort-icon">{{ getSortIcon('views') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('sessions')">
+            So lan ghe <span class="sort-icon">{{ getSortIcon('sessions') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('distinctPages')">
+            So trang <span class="sort-icon">{{ getSortIcon('distinctPages') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('ipAddress')">
+            IP <span class="sort-icon">{{ getSortIcon('ipAddress') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('countryName')">
+            Vi tri <span class="sort-icon">{{ getSortIcon('countryName') }}</span>
+          </th>
+          <th>Thiet bi</th>
+          <th class="sortable" (click)="onSort('firstSeen')">
+            Lan dau <span class="sort-icon">{{ getSortIcon('firstSeen') }}</span>
+          </th>
+          <th class="sortable" (click)="onSort('lastSeen')">
+            Gan nhat <span class="sort-icon">{{ getSortIcon('lastSeen') }}</span>
+          </th>
+          <th>Hanh dong</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngIf="!visitors.length">
+          <td class="empty-row" colspan="9">Chua co khach nao trong khoang thoi gian nay.</td>
+        </tr>
+
+        <tr *ngFor="let v of visitors" [class.row-self]="v.isSelf" [class.row-bot]="v.isBot">
+          <td><strong>{{ v.views }}</strong></td>
+
+          <td>
+            {{ v.sessions }}
+            <!-- Tu 2 lan ghe tro len = khach quay lai, day la thu dang quan tam nhat -->
+            <span class="badge badge-returning" *ngIf="v.sessions > 1">quay lai</span>
+          </td>
+
+          <td>{{ v.distinctPages }}</td>
+
+          <td>
+            {{ v.ipAddress || '-' }}
+            <span class="badge badge-self" *ngIf="v.isSelf">{{ v.knownLabel || 'Cua toi' }}</span>
+            <span class="badge badge-bot" *ngIf="v.isBot">bot</span>
+          </td>
+
+          <td>{{ locationLabel(v) }}</td>
+          <td>{{ v.deviceType || '-' }} / {{ v.browser || '-' }}</td>
+          <td>{{ v.firstSeen | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ v.lastSeen | date: 'dd/MM/yyyy HH:mm' }}</td>
+
+          <td class="col-actions">
+            <button
+              class="btn-action btn-edit"
+              *ngIf="v.visitorId"
+              (click)="showVisitor.emit(v.visitorId!)"
+              title="Xem tung luot truy cap cua khach nay">Chi tiet</button>
+
+            <button
+              class="btn-action btn-delete"
+              *ngIf="!v.isSelf"
+              (click)="markAsMine(v)"
+              title="Danh dau la traffic cua toi">La toi</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

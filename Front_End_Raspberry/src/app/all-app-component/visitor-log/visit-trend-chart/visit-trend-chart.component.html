@@ -1,0 +1,54 @@
+<div class="chart-card">
+  <h3 class="chart-title" *ngIf="title">{{ title }}</h3>
+
+  <div class="chart-empty" *ngIf="!bars.length">Chua co du lieu trong khoang thoi gian nay</div>
+
+  <svg
+    *ngIf="bars.length"
+    class="chart-svg"
+    [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
+    role="img"
+    [attr.aria-label]="title">
+
+    <!-- Luoi ngang + nhan truc Y -->
+    <g class="grid">
+      <line
+        *ngFor="let g of gridLines"
+        [attr.x1]="paddingLeft"
+        [attr.x2]="viewWidth"
+        [attr.y1]="g.y"
+        [attr.y2]="g.y" />
+      <text
+        *ngFor="let g of gridLines"
+        class="axis-label"
+        [attr.x]="paddingLeft - 6"
+        [attr.y]="g.y + 3"
+        text-anchor="end">{{ g.value }}</text>
+    </g>
+
+    <!-- Cot: moi cot la mot ngay -->
+    <g>
+      <rect
+        *ngFor="let b of bars"
+        class="bar"
+        [attr.x]="b.x"
+        [attr.y]="b.y"
+        [attr.width]="b.width"
+        [attr.height]="b.height"
+        rx="2">
+        <title>{{ b.label }}: {{ b.views }} luot xem / {{ b.visitors }} khach</title>
+      </rect>
+    </g>
+
+    <!-- Nhan truc X -->
+    <g>
+      <text
+        *ngFor="let b of bars; let i = index"
+        class="axis-label"
+        [class.hidden-label]="!showLabel(i)"
+        [attr.x]="b.x + b.width / 2"
+        [attr.y]="viewHeight - 6"
+        text-anchor="middle">{{ b.label }}</text>
+    </g>
+  </svg>
+</div>
