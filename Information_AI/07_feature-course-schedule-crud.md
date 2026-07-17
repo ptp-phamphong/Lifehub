@@ -2,6 +2,24 @@
 
 Manages university course schedules with full CRUD, Excel import, manual UEH reset-import, and optional background refresh by semester metadata.
 
+## Data model: one row = one session on a specific date
+
+**This is the most important thing to know about this feature.** As of 17/07/2026, a `CourseSchedule`
+row is **one class session on one exact date** (`SessionDate`), not a repeating pattern.
+
+The UEH import used to read the whole-semester "TKB thứ - tiết" view and store each course as a single
+row with `StartDate..EndDate` + `DayOfWeek`; the UI then *inferred* "every Thursday in this range has a
+class". That silently broke on every week that deviated — holidays, exam weeks, make-up classes,
+room changes. The import now reads UEH's **per-week view**, which is the ground truth for each week.
+
+**`StartDate` and `EndDate` are both set equal to `SessionDate`.** This is deliberate: the existing
+range-overlap query (`GetByMonth`) and the existing calendar filters (`date within [start,end]` AND
+`dayOfWeek` matches) then resolve to exactly one day, so they keep working unchanged.
+
+Rows created by **Excel import or manual add have `SessionDate == null`** and still behave as repeating
+patterns. Both shapes coexist — any query or UI filter must handle both. See
+`15_feature-ueh-student-schedule.md` for the import mechanics and the portal's traps.
+
 ## Backend
 
 ### Endpoints
@@ -15,23 +33,31 @@ Manages university course schedules with full CRUD, Excel import, manual UEH res
 | DELETE | `/DeleteCourseSchedule/{id}` | — | `bool` |
 | DELETE | `/DeleteBySemesterMetadataId/{semesterMetadataId}` | — | `bool` |
 | GET | `/GetCourseScheduleByMonth/{month}/{year}` | — | `List<CourseScheduleDto>` |
+| GET | `/GetCourseScheduleByWeek/{date}` | `date` = any date in the week, `yyyy-MM-dd` | `List<CourseScheduleDto>` |
 | POST | `/ImportCourseSchedule` | `IFormFile file`, `int? semesterMetadataId` (multipart/form-data) | `{ count, data }` |
-| POST | `/ResetImportCourseScheduleFromUeh` | `{ saveLogin?: bool }` (optional JSON body) | `{ message, count, semesterMetadataId, yearStudy, termId, data }` |
+| POST | `/ResetImportCourseScheduleFromUeh` | `{ saveLogin?: bool }` (optional JSON body) | `{ message, count, weeksScanned, weeksWithData, semesterMetadataId, yearStudy, termId, data }` |
 
 ### Flow
 
 ```
 CourseScheduleController → ICourseScheduleService → ICourseScheduleRepository → AppDbContext
-                         → ICourseScheduleImportService (Excel import / HTML import)
-                         → IUehStudentScheduleService (UEH SSO login + schedule fetch)
+                         → ICourseScheduleImportService (Excel import / HTML import / week parse)
+                         → ICourseScheduleUehSyncService (orchestrates the per-week UEH sync)
+                              → IUehStudentScheduleService (UEH SSO login + fetch)
+                              → ICourseScheduleImportService.ParseWeekHtml
+                              → ICourseScheduleService (delete + AddRange)
                          → ICourseScheduleMapper (DTO ↔ Entity)
 ```
+
+`ScheduleImportBackgroundService` calls the **same** `ICourseScheduleUehSyncService` as the controller —
+the two used to duplicate this logic. Put changes to the sync flow there, not in either caller.
 
 ### Key files
 
 - Controller: `API_Raspberry/Controllers/CourseScheduleController.cs`
 - Service: `API_Raspberry/Service/CourseScheduleService.cs`
-- Import service: `API_Raspberry/Service/CourseScheduleImportService.cs` — handles both Excel and UEH HTML import
+- **UEH sync orchestration**: `API_Raspberry/Service/CourseScheduleUehSyncService.cs`
+- Import service: `API_Raspberry/Service/CourseScheduleImportService.cs` — Excel, UEH HTML, and per-week parsing
 - UEH fetch service: `API_Raspberry/Service/UehStudentScheduleService.cs`
 - Repository: `API_Raspberry/Repository/CourseScheduleRepository.cs`
 - Mapper: `API_Raspberry/Mapper/CourseScheduleMapper.cs`
@@ -43,15 +69,37 @@ CourseScheduleController → ICourseScheduleService → ICourseScheduleRepositor
 - `Id` (int, PK)
 - `CourseName` (string, required)
 - `CourseCode` (string, required)
-- `StartDate` (DateTime?, nullable)
-- `EndDate` (DateTime?, nullable)
+- `StartDate` (DateTime?, nullable) — equals `SessionDate` for UEH-imported rows
+- `EndDate` (DateTime?, nullable) — equals `SessionDate` for UEH-imported rows
 - `StartTime` (string) — e.g., "07:00"
 - `EndTime` (string) — e.g., "09:30"
-- `Room` (string)
-- `Address` (string)
+- `Room` (string) — empty for ONLINE/LMS/NGHỈ sessions, which have no room
+- `Address` (string) — **not available from the per-week view**; only the Perior view supplies it
 - `SemesterMetadataId` (int?, nullable FK -> `semesterMetadata.Id`)
 - `DayOfWeek` (int?) — 2=Monday, 3=Tuesday, ..., 8=Sunday
 - `CreatedDate` (DateTime?)
+
+Added 17/07/2026 (migration `20260717065029_AddWeeklyCourseSessionFields`, all nullable):
+
+- `SessionDate` (DateTime?) — **exact date of the session**; null for Excel/manual rows
+- `WeekOfYear` (int?) — ISO week; equals the `Week` param sent to UEH. **Not unique** — see doc 15
+- `DisplayWeek` (int?) — the week number UEH shows in its dropdown; differs from `WeekOfYear`
+- `StartPeriod` / `EndPeriod` (int?) — from `Tiết: 2-5`
+- `ClassCode` (string) — `LHP: 26D1INF60900101`
+- `Lecturer` / `LecturerEmail` (string)
+- `LearningMode` (string) — `TẬP TRUNG` | `ONLINE` | `LMS` | **`NGHỈ`** (cancelled session, not a class)
+- `Language` (string)
+
+### GetByWeek query logic
+
+Takes **any date in the week** and resolves to that week's Monday..Sunday. It deliberately does *not*
+filter on `(year, WeekOfYear)`: ISO weeks are not unique across a semester (week 1 of academic year
+2026 starts 29/12/**2025**), so a year+week match drops exactly the weeks that straddle new year.
+`SessionDate` is the source of truth.
+
+The query also returns rows with `SessionDate == null` whose `StartDate..EndDate` overlaps the week —
+otherwise Excel-imported courses would vanish from the week view. The display layer matches `DayOfWeek`
+for those, as it already does for the month view.
 
 DTO response now also includes:
 - `SemesterName` (string?)
@@ -87,11 +135,24 @@ Returns courses where the course's `[StartDate, EndDate]` range overlaps with th
 
 ### Reset import from UEH (`/ResetImportCourseScheduleFromUeh`)
 
-1. Looks up the SemesterMetadata where `IsCurrentSemester = true`.
-2. Calls `IUehStudentScheduleService.FetchScheduleAsync()` to login UEH SSO and get schedule HTML.
-3. Deletes all existing courses for the current semester (`DeleteBySemesterMetadataId`).
-4. Calls `ImportFromHtml()` to parse and re-insert from fresh HTML.
-5. Returns count, semesterMetadataId, yearStudy, termId, data.
+Delegates entirely to `ICourseScheduleUehSyncService.ResetImportByWeekAsync()`:
+
+1. `IUehStudentScheduleService.FetchAllWeeksAsync()` — one SSO login, fetch the week list, then fetch
+   each distinct week (~52 requests, ~400ms apart).
+2. `ParseWeekHtml()` each week's HTML; empty weeks are normal and skipped.
+3. Only **after** everything is parsed: `DeleteBySemesterMetadataId` then `AddRange`.
+4. Returns `{ message, count, weeksScanned, weeksWithData, semesterMetadataId, yearStudy, termId, data }`.
+
+**Two safety guards — do not remove them:**
+
+- **Delete happens last.** The old code deleted first and imported second. With ~52 requests, a portal
+  failure mid-run would have wiped the whole schedule.
+- **Never delete when 0 sessions parsed.** A genuinely empty semester is rare; a portal layout change or
+  an expired session is not — and wiping the schedule is far worse than keeping stale data. This guard
+  already fired for real during development and saved the data. Use `DeleteBySemesterMetadataId` to
+  clear an empty semester deliberately.
+
+Typical real run: `75 sessions from 26/52 weeks`.
 
 ### Background refresh job
 
@@ -178,9 +239,37 @@ Fallback appsettings shape:
 
 ```typescript
 getCourseScheduleByMonth(month: number, year: number): Promise<CourseSchedule[]>
+getCourseScheduleByWeek(anyDateInWeek: Date): Promise<CourseSchedule[]>
 ```
 
-Only read-by-month is implemented in mobile service. No create/update/delete/import.
+Only reads are implemented in the mobile service. No create/update/delete/import.
+
+`CourseWeekCalendar` uses `getCourseScheduleByWeek` (one request). It previously called
+`getCourseScheduleByMonth` twice and merged when a week straddled two months; the Angular week
+calendar had the identical workaround. Both are gone.
+
+### Rendering sessions by `learningMode`
+
+Week calendars (both platforms) show every session and distinguish them rather than hiding any:
+
+- `NGHỈ` → muted background + strikethrough name, using theme tokens
+  (`var(--color-surface-alt)` / `var(--color-text-muted)` / `var(--color-border)` in Angular;
+  `colors.surfaceAlt` / `colors.textSecondary` / `colors.border` in React Native), so it reads
+  correctly in **both light and dark**.
+- `ONLINE` / `LMS` → course colour kept, mode shown as the label where the room would be.
+- `TẬP TRUNG` → default; no label, room shown.
+
+Month calendars do the same, via `getChipColor`.
+
+Comparisons go through a shared util — `Front_End_Raspberry/src/app/utils/learning-mode.ts` and
+`Mobile_Raspberry/src/utils/learningMode.ts` — which calls `.normalize('NFC')` before comparing. See
+doc 15 on why Vietnamese from UEH cannot be compared naively. Keep this in the util: inlining it into
+components would mean four copies of the same subtle rule (week + month × two platforms).
+
+⚠ **Do not use the `border` token for a cancelled session's colour.** In both calendars the `border`
+value is applied to the left border **and** to the time text. `--color-border` (#334155) is identical to
+`--color-surface-alt` (#334155) in the dark theme, so the time became invisible. Use `--color-text-muted`
+(Angular) / `colors.textSecondary` (React Native).
 
 ### Mobile UI
 

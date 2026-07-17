@@ -9,8 +9,10 @@ namespace API_Raspberry.Service
         List<CourseScheduleDto> GetAll();
         CourseScheduleDto GetById(int id);
         void Add(CourseScheduleCreateDto dto);
+        void AddRange(List<CourseScheduleCreateDto> dtos);
         void Update(int id, CourseScheduleUpdateDto dto);
         List<CourseScheduleDto> GetByMonth(int month, int year);
+        List<CourseScheduleDto> GetByWeek(DateTime anyDateInWeek);
         void Delete(int id);
         void DeleteBySemesterMetadataId(int semesterMetadataId);
 
@@ -44,6 +46,11 @@ namespace API_Raspberry.Service
             _courseScheduleRepository.Add(dto);
         }
 
+        public void AddRange(List<CourseScheduleCreateDto> dtos)
+        {
+            _courseScheduleRepository.AddRange(dtos);
+        }
+
         public void Update(int id, CourseScheduleUpdateDto dto)
         {
             _courseScheduleRepository.Update(id, dto);
@@ -52,6 +59,12 @@ namespace API_Raspberry.Service
         public List<CourseScheduleDto> GetByMonth(int month, int year)
         {
             var entities = _courseScheduleRepository.GetByMonth(month, year);
+            return _courseScheduleMapper.ToDtoList(entities);
+        }
+
+        public List<CourseScheduleDto> GetByWeek(DateTime anyDateInWeek)
+        {
+            var entities = _courseScheduleRepository.GetByWeek(anyDateInWeek);
             return _courseScheduleMapper.ToDtoList(entities);
         }
 

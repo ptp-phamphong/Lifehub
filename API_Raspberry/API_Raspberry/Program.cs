@@ -98,6 +98,7 @@ builder.Services.AddScoped<ISemesterMetadataService, SemesterMetadataService>();
 builder.Services.AddScoped<ISystemConfigurationService, SystemConfigurationService>();
 builder.Services.AddScoped<ICourseScheduleService, CourseScheduleService>();
 builder.Services.AddScoped<ICourseScheduleImportService, CourseScheduleImportService>();
+builder.Services.AddScoped<ICourseScheduleUehSyncService, CourseScheduleUehSyncService>();
 builder.Services.AddScoped<IPhoneNotificationService, PhoneNotificationService>();
 builder.Services.AddScoped<INotificationFilterService, NotificationFilterService>();
 builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();

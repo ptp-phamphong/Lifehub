@@ -14,6 +14,7 @@ namespace API_Raspberry.Repository
         void AddRange(List<CourseScheduleCreateDto> dtos);
         void Update(int id, CourseScheduleUpdateDto dto);
         List<CourseSchedule> GetByMonth(int month, int year);
+        List<CourseSchedule> GetByWeek(DateTime anyDateInWeek);
         void Delete(int id);
         void DeleteBySemesterMetadataId(int semesterMetadataId);
     }
@@ -86,6 +87,40 @@ namespace API_Raspberry.Repository
                          && c.StartDate.Value <= endOfMonth
                          && c.EndDate.Value >= startOfMonth)
                 .OrderBy(c => c.StartTime)
+                .ToList();
+        }
+
+        /// <summary>
+        /// Lấy các buổi học trong tuần chứa ngày truyền vào (tuần bắt đầu từ thứ Hai).
+        ///
+        /// Lọc theo khoảng SessionDate chứ không theo (năm, tuần ISO): tuần ISO không unique —
+        /// tuần 1 của năm học 2026 bắt đầu từ 29/12/2025 — nên so khớp theo năm sẽ hụt đúng
+        /// những tuần vắt qua giao thừa. SessionDate mới là sự thật.
+        /// </summary>
+        public List<CourseSchedule> GetByWeek(DateTime anyDateInWeek)
+        {
+            var date = anyDateInWeek.Date;
+            var daysSinceMonday = ((int)date.DayOfWeek + 6) % 7;
+            var startOfWeek = date.AddDays(-daysSinceMonday);
+            var endOfWeek = startOfWeek.AddDays(6);
+
+            return _context.CourseSchedules
+                .Include(c => c.SemesterMetadata)
+                .Where(c =>
+                    // Buổi học import theo tuần từ UEH: có ngày cụ thể.
+                    (c.SessionDate.HasValue
+                        && c.SessionDate.Value >= startOfWeek
+                        && c.SessionDate.Value <= endOfWeek)
+                    // Bản ghi cũ (import Excel / thêm tay) không có SessionDate mà chỉ có khoảng
+                    // ngày lặp — vẫn phải trả về, nếu không chúng biến mất khỏi lịch tuần.
+                    // Việc khớp DayOfWeek để lớp hiển thị làm, như nó vẫn đang làm với lịch tháng.
+                    || (!c.SessionDate.HasValue
+                        && c.StartDate.HasValue && c.EndDate.HasValue
+                        && c.StartDate.Value <= endOfWeek
+                        && c.EndDate.Value >= startOfWeek))
+                .OrderBy(c => c.SessionDate)
+                .ThenBy(c => c.StartPeriod)
+                .ThenBy(c => c.StartTime)
                 .ToList();
         }
 

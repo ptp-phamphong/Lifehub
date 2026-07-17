@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using API_Raspberry.Dto;
 using API_Raspberry.Repository;
@@ -11,15 +12,23 @@ namespace API_Raspberry.Service
     {
         List<CourseScheduleCreateDto> ImportFromExcel(Stream fileStream, int? semesterMetadataId);
         List<CourseScheduleCreateDto> ImportFromHtml(string scheduleHtml, int? semesterMetadataId);
+
+        // Khác ImportFromExcel/ImportFromHtml: hàm này KHÔNG ghi DB, chỉ trả về dữ liệu đã parse.
+        // Caller gom đủ mọi tuần rồi mới xoá + insert một lần, để portal lỗi giữa chừng không làm mất TKB.
+        List<CourseScheduleCreateDto> ParseWeekHtml(string weekHtml, int? semesterMetadataId, int week);
     }
 
     public class CourseScheduleImportService : ICourseScheduleImportService
     {
         private readonly ICourseScheduleRepository _courseScheduleRepository;
+        private readonly ILogger<CourseScheduleImportService> _logger;
 
-        public CourseScheduleImportService(ICourseScheduleRepository courseScheduleRepository)
+        public CourseScheduleImportService(
+            ICourseScheduleRepository courseScheduleRepository,
+            ILogger<CourseScheduleImportService> logger)
         {
             _courseScheduleRepository = courseScheduleRepository;
+            _logger = logger;
         }
 
         public List<CourseScheduleCreateDto> ImportFromExcel(Stream fileStream, int? semesterMetadataId)
@@ -154,6 +163,264 @@ namespace API_Raspberry.Service
             return results;
         }
 
+        public List<CourseScheduleCreateDto> ParseWeekHtml(string weekHtml, int? semesterMetadataId, int week)
+        {
+            var results = new List<CourseScheduleCreateDto>();
+            if (string.IsNullOrWhiteSpace(weekHtml))
+            {
+                return results;
+            }
+
+            var doc = new HtmlDocument();
+            doc.LoadHtml(weekHtml);
+
+            // Chuẩn hoá sau DeEntitize — xem NormalizeVietnamese để biết vì sao thứ tự này bắt buộc.
+            var pageText = NormalizeVietnamese(HtmlEntity.DeEntitize(doc.DocumentNode.InnerText ?? string.Empty));
+            var caption = Regex.Match(
+                pageText,
+                @"Tuần\s*(\d+)\s*:\s*từ\s*ngày\s*(\d{2}/\d{2}/\d{4})\s*đến\s*ngày\s*(\d{2}/\d{2}/\d{4})");
+
+            // Không có caption = tuần nằm ngoài danh sách của học kỳ này. Bình thường, không phải lỗi.
+            if (!caption.Success)
+            {
+                return results;
+            }
+
+            var displayWeek = int.Parse(caption.Groups[1].Value, CultureInfo.InvariantCulture);
+            if (!DateTime.TryParseExact(caption.Groups[2].Value, "dd/MM/yyyy",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out var weekStart))
+            {
+                _logger.LogWarning("Tuần {Week}: không parse được ngày bắt đầu '{Raw}'.", week, caption.Groups[2].Value);
+                return results;
+            }
+
+            var rows = doc.DocumentNode.SelectNodes("//table//tr");
+            if (rows == null || rows.Count == 0)
+            {
+                return results;
+            }
+
+            // Giải rowspan/colspan bằng lưới chiếm chỗ. Không dùng được chỉ số cell thô: một ô rowspan
+            // ở cột trước sẽ đẩy lệch chỉ số của các ô ở những dòng nó phủ qua.
+            var occupied = new HashSet<(int Row, int Col)>();
+
+            for (var ri = 0; ri < rows.Count; ri++)
+            {
+                var cells = rows[ri].SelectNodes("./td|./th");
+                if (cells == null)
+                {
+                    continue;
+                }
+
+                var col = 0;
+                foreach (var cell in cells)
+                {
+                    while (occupied.Contains((ri, col)))
+                    {
+                        col++;
+                    }
+
+                    var rowSpan = Math.Max(cell.GetAttributeValue("rowspan", 1), 1);
+                    var colSpan = Math.Max(cell.GetAttributeValue("colspan", 1), 1);
+
+                    for (var r = ri; r < ri + rowSpan; r++)
+                    {
+                        for (var c = col; c < col + colSpan; c++)
+                        {
+                            occupied.Add((r, c));
+                        }
+                    }
+
+                    var dto = ParseWeekCell(cell, col, weekStart, displayWeek, week, semesterMetadataId);
+                    if (dto != null)
+                    {
+                        results.Add(dto);
+                    }
+
+                    col += colSpan;
+                }
+            }
+
+            return results
+                .GroupBy(x => (x.SessionDate, x.StartPeriod, x.CourseCode))
+                .Select(g => g.First())
+                .ToList();
+        }
+
+        /// <summary>
+        /// Cột 0 = "Tiết", cột 1..7 = Thứ hai..Chủ nhật → DayOfWeek 2..8 (đúng convention sẵn có).
+        /// </summary>
+        private CourseScheduleCreateDto ParseWeekCell(
+            HtmlNode cell,
+            int col,
+            DateTime weekStart,
+            int displayWeek,
+            int week,
+            int? semesterMetadataId)
+        {
+            if (col < 1 || col > 7)
+            {
+                return null;
+            }
+
+            var content = cell.SelectSingleNode(".//div[contains(@class,'Content')]");
+            if (content == null)
+            {
+                return null;
+            }
+
+            var spans = content.SelectNodes(".//span");
+            if (spans == null || spans.Count == 0)
+            {
+                return null;
+            }
+
+            string room = null, nameAndCode = null, classCode = null;
+            string periodText = null, timeText = null;
+            string lecturer = null, lecturerEmail = null, learningMode = null, language = null;
+
+            foreach (var span in spans)
+            {
+                var text = GetNodeText(span);
+                if (string.IsNullOrWhiteSpace(text))
+                {
+                    continue;
+                }
+
+                // Khớp theo danh sách nhãn cố định thay vì bắt mọi "x: y" — tên học phần có thể chứa dấu hai chấm.
+                if (TryGetLabelled(text, "LHP", out var value)) classCode = value;
+                else if (TryGetLabelled(text, "Số tiết", out _)) { /* suy được từ "Tiết: a-b", bỏ qua */ }
+                else if (TryGetLabelled(text, "Tiết", out value)) periodText = value;
+                else if (TryGetLabelled(text, "Giờ học", out value)) timeText = value;
+                else if (TryGetLabelled(text, "GV", out value)) lecturer = value;
+                else if (TryGetLabelled(text, "Email", out value)) lecturerEmail = value;
+                else if (TryGetLabelled(text, "Hình thức học", out value)) learningMode = value;
+                else if (TryGetLabelled(text, "Ngôn ngữ", out value)) language = value;
+                // Hai span đầu không có nhãn: phòng, rồi "Tên học phần (Mã)". Nhưng buổi LMS/ONLINE/NGHỈ
+                // không có phòng nên span phòng vắng hẳn — nhận diện theo cấu trúc (đuôi "(Mã)"),
+                // không theo vị trí, nếu không tên học phần sẽ bị nuốt vào Room.
+                else if (nameAndCode == null && HasTrailingCode(text)) nameAndCode = text;
+                else if (room == null) room = text;
+                else if (nameAndCode == null) nameAndCode = text;
+            }
+
+            var (courseName, courseCode) = SplitNameAndCode(nameAndCode);
+            if (string.IsNullOrWhiteSpace(courseCode))
+            {
+                courseCode = classCode;
+            }
+
+            // CourseName/CourseCode là [Required] — thiếu thì insert sẽ nổ ở SaveChanges.
+            // Bỏ ô và log để layout đổi không biến thành lỗi câm.
+            if (string.IsNullOrWhiteSpace(courseName) || string.IsNullOrWhiteSpace(courseCode))
+            {
+                _logger.LogWarning(
+                    "Tuần {Week}, cột {Col}: bỏ qua ô không đọc được tên/mã học phần. Nội dung: {Text}",
+                    week, col, GetNodeText(content));
+                return null;
+            }
+
+            var (startPeriod, endPeriod) = ParsePeriodRange(periodText);
+            var (startTime, endTime) = ParseTimeRange(timeText);
+            var sessionDate = weekStart.AddDays(col - 1);
+
+            return new CourseScheduleCreateDto
+            {
+                CourseName = courseName,
+                CourseCode = courseCode,
+                DayOfWeek = col + 1,
+                SessionDate = sessionDate,
+                // Giữ StartDate = EndDate = SessionDate để query theo khoảng ngày và bộ lọc
+                // sẵn có của web/mobile khớp đúng một ngày duy nhất.
+                StartDate = sessionDate,
+                EndDate = sessionDate,
+                WeekOfYear = week,
+                DisplayWeek = displayWeek,
+                StartPeriod = startPeriod,
+                EndPeriod = endPeriod,
+                StartTime = startTime,
+                EndTime = endTime,
+                Room = room,
+                ClassCode = classCode,
+                Lecturer = lecturer,
+                LecturerEmail = lecturerEmail,
+                LearningMode = learningMode,
+                Language = language,
+                SemesterMetadataId = semesterMetadataId,
+                // View tuần không trả cơ sở/địa chỉ (chỉ view Perior mới có).
+                Address = null
+            };
+        }
+
+        private static bool TryGetLabelled(string text, string label, out string value)
+        {
+            value = null;
+
+            var match = Regex.Match(text, "^" + Regex.Escape(label) + @"\s*:\s*(.*)$", RegexOptions.IgnoreCase);
+            if (!match.Success)
+            {
+                return false;
+            }
+
+            // Nhãn khớp là đủ để nhận: trả false khi giá trị rỗng sẽ khiến span "Email:" rỗng
+            // rơi xuống nhánh không-nhãn và bị gán nhầm vào Room.
+            var raw = match.Groups[1].Value.Trim();
+            value = string.IsNullOrEmpty(raw) ? null : raw;
+            return true;
+        }
+
+        private static bool HasTrailingCode(string input)
+        {
+            return !string.IsNullOrWhiteSpace(input) && Regex.IsMatch(input.Trim(), @"\([^)]+\)$");
+        }
+
+        /// <summary>
+        /// "Thiết kế thông tin và chiến lược nội dung (INF609001)" → ("Thiết kế thông tin và chiến lược nội dung", "INF609001")
+        /// </summary>
+        private static (string name, string code) SplitNameAndCode(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return (null, null);
+            }
+
+            var match = Regex.Match(input.Trim(), @"^(.*?)\s*\(([^)]+)\)\s*$");
+            if (!match.Success)
+            {
+                return (input.Trim(), null);
+            }
+
+            return (match.Groups[1].Value.Trim(), match.Groups[2].Value.Trim());
+        }
+
+        /// <summary>
+        /// "2-5" → (2, 5). "3" → (3, 3).
+        /// </summary>
+        private static (int? startPeriod, int? endPeriod) ParsePeriodRange(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return (null, null);
+            }
+
+            var range = Regex.Match(input, @"^\s*(\d+)\s*-\s*(\d+)\s*$");
+            if (range.Success)
+            {
+                return (
+                    int.Parse(range.Groups[1].Value, CultureInfo.InvariantCulture),
+                    int.Parse(range.Groups[2].Value, CultureInfo.InvariantCulture));
+            }
+
+            var single = Regex.Match(input, @"^\s*(\d+)\s*$");
+            if (single.Success)
+            {
+                var value = int.Parse(single.Groups[1].Value, CultureInfo.InvariantCulture);
+                return (value, value);
+            }
+
+            return (null, null);
+        }
+
         private CourseScheduleCreateDto ParseScheduleRow(
             string courseCode,
             string courseName,
@@ -203,8 +470,22 @@ namespace API_Raspberry.Service
             }
 
             var raw = node.InnerText ?? string.Empty;
-            var decoded = HtmlEntity.DeEntitize(raw);
-            return Regex.Replace(decoded, @"\s+", " ").Trim();
+            var decoded = HtmlEntity.DeEntitize(raw) ?? string.Empty;
+            return Regex.Replace(NormalizeVietnamese(decoded), @"\s+", " ").Trim();
+        }
+
+        /// <summary>
+        /// Portal UEH trả tiếng Việt ở dạng Unicode tổ hợp: "ầ" là U+00E2 + U+0300 (2 code point)
+        /// chứ không phải U+1EA7 dựng sẵn. Trình duyệt render vẫn đúng nên nhìn bằng mắt không phát hiện,
+        /// nhưng mọi so khớp chuỗi có dấu ("Tuần", "Tiết:", "Giờ học:", "Thứ Hai") đều trượt trong im lặng.
+        ///
+        /// Phải chuẩn hoá SAU khi DeEntitize: một phần dấu được mã hoá bằng HTML entity, nên chuẩn hoá
+        /// trên HTML thô sẽ bỏ sót và dạng tổ hợp quay lại ngay khi entity được giải mã.
+        /// FormC là idempotent nên gọi trên text vốn đã dựng sẵn cũng vô hại.
+        /// </summary>
+        private static string NormalizeVietnamese(string input)
+        {
+            return string.IsNullOrEmpty(input) ? input : input.Normalize(NormalizationForm.FormC);
         }
 
         private static void ParseCourseInfo(HtmlNode courseInfoCell, out string courseCode, out string courseName)
@@ -312,15 +593,17 @@ namespace API_Raspberry.Service
         }
 
         /// <summary>
-        /// "8->11 (12g45->16g15)" → ("12:45", "16:15")
+        /// "8->11 (12g45->16g15)" → ("12:45", "16:15")   (view Perior / Excel)
         /// "2->5 (07g10->10g40)"  → ("07:10", "10:40")
+        /// "07g10->10g40"         → ("07:10", "10:40")   (view tuần, không có ngoặc)
         /// </summary>
         private (string startTime, string endTime) ParseTimeRange(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return (null, null);
 
-            // Match the actual time in parentheses: (HHgMM->HHgMM)
-            var match = Regex.Match(input, @"\((\d{1,2})g(\d{2})\s*->\s*(\d{1,2})g(\d{2})\)");
+            // Ngoặc là tuỳ chọn: view tuần trả "07g10->10g40" trần. Vẫn bắt buộc dạng HgMM->HgMM
+            // nên phần "8->11" (số tiết) ở đầu chuỗi view Perior không thể khớp nhầm.
+            var match = Regex.Match(input, @"\(?(\d{1,2})g(\d{2})\s*->\s*(\d{1,2})g(\d{2})\)?");
             if (match.Success)
             {
                 var startH = match.Groups[1].Value.PadLeft(2, '0');

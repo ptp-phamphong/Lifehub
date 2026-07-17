@@ -12,8 +12,9 @@ import {
   View,
 } from 'react-native';
 import { CourseSchedule } from '../models/courseSchedule.model';
-import { getCourseScheduleByMonth } from '../services/courseScheduleService';
+import { getCourseScheduleByWeek } from '../services/courseScheduleService';
 import { toLunarDate, formatLunarDateVN } from '../utils/lunarCalendar';
+import { isCancelledSession, learningModeLabel } from '../utils/learningMode';
 import { useTheme } from '../ThemeContext';
 import LoadingOverlay from './LoadingOverlay';
 
@@ -32,6 +33,10 @@ interface CourseBlock {
   color: string;
   textColor: string;
   borderColor: string;
+  /** Buổi nghỉ: hiển thị mờ + gạch ngang thay vì như buổi học bình thường. */
+  cancelled: boolean;
+  /** Nhãn hình thức học; rỗng với TẬP TRUNG vì đó là mặc định. */
+  modeLabel: string;
 }
 
 // ─── Constants ────────────────────────────────────────────
@@ -171,32 +176,12 @@ export default function CourseWeekCalendar() {
   }, [mondayDate]);
 
   // ── Load courses ────────────────────────────────────────
+  // Gọi thẳng API tuần: backend đã trả đúng các buổi của tuần này. Trước đây phải gọi
+  // theo tháng và ghép hai tháng khi tuần vắt qua ranh giới tháng.
   const loadCourses = useCallback(async () => {
     setLoading(true);
     try {
-      const month1 = mondayDate.getMonth() + 1;
-      const year1 = mondayDate.getFullYear();
-      const sunday = new Date(mondayDate);
-      sunday.setDate(sunday.getDate() + 6);
-      const month2 = sunday.getMonth() + 1;
-      const year2 = sunday.getFullYear();
-
-      const data1 = await getCourseScheduleByMonth(month1, year1);
-
-      if (month1 !== month2 || year1 !== year2) {
-        try {
-          const data2 = await getCourseScheduleByMonth(month2, year2);
-          const merged = [...data1];
-          for (const c of data2) {
-            if (!merged.find((m) => m.id === c.id)) merged.push(c);
-          }
-          setCourses(merged);
-        } catch {
-          setCourses(data1);
-        }
-      } else {
-        setCourses(data1);
-      }
+      setCourses(await getCourseScheduleByWeek(mondayDate));
     } catch (err) {
       console.error('Lỗi khi tải thời khóa biểu:', err);
       setCourses([]);
@@ -238,6 +223,13 @@ export default function CourseWeekCalendar() {
 
       return courses
         .filter((c) => {
+          // Buổi học từ UEH có ngày cụ thể — khớp thẳng, không suy diễn.
+          if (c.sessionDate) {
+            const session = new Date(c.sessionDate);
+            session.setHours(0, 0, 0, 0);
+            return isSameDay(session, dateNorm);
+          }
+          // Bản ghi cũ (import Excel / thêm tay) chỉ có khoảng ngày lặp: giữ cách suy diễn cũ.
           if (!c.startDate || !c.endDate) return false;
           const start = new Date(c.startDate);
           start.setHours(0, 0, 0, 0);
@@ -259,19 +251,25 @@ export default function CourseWeekCalendar() {
           const key = c.courseCode || c.courseName || String(c.id);
           const colorIdx = colorMap.get(key) || 0;
           const palette = COURSE_COLORS[colorIdx];
+          const cancelled = isCancelledSession(c);
 
           return {
             course: c,
             top,
             height,
-            color: palette.bg,
-            textColor: palette.text,
-            borderColor: palette.border,
+            // Buổi nghỉ lấy màu từ theme để mờ đúng ở cả sáng lẫn tối; buổi học giữ màu riêng theo môn.
+            color: cancelled ? colors.surfaceAlt : palette.bg,
+            textColor: cancelled ? colors.textSecondary : palette.text,
+            // Không dùng colors.border: borderColor cũng là màu chữ giờ học, mà border
+            // gần trùng surfaceAlt trong dark theme → chữ tàng hình.
+            borderColor: cancelled ? colors.textSecondary : palette.border,
+            cancelled,
+            modeLabel: learningModeLabel(c),
           };
         })
         .sort((a, b) => a.top - b.top);
     },
-    [courses, colorMap],
+    [courses, colorMap, colors],
   );
 
   // ── Navigation ──────────────────────────────────────────
@@ -401,12 +399,19 @@ export default function CourseWeekCalendar() {
                     <Text style={[styles.blockTime, { color: block.borderColor }]} numberOfLines={1}>
                       {block.course.startTime}-{block.course.endTime}
                     </Text>
-                    <Text style={[styles.blockName, { color: block.textColor }]} numberOfLines={2}>
+                    <Text
+                      style={[
+                        styles.blockName,
+                        { color: block.textColor },
+                        block.cancelled && styles.cancelledText,
+                      ]}
+                      numberOfLines={2}
+                    >
                       {block.course.courseName}
                     </Text>
                     {block.height > 45 && (
-                      <Text style={styles.blockRoom} numberOfLines={1}>
-                        {block.course.room}
+                      <Text style={[styles.blockRoom, { color: block.textColor }]} numberOfLines={1}>
+                        {block.modeLabel || block.course.room}
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -455,10 +460,18 @@ export default function CourseWeekCalendar() {
                       <Text style={[styles.scheduleTime, { color: block.borderColor }]}>
                         {block.course.startTime} - {block.course.endTime}
                       </Text>
-                      <Text style={[styles.scheduleName, { color: block.textColor }]}>
+                      <Text
+                        style={[
+                          styles.scheduleName,
+                          { color: block.textColor },
+                          block.cancelled && styles.cancelledText,
+                        ]}
+                      >
                         {block.course.courseName}
                       </Text>
-                      <Text style={styles.scheduleRoom}>{block.course.room}</Text>
+                      <Text style={styles.scheduleRoom}>
+                        {[block.course.room, block.modeLabel].filter(Boolean).join(' · ')}
+                      </Text>
                     </TouchableOpacity>
                   ))
                 ) : (
@@ -496,22 +509,65 @@ export default function CourseWeekCalendar() {
                 {selectedCourse?.startTime} - {selectedCourse?.endTime}
               </Text>
             </View>
-            <View style={styles.detailRow}>
-              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Ngày bắt đầu:</Text>
-              <Text style={[styles.detailValue, { color: colors.text }]}>
-                {selectedCourse?.startDate ? formatDateVN(new Date(selectedCourse.startDate)) : ''}
-              </Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Ngày kết thúc:</Text>
-              <Text style={[styles.detailValue, { color: colors.text }]}>
-                {selectedCourse?.endDate ? formatDateVN(new Date(selectedCourse.endDate)) : ''}
-              </Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Phòng:</Text>
-              <Text style={[styles.detailValue, { color: colors.text }]}>{selectedCourse?.room}</Text>
-            </View>
+            {/* Buổi học từ UEH có ngày cụ thể; bản ghi cũ chỉ có khoảng ngày lặp. */}
+            {selectedCourse?.sessionDate ? (
+              <View style={styles.detailRow}>
+                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Ngày học:</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>
+                  {formatDateVN(new Date(selectedCourse.sessionDate))}
+                </Text>
+              </View>
+            ) : (
+              <>
+                <View style={styles.detailRow}>
+                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Ngày bắt đầu:</Text>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>
+                    {selectedCourse?.startDate ? formatDateVN(new Date(selectedCourse.startDate)) : ''}
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Ngày kết thúc:</Text>
+                  <Text style={[styles.detailValue, { color: colors.text }]}>
+                    {selectedCourse?.endDate ? formatDateVN(new Date(selectedCourse.endDate)) : ''}
+                  </Text>
+                </View>
+              </>
+            )}
+            {!!selectedCourse?.startPeriod && (
+              <View style={styles.detailRow}>
+                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Tiết:</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>
+                  {selectedCourse.startPeriod}
+                  {selectedCourse.endPeriod && selectedCourse.endPeriod !== selectedCourse.startPeriod
+                    ? ` - ${selectedCourse.endPeriod}`
+                    : ''}
+                </Text>
+              </View>
+            )}
+            {!!selectedCourse?.room && (
+              <View style={styles.detailRow}>
+                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Phòng:</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>{selectedCourse.room}</Text>
+              </View>
+            )}
+            {!!selectedCourse?.learningMode && (
+              <View style={styles.detailRow}>
+                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Hình thức học:</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>{selectedCourse.learningMode}</Text>
+              </View>
+            )}
+            {!!selectedCourse?.lecturer && (
+              <View style={styles.detailRow}>
+                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Giảng viên:</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>{selectedCourse.lecturer}</Text>
+              </View>
+            )}
+            {!!selectedCourse?.classCode && (
+              <View style={styles.detailRow}>
+                <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Lớp học phần:</Text>
+                <Text style={[styles.detailValue, { color: colors.text }]}>{selectedCourse.classCode}</Text>
+              </View>
+            )}
             <View style={styles.detailRow}>
               <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>Học kỳ:</Text>
               <Text style={[styles.detailValue, { color: colors.text }]}>{semesterLabel(selectedCourse)}</Text>
@@ -601,6 +657,7 @@ const styles = StyleSheet.create({
   blockTime: { fontSize: 8, fontWeight: '600' },
   blockName: { fontSize: 9, fontWeight: '500' },
   blockRoom: { fontSize: 8, color: '#64748b', marginTop: 1 },
+  cancelledText: { textDecorationLine: 'line-through' },
 
   // Current time line
   currentTimeLine: {

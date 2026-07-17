@@ -52,8 +52,8 @@
             [style.border-left-color]="getChipColor(course).border"
           >
             <span class="chip-time" [style.color]="getChipColor(course).border">{{ course.startTime }}-{{ course.endTime }}</span>
-            <span class="chip-name" [style.color]="getChipColor(course).text">{{ truncate(course.courseName, 20) }}</span>
-            <span class="chip-room">{{ truncate(course.room, 15) }}</span>
+            <span class="chip-name" [class.cancelled]="isCancelled(course)" [style.color]="getChipColor(course).text">{{ truncate(course.courseName, 20) }}</span>
+            <span class="chip-room">{{ truncate(modeLabel(course) || course.room, 15) }}</span>
           </div>
           <div
             class="more-chip"
@@ -99,8 +99,8 @@
           [style.border-left-color]="getChipColor(course).border"
         >
           <div class="day-detail-time" [style.color]="getChipColor(course).border">{{ course.startTime }} - {{ course.endTime }}</div>
-          <div class="day-detail-name" [style.color]="getChipColor(course).text">{{ course.courseName }}</div>
-          <div class="day-detail-room">{{ course.room }}</div>
+          <div class="day-detail-name" [class.cancelled]="isCancelled(course)" [style.color]="getChipColor(course).text">{{ course.courseName }}</div>
+          <div class="day-detail-room">{{ roomAndMode(course) }}</div>
         </div>
       </div>
     </div>

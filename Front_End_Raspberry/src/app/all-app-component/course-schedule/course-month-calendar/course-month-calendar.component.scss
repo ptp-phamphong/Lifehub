@@ -197,6 +197,11 @@ $radius-sm: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  // Buổi nghỉ: màu nền/chữ đã lấy từ token theme trong TS, chỉ cần gạch ngang ở đây.
+  &.cancelled {
+    text-decoration: line-through;
+  }
 }
 
 .chip-room {
@@ -260,6 +265,10 @@ $radius-sm: 8px;
 .day-detail-name {
   font-size: 0.9rem;
   font-weight: 600;
+
+  &.cancelled {
+    text-decoration: line-through;
+  }
 }
 
 .day-detail-room {

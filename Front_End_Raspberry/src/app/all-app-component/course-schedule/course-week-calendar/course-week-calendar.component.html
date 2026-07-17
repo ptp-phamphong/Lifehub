@@ -68,8 +68,8 @@
             [title]="block.course.courseName"
           >
             <span class="block-time">{{ block.course.startTime }} - {{ block.course.endTime }}</span>
-            <span class="block-name">{{ block.course.courseName }}</span>
-            <span class="block-room" *ngIf="block.height > 40">{{ block.course.room }}</span>
+            <span class="block-name" [class.cancelled]="block.cancelled">{{ block.course.courseName }}</span>
+            <span class="block-room" *ngIf="block.height > 40">{{ block.modeLabel || block.course.room }}</span>
           </div>
 
           <!-- Current time indicator -->
@@ -103,17 +103,44 @@
           <td class="label">Giờ học:</td>
           <td>{{ selectedCourse.startTime }} - {{ selectedCourse.endTime }}</td>
         </tr>
-        <tr>
-          <td class="label">Ngày bắt đầu:</td>
-          <td>{{ selectedCourse.startDate | date:'dd/MM/yyyy' }}</td>
+        <!-- Buổi học từ UEH có ngày cụ thể; bản ghi cũ chỉ có khoảng ngày lặp. -->
+        <tr *ngIf="selectedCourse.sessionDate">
+          <td class="label">Ngày học:</td>
+          <td>{{ selectedCourse.sessionDate | date:'dd/MM/yyyy' }}</td>
         </tr>
-        <tr>
-          <td class="label">Ngày kết thúc:</td>
-          <td>{{ selectedCourse.endDate | date:'dd/MM/yyyy' }}</td>
+        <ng-container *ngIf="!selectedCourse.sessionDate">
+          <tr>
+            <td class="label">Ngày bắt đầu:</td>
+            <td>{{ selectedCourse.startDate | date:'dd/MM/yyyy' }}</td>
+          </tr>
+          <tr>
+            <td class="label">Ngày kết thúc:</td>
+            <td>{{ selectedCourse.endDate | date:'dd/MM/yyyy' }}</td>
+          </tr>
+        </ng-container>
+        <tr *ngIf="selectedCourse.startPeriod">
+          <td class="label">Tiết:</td>
+          <td>
+            {{ selectedCourse.startPeriod
+            }}<ng-container *ngIf="selectedCourse.endPeriod && selectedCourse.endPeriod !== selectedCourse.startPeriod">
+              - {{ selectedCourse.endPeriod }}</ng-container>
+          </td>
         </tr>
-        <tr>
+        <tr *ngIf="selectedCourse.room">
           <td class="label">Phòng:</td>
           <td>{{ selectedCourse.room }}</td>
+        </tr>
+        <tr *ngIf="selectedCourse.learningMode">
+          <td class="label">Hình thức học:</td>
+          <td>{{ selectedCourse.learningMode }}</td>
+        </tr>
+        <tr *ngIf="selectedCourse.lecturer">
+          <td class="label">Giảng viên:</td>
+          <td>{{ selectedCourse.lecturer }}</td>
+        </tr>
+        <tr *ngIf="selectedCourse.classCode">
+          <td class="label">Lớp học phần:</td>
+          <td>{{ selectedCourse.classCode }}</td>
         </tr>
         <tr>
           <td class="label">Học kỳ:</td>

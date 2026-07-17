@@ -32,6 +32,16 @@ namespace API_Raspberry.Mapper
                 SemesterName = entity.SemesterMetadata?.SemesterName,
                 SemesterYear = entity.SemesterMetadata?.Year,
                 DayOfWeek = entity.DayOfWeek,
+                SessionDate = entity.SessionDate,
+                WeekOfYear = entity.WeekOfYear,
+                DisplayWeek = entity.DisplayWeek,
+                StartPeriod = entity.StartPeriod,
+                EndPeriod = entity.EndPeriod,
+                ClassCode = entity.ClassCode,
+                Lecturer = entity.Lecturer,
+                LecturerEmail = entity.LecturerEmail,
+                LearningMode = entity.LearningMode,
+                Language = entity.Language,
                 CreatedDate = entity.CreatedDate,
             };
         }
@@ -55,6 +65,16 @@ namespace API_Raspberry.Mapper
                 Address = dto.Address,
                 SemesterMetadataId = dto.SemesterMetadataId,
                 DayOfWeek = dto.DayOfWeek,
+                SessionDate = dto.SessionDate,
+                WeekOfYear = dto.WeekOfYear,
+                DisplayWeek = dto.DisplayWeek,
+                StartPeriod = dto.StartPeriod,
+                EndPeriod = dto.EndPeriod,
+                ClassCode = dto.ClassCode,
+                Lecturer = dto.Lecturer,
+                LecturerEmail = dto.LecturerEmail,
+                LearningMode = dto.LearningMode,
+                Language = dto.Language,
             };
         }
 
@@ -70,6 +90,16 @@ namespace API_Raspberry.Mapper
             entity.Address = dto.Address;
             entity.SemesterMetadataId = dto.SemesterMetadataId;
             entity.DayOfWeek = dto.DayOfWeek;
+            entity.SessionDate = dto.SessionDate;
+            entity.WeekOfYear = dto.WeekOfYear;
+            entity.DisplayWeek = dto.DisplayWeek;
+            entity.StartPeriod = dto.StartPeriod;
+            entity.EndPeriod = dto.EndPeriod;
+            entity.ClassCode = dto.ClassCode;
+            entity.Lecturer = dto.Lecturer;
+            entity.LecturerEmail = dto.LecturerEmail;
+            entity.LearningMode = dto.LearningMode;
+            entity.Language = dto.Language;
         }
     }
 }

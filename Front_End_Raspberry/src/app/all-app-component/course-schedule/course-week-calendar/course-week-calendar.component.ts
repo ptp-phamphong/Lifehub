@@ -3,6 +3,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
 import { toLunarDate, formatLunarDateVN } from 'src/app/utils/lunar-calendar';
+import { isCancelledSession, learningModeLabel } from 'src/app/utils/learning-mode';
 
 export interface WeekDay {
   date: Date;
@@ -17,6 +18,10 @@ export interface CourseBlock {
   height: number;      // px height
   color: string;       // background color
   textColor: string;   // text color
+  /** Buổi nghỉ: hiển thị mờ + gạch ngang thay vì như buổi học bình thường. */
+  cancelled: boolean;
+  /** Nhãn hình thức học; rỗng với TẬP TRUNG vì đó là mặc định. */
+  modeLabel: string;
 }
 
 const COURSE_COLORS = [
@@ -160,43 +165,17 @@ export class CourseWeekCalendarComponent implements OnInit {
   }
 
   loadCourses() {
-    // Load courses for the month of the current week's Monday (may span 2 months)
-    const month1 = this.currentWeekMonday.getMonth() + 1;
-    const year1 = this.currentWeekMonday.getFullYear();
-    const sunday = this.weekDays[6]?.date;
-    const month2 = sunday ? sunday.getMonth() + 1 : month1;
-    const year2 = sunday ? sunday.getFullYear() : year1;
+    // Gọi thẳng API tuần: backend trả đúng các buổi của tuần này. Trước đây phải gọi theo
+    // tháng và ghép hai tháng khi tuần vắt qua ranh giới tháng.
+    const d = this.currentWeekMonday;
+    const dateParam = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-    // Load first month
     this.http.get<CourseSchedule[]>(
-      `${environment.apiBaseUrl}/GetCourseScheduleByMonth/${month1}/${year1}`
+      `${environment.apiBaseUrl}/GetCourseScheduleByWeek/${dateParam}`
     ).subscribe({
       next: (data) => {
-        if (month1 !== month2 || year1 !== year2) {
-          // Week spans two months, load second month too
-          this.http.get<CourseSchedule[]>(
-            `${environment.apiBaseUrl}/GetCourseScheduleByMonth/${month2}/${year2}`
-          ).subscribe({
-            next: (data2) => {
-              // Merge and deduplicate by id
-              const merged = [...data];
-              for (const c of data2) {
-                if (!merged.find(m => m.id === c.id)) {
-                  merged.push(c);
-                }
-              }
-              this.courses = merged;
-              this.buildColorMap();
-            },
-            error: () => {
-              this.courses = data;
-              this.buildColorMap();
-            }
-          });
-        } else {
-          this.courses = data;
-          this.buildColorMap();
-        }
+        this.courses = data;
+        this.buildColorMap();
       },
       error: (err) => {
         console.error('Lỗi khi tải thời khóa biểu:', err);
@@ -224,6 +203,13 @@ export class CourseWeekCalendarComponent implements OnInit {
 
     return this.courses
       .filter(c => {
+        // Buổi học từ UEH có ngày cụ thể — khớp thẳng, không suy diễn.
+        if (c.sessionDate) {
+          const session = new Date(c.sessionDate);
+          session.setHours(0, 0, 0, 0);
+          return session.getTime() === dateNorm.getTime();
+        }
+        // Bản ghi cũ (import Excel / thêm tay) chỉ có khoảng ngày lặp: giữ cách suy diễn cũ.
         if (!c.startDate || !c.endDate) return false;
         const start = new Date(c.startDate);
         start.setHours(0, 0, 0, 0);
@@ -251,15 +237,21 @@ export class CourseWeekCalendarComponent implements OnInit {
     const key = c.courseCode || c.courseName || String(c.id);
     const colorIdx = this.colorMap.get(key) || 0;
     const palette = COURSE_COLORS[colorIdx];
+    const cancelled = isCancelledSession(c);
 
     return {
       course: c,
       top,
       height: Math.max(h, 20), // minimum height
-      color: palette.bg,
-      textColor: palette.text,
+      // Buổi nghỉ lấy màu từ token theme để mờ đúng ở cả sáng lẫn tối;
+      // buổi học giữ màu riêng theo môn.
+      color: cancelled ? 'var(--color-surface-alt)' : palette.bg,
+      textColor: cancelled ? 'var(--color-text-muted)' : palette.text,
+      cancelled,
+      modeLabel: learningModeLabel(c),
     };
   }
+
 
   private parseTime(time?: string): number {
     if (!time) return 0;
@@ -268,6 +260,11 @@ export class CourseWeekCalendarComponent implements OnInit {
   }
 
   getBorderColor(block: CourseBlock): string {
+    if (block.cancelled) {
+      // Không dùng --color-border: giá trị này cũng là màu chữ giờ học, mà --color-border
+      // trùng --color-surface-alt trong dark theme → chữ tàng hình.
+      return 'var(--color-text-muted)';
+    }
     const key = block.course.courseCode || block.course.courseName || String(block.course.id);
     const colorIdx = this.colorMap.get(key) || 0;
     return COURSE_COLORS[colorIdx].border;

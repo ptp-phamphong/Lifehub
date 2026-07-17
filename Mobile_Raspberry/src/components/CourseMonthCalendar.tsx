@@ -15,6 +15,7 @@ import { CourseSchedule } from '../models/courseSchedule.model';
 import { getCourseScheduleByMonth } from '../services/courseScheduleService';
 import { getExpensesByMonth } from '../services/expenseService';
 import { toLunarDate, formatLunarDateShort } from '../utils/lunarCalendar';
+import { isCancelledSession, learningModeLabel } from '../utils/learningMode';
 import { useTheme } from '../ThemeContext';
 import { ExpenseRecord } from '../models/expense.model';
 import LoadingOverlay from './LoadingOverlay';
@@ -179,11 +180,18 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
 
   const getChipColor = useCallback(
     (course: CourseSchedule) => {
+      // Buổi nghỉ lấy màu từ theme để mờ đúng ở cả sáng lẫn tối;
+      // buổi học giữ màu riêng theo môn.
+      if (isCancelledSession(course)) {
+        // Không dùng colors.border: `border` cũng là màu chữ giờ học, mà border gần trùng
+        // surfaceAlt trong dark theme → chữ tàng hình.
+        return { bg: colors.surfaceAlt, border: colors.textSecondary, text: colors.textSecondary };
+      }
       const key = course.courseCode || course.courseName || String(course.id);
       const idx = colorMap.get(key) || 0;
       return COURSE_COLORS[idx];
     },
-    [colorMap],
+    [colorMap, colors],
   );
 
   // ── Get courses for a specific date ───────────────────
@@ -194,6 +202,16 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
 
       return courses
         .filter((c) => {
+          // Buổi học từ UEH có ngày cụ thể — khớp thẳng, không suy diễn.
+          if (c.sessionDate) {
+            const session = new Date(c.sessionDate);
+            session.setHours(0, 0, 0, 0);
+            // Chuẩn về nửa đêm trước khi so getTime() — không dựa vào giả định của caller.
+            const target = new Date(date);
+            target.setHours(0, 0, 0, 0);
+            return session.getTime() === target.getTime();
+          }
+          // Bản ghi cũ (import Excel / thêm tay) chỉ có khoảng ngày lặp: giữ cách suy diễn cũ.
           if (!c.startDate || !c.endDate) return false;
           const start = new Date(c.startDate);
           start.setHours(0, 0, 0, 0);
@@ -413,9 +431,16 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
                         {course.startTime}
                       </Text>
                       <Text style={[styles.chipTime, { color: colors.border }]} numberOfLines={1}>
-                        {course.room}
+                        {learningModeLabel(course) || course.room}
                       </Text>
-                      <Text style={[styles.chipName, { color: colors.text }]} numberOfLines={1}>
+                      <Text
+                        style={[
+                          styles.chipName,
+                          { color: colors.text },
+                          isCancelledSession(course) && styles.cancelledText,
+                        ]}
+                        numberOfLines={1}
+                      >
                         {truncate(course.courseName, 8)}
                       </Text>
                     </TouchableOpacity>
@@ -471,10 +496,18 @@ export default function CourseMonthCalendar({ showExpense = false }: Props) {
                         <Text style={[styles.dayDetailTime, { color: colors.border }]}>
                           {course.startTime} - {course.endTime}
                         </Text>
-                        <Text style={[styles.dayDetailName, { color: colors.text }]}>
+                        <Text
+                          style={[
+                            styles.dayDetailName,
+                            { color: colors.text },
+                            isCancelledSession(course) && styles.cancelledText,
+                          ]}
+                        >
                           {course.courseName}
                         </Text>
-                        <Text style={styles.dayDetailRoom}>{course.room}</Text>
+                        <Text style={styles.dayDetailRoom}>
+                          {[course.room, learningModeLabel(course)].filter(Boolean).join(' · ')}
+                        </Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -631,6 +664,7 @@ const styles = StyleSheet.create({
   },
   chipTime: { fontSize: 7, fontWeight: '600' },
   chipName: { fontSize: 7 },
+  cancelledText: { textDecorationLine: 'line-through' },
   moreChip: { alignItems: 'center', paddingVertical: 1 },
   moreText: { fontSize: 8, color: '#0d6efd', fontWeight: '600' },
 

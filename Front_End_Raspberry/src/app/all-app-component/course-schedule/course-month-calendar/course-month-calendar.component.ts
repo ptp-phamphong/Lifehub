@@ -4,6 +4,7 @@ import { environment } from 'src/environments/environment';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
 import { ExpenseRecord } from 'src/app/model/expense.model';
 import { toLunarDate, formatLunarDateShort } from 'src/app/utils/lunar-calendar';
+import { isCancelledSession, learningModeLabel } from 'src/app/utils/learning-mode';
 
 const COURSE_COLORS = [
   { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
@@ -255,6 +256,16 @@ export class CourseMonthCalendarComponent implements OnChanges {
       const dow = jsDow === 0 ? 8 : jsDow + 1;
   
       return this.courses.filter(c => {
+        // Buổi học từ UEH có ngày cụ thể — khớp thẳng, không suy diễn.
+        if (c.sessionDate) {
+          const session = new Date(c.sessionDate);
+          session.setHours(0, 0, 0, 0);
+          // Chuẩn về nửa đêm trước khi so getTime() — không dựa vào giả định của caller.
+          const target = new Date(date);
+          target.setHours(0, 0, 0, 0);
+          return session.getTime() === target.getTime();
+        }
+        // Bản ghi cũ (import Excel / thêm tay) chỉ có khoảng ngày lặp: giữ cách suy diễn cũ.
         if (!c.startDate || !c.endDate) return false;
         const start = new Date(c.startDate);
         start.setHours(0, 0, 0, 0);
@@ -293,9 +304,33 @@ export class CourseMonthCalendarComponent implements OnChanges {
     }
 
     getChipColor(course: CourseSchedule): { bg: string; border: string; text: string } {
+      // Buổi nghỉ lấy màu từ token theme để mờ đúng ở cả sáng lẫn tối;
+      // buổi học giữ màu riêng theo môn.
+      if (isCancelledSession(course)) {
+        return {
+          bg: 'var(--color-surface-alt)',
+          // Không dùng --color-border ở đây: `border` vừa là viền trái vừa là màu chữ giờ học,
+          // mà --color-border trùng --color-surface-alt trong dark theme → chữ tàng hình.
+          border: 'var(--color-text-muted)',
+          text: 'var(--color-text-muted)',
+        };
+      }
       const key = course.courseCode || course.courseName || String(course.id);
       const idx = this.colorMap.get(key) || 0;
       return COURSE_COLORS[idx];
+    }
+
+    isCancelled(course: CourseSchedule): boolean {
+      return isCancelledSession(course);
+    }
+
+    modeLabel(course: CourseSchedule): string {
+      return learningModeLabel(course);
+    }
+
+    /** "B2-402 · ONLINE", hoặc chỉ một trong hai khi cái kia rỗng (buổi ONLINE/LMS/NGHỈ không có phòng). */
+    roomAndMode(course: CourseSchedule): string {
+      return [course.room, learningModeLabel(course)].filter(Boolean).join(' · ');
     }
   
     selectCourse(course: CourseSchedule, event: Event) {

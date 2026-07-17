@@ -59,31 +59,20 @@ namespace API_Raspberry.Service
         private async Task RunImportAsync(CancellationToken stoppingToken)
         {
             using var scope = _scopeFactory.CreateScope();
-            var semesterService = scope.ServiceProvider.GetRequiredService<ISemesterMetadataService>();
-            var uehService = scope.ServiceProvider.GetRequiredService<IUehStudentScheduleService>();
-            var courseScheduleService = scope.ServiceProvider.GetRequiredService<ICourseScheduleService>();
-            var importService = scope.ServiceProvider.GetRequiredService<ICourseScheduleImportService>();
+            var syncService = scope.ServiceProvider.GetRequiredService<ICourseScheduleUehSyncService>();
 
-            var currentSemester = semesterService.GetAll().FirstOrDefault(x => x.IsCurrentSemester);
-            if (currentSemester == null)
+            _logger.LogInformation("ScheduleImportJob: Đang đồng bộ lịch học theo tuần từ UEH...");
+            var result = await syncService.ResetImportByWeekAsync(null);
+
+            if (!result.Success)
             {
-                _logger.LogWarning("ScheduleImportJob: Không tìm thấy học kỳ hiện tại (IsCurrentSemester = true). Bỏ qua.");
+                _logger.LogWarning("ScheduleImportJob: Đồng bộ thất bại. Message: {Message}", result.Message);
                 return;
             }
 
-            _logger.LogInformation("ScheduleImportJob: Đang fetch lịch học từ UEH...");
-            var fetchResult = await uehService.FetchScheduleAsync(null);
-            if (!fetchResult.Success || string.IsNullOrWhiteSpace(fetchResult.ScheduleHtml))
-            {
-                _logger.LogWarning("ScheduleImportJob: Không thể lấy lịch từ UEH. Message: {Message}", fetchResult.Message);
-                return;
-            }
-
-            courseScheduleService.DeleteBySemesterMetadataId(currentSemester.Id);
-            var imported = importService.ImportFromHtml(fetchResult.ScheduleHtml, currentSemester.Id);
-
-            _logger.LogInformation("ScheduleImportJob: Import thành công {Count} dòng cho semester {SemesterId}.",
-                imported.Count, currentSemester.Id);
+            _logger.LogInformation(
+                "ScheduleImportJob: Import thành công {Count} buổi học từ {WithData}/{Scanned} tuần cho semester {SemesterId}.",
+                result.Count, result.WeeksWithData, result.WeeksScanned, result.SemesterMetadataId);
         }
     }
 }

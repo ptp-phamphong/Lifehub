@@ -8,19 +8,16 @@ namespace API_Raspberry.Controllers
     {
         private readonly ICourseScheduleService _courseScheduleService;
         private readonly ICourseScheduleImportService _courseScheduleImportService;
-        private readonly ISemesterMetadataService _semesterMetadataService;
-        private readonly IUehStudentScheduleService _uehStudentScheduleService;
+        private readonly ICourseScheduleUehSyncService _courseScheduleUehSyncService;
 
         public CourseScheduleController(
             ICourseScheduleService courseScheduleService,
             ICourseScheduleImportService courseScheduleImportService,
-            ISemesterMetadataService semesterMetadataService,
-            IUehStudentScheduleService uehStudentScheduleService)
+            ICourseScheduleUehSyncService courseScheduleUehSyncService)
         {
             _courseScheduleService = courseScheduleService;
             _courseScheduleImportService = courseScheduleImportService;
-            _semesterMetadataService = semesterMetadataService;
-            _uehStudentScheduleService = uehStudentScheduleService;
+            _courseScheduleUehSyncService = courseScheduleUehSyncService;
         }
 
         [HttpGet]
@@ -58,6 +55,16 @@ namespace API_Raspberry.Controllers
         public List<CourseScheduleDto> GetByMonth(int month, int year)
         {
             return _courseScheduleService.GetByMonth(month, year);
+        }
+
+        /// <summary>
+        /// date: ngày bất kỳ trong tuần cần lấy, dạng yyyy-MM-dd. Tuần tính từ thứ Hai.
+        /// </summary>
+        [HttpGet]
+        [Route("GetCourseScheduleByWeek/{date}")]
+        public List<CourseScheduleDto> GetByWeek(DateTime date)
+        {
+            return _courseScheduleService.GetByWeek(date);
         }
 
         [HttpDelete]
@@ -99,36 +106,29 @@ namespace API_Raspberry.Controllers
         [Route("ResetImportCourseScheduleFromUeh")]
         public async Task<IActionResult> ResetImportFromUeh([FromBody] UehStudentScheduleRequestDto request = null)
         {
-            var currentSemester = _semesterMetadataService
-                .GetAll()
-                .FirstOrDefault(x => x.IsCurrentSemester);
+            var result = await _courseScheduleUehSyncService.ResetImportByWeekAsync(request);
 
-            if (currentSemester == null)
-            {
-                return BadRequest(new { message = "Không tìm thấy học kỳ hiện tại (IsCurrentSemester = true)." });
-            }
-
-            var fetchResult = await _uehStudentScheduleService.FetchScheduleAsync(request);
-            if (!fetchResult.Success || string.IsNullOrWhiteSpace(fetchResult.ScheduleHtml))
+            if (!result.Success)
             {
                 return BadRequest(new
                 {
-                    message = fetchResult.Message ?? "Không thể lấy HTML thời khóa biểu từ UEH.",
-                    detail = fetchResult
+                    message = result.Message,
+                    weeksScanned = result.WeeksScanned,
+                    yearStudy = result.YearStudy,
+                    termId = result.TermId
                 });
             }
 
-            _courseScheduleService.DeleteBySemesterMetadataId(currentSemester.Id);
-            var imported = _courseScheduleImportService.ImportFromHtml(fetchResult.ScheduleHtml, currentSemester.Id);
-
             return Ok(new
             {
-                message = $"Reset và import thành công {imported.Count} dòng.",
-                count = imported.Count,
-                semesterMetadataId = currentSemester.Id,
-                yearStudy = fetchResult.YearStudy,
-                termId = fetchResult.TermId,
-                data = imported
+                message = result.Message,
+                count = result.Count,
+                weeksScanned = result.WeeksScanned,
+                weeksWithData = result.WeeksWithData,
+                semesterMetadataId = result.SemesterMetadataId,
+                yearStudy = result.YearStudy,
+                termId = result.TermId,
+                data = result.Data
             });
         }
     }

@@ -31,6 +31,30 @@ namespace API_Raspberry.Model
 
         public int? DayOfWeek { get; set; }
 
+        // Ngày chính xác của buổi học. StartDate/EndDate được set bằng giá trị này
+        // để query theo khoảng ngày sẵn có vẫn khớp đúng một ngày duy nhất.
+        public DateTime? SessionDate { get; set; }
+
+        // Tuần ISO trong năm dương lịch, đúng bằng param Week đã gọi lên portal UEH.
+        public int? WeekOfYear { get; set; }
+
+        // Số tuần portal hiển thị trong dropdown; không trùng WeekOfYear.
+        public int? DisplayWeek { get; set; }
+
+        public int? StartPeriod { get; set; }
+
+        public int? EndPeriod { get; set; }
+
+        public string ClassCode { get; set; }
+
+        public string Lecturer { get; set; }
+
+        public string LecturerEmail { get; set; }
+
+        public string LearningMode { get; set; }
+
+        public string Language { get; set; }
+
         public DateTime? CreatedDate { get; set; }
     }
 }
