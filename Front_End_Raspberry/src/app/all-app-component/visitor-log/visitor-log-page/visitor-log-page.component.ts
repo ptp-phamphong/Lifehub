@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { VisitorLogService } from 'src/app/services/visitor-log.service';
 import { VisitorDailyPoint, VisitorLogFilter, VisitorSummary } from 'src/app/model/visitor-log.model';
+import { toDayKey } from 'src/app/utils/date-key';
 
 type TabKey = 'overview' | 'visits' | 'visitors' | 'myips';
 
@@ -121,7 +122,15 @@ export class VisitorLogPageComponent implements OnInit {
 
     const date = new Date();
     date.setDate(date.getDate() - this.selectedRange);
-    // Chỉ lấy phần ngày, tránh lệch múi giờ khi serialize.
-    return date.toISOString().slice(0, 10);
+
+    // Phải lấy khóa ngày theo GIỜ ĐỊA PHƯƠNG. Trước đây chỗ này dùng
+    // date.toISOString().slice(0, 10) kèm chú thích "tránh lệch múi giờ" —
+    // nhưng nó gây ra đúng điều đó: toISOString() đổi sang UTC trước, nên ở
+    // UTC+7 mọi thời điểm từ 00:00 đến 07:00 sẽ lùi về ngày hôm trước và mốc
+    // lọc bị rộng thêm một ngày. Sai lệch chỉ xuất hiện khi mở trang vào rạng
+    // sáng, nên nó chạy đúng gần cả ngày rồi thỉnh thoảng lệch.
+    // Backend so sánh theo biên ngày địa phương (VisitEventRepository:
+    // filter.FromDate.Value.Date), nên client cũng phải gửi ngày địa phương.
+    return toDayKey(date);
   }
 }

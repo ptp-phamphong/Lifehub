@@ -1,0 +1,65 @@
+$radius: 12px;
+
+/* min() de o khung hep hon 190px thi cot co lai thay vi day tran ngang. */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  gap: 14px;
+}
+
+.kpi-card {
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+}
+
+.kpi-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+/* So lon dung mot minh -> chu so ty le. tabular-nums chi danh cho cot so
+   trong bang; o co chu lon no lam so trong roi rac. */
+.kpi-value {
+  margin-top: 6px;
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.kpi-delta {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  &.good { color: var(--color-success-text); }
+  &.bad  { color: var(--color-danger); }
+  &.flat { color: var(--color-text-muted); }
+}
+
+.kpi-arrow {
+  font-size: 0.65rem;
+}
+
+.kpi-hint {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* Man hinh hep: "20.200.000 VNĐ" o 1.45rem se xuong dong giua so tien. */
+@media (max-width: 480px) {
+  .kpi-value {
+    font-size: 1.2rem;
+  }
+
+  .kpi-delta {
+    flex-wrap: wrap;
+  }
+}

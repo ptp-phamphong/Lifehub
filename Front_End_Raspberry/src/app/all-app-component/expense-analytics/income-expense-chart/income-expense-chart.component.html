@@ -1,0 +1,60 @@
+<svg
+  class="chart-svg"
+  [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
+  role="img"
+  aria-label="Thu và chi theo tháng">
+
+  <!-- Luoi ngang + nhan truc Y -->
+  <g class="grid">
+    <line
+      *ngFor="let g of gridLines; trackBy: trackByGrid"
+      [attr.x1]="paddingLeft"
+      [attr.x2]="viewWidth"
+      [attr.y1]="g.y"
+      [attr.y2]="g.y" />
+    <text
+      *ngFor="let g of gridLines; trackBy: trackByGrid"
+      class="axis-label"
+      [attr.x]="paddingLeft - 8"
+      [attr.y]="g.y + 3"
+      text-anchor="end">{{ g.label }}</text>
+  </g>
+
+  <!-- Moi thang: cot Chi va cot Thu dat canh nhau, cach nhau bang khe mau nen -->
+  <g *ngFor="let s of slots; trackBy: trackBySlot">
+    <rect
+      class="bar bar-chi"
+      [attr.x]="s.chi.x"
+      [attr.y]="s.chi.y"
+      [attr.width]="s.chi.width"
+      [attr.height]="s.chi.height"
+      rx="4">
+      <title>{{ s.chi.tooltip }}</title>
+    </rect>
+    <rect
+      class="bar bar-thu"
+      [attr.x]="s.thu.x"
+      [attr.y]="s.thu.y"
+      [attr.width]="s.thu.width"
+      [attr.height]="s.thu.height"
+      rx="4">
+      <title>{{ s.thu.tooltip }}</title>
+    </rect>
+  </g>
+
+  <!-- Nhan truc X -->
+  <g>
+    <text
+      *ngFor="let s of slots; let i = index; trackBy: trackBySlot"
+      class="axis-label"
+      [class.hidden-label]="!showLabel(i)"
+      [attr.x]="s.labelX"
+      [attr.y]="viewHeight - 6"
+      text-anchor="middle">{{ s.label }}</text>
+  </g>
+</svg>
+
+<div class="chart-legend">
+  <span class="legend-item"><i class="legend-swatch swatch-chi"></i>Chi</span>
+  <span class="legend-item"><i class="legend-swatch swatch-thu"></i>Thu</span>
+</div>

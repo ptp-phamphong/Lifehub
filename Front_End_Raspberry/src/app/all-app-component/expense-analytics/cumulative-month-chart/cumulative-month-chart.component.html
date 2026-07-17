@@ -1,0 +1,74 @@
+<svg
+  class="chart-svg"
+  [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
+  role="img"
+  aria-label="Chi lũy kế trong tháng">
+
+  <g class="grid">
+    <line
+      *ngFor="let g of gridLines; trackBy: trackByGrid"
+      [attr.x1]="paddingLeft"
+      [attr.x2]="viewWidth - paddingRight"
+      [attr.y1]="g.y"
+      [attr.y2]="g.y" />
+    <text
+      *ngFor="let g of gridLines; trackBy: trackByGrid"
+      class="axis-label"
+      [attr.x]="paddingLeft - 8"
+      [attr.y]="g.y + 3"
+      text-anchor="end">{{ g.label }}</text>
+  </g>
+
+  <!-- Thang truoc ve truoc de nam DUOI: no la boi canh, khong phai cau chuyen -->
+  <path
+    *ngIf="duongTruoc"
+    class="line line-truoc"
+    [attr.d]="duongTruoc"
+    fill="none"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    vector-effect="non-scaling-stroke" />
+
+  <path
+    *ngIf="duongNay"
+    class="line line-nay"
+    [attr.d]="duongNay"
+    fill="none"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    vector-effect="non-scaling-stroke" />
+
+  <!-- Cham cuoi + nhan truc tiep: gia tri quan trong nhat doc duoc ngay,
+       khong phai ri chuot moi thay -->
+  <g *ngIf="chotNay">
+    <circle
+      class="end-dot"
+      [attr.cx]="chotNay.x"
+      [attr.cy]="chotNay.y"
+      r="4" />
+    <text
+      class="value-label"
+      [attr.x]="chotNay.x - 8"
+      [attr.y]="chotNay.y - 8"
+      text-anchor="end">{{ formatFull(chotNay.total) }}</text>
+  </g>
+
+  <g>
+    <text
+      *ngFor="let m of moc"
+      class="axis-label"
+      [attr.x]="m.x"
+      [attr.y]="viewHeight - 6"
+      text-anchor="middle">{{ m.label }}</text>
+  </g>
+</svg>
+
+<div class="chart-legend">
+  <span class="legend-item">
+    <i class="legend-line line-nay-key"></i>{{ series.currentLabel }}
+    <em class="partial" *ngIf="series.isPartial">(tới hôm nay)</em>
+  </span>
+  <span class="legend-item">
+    <i class="legend-line line-truoc-key"></i>{{ series.previousLabel }}
+  </span>
+</div>

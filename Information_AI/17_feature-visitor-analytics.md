@@ -65,6 +65,22 @@ app.UseForwardedHeaders();
 
 `RequestEnrichmentService.GetClientIp()` còn đọc trực tiếp `X-Forwarded-For` làm lớp dự phòng.
 
+### Cạm bẫy thứ hai: múi giờ ở mốc lọc (đã sửa 17/07/2026)
+
+`VisitorLogPageComponent.fromDate()` từng dựng mốc lọc bằng:
+
+```ts
+return date.toISOString().slice(0, 10);   // SAI - kèm chú thích "tránh lệch múi giờ"
+```
+
+`toISOString()` đổi sang UTC **trước**, nên ở UTC+7 mọi thời điểm từ **00:00 đến 06:59** sẽ lùi về ngày hôm trước → bộ lọc "7/30/90 ngày" âm thầm **rộng thêm một ngày**, kéo theo mọi KPI và biểu đồ trong tab lệch theo.
+
+Đo thực tế: logic cũ sai **7 trên 24 khung giờ**. Nghĩa là nó **chạy đúng gần cả ngày rồi thỉnh thoảng sai** — kiểu lỗi rất khó phát hiện, và chú thích ở ngay bên cạnh lại khẳng định điều ngược lại.
+
+Backend so sánh theo **biên ngày địa phương** (`VisitEventRepository.BuildQuery`: `filter.FromDate.Value.Date`, còn `VisitedAt` lưu bằng `DateTime.Now` của Pi), nên client bắt buộc phải gửi **ngày địa phương**.
+
+→ Nay dùng chung `src/app/utils/date-key.ts` (`toDayKey`), cùng util với trang Phân tích chi tiêu. **Đừng đưa `toISOString()` trở lại.**
+
 ### Giới hạn thành thật
 Với khách dùng **IPv4**, ta chỉ thấy **IP công cộng của router / NAT nhà mạng** — không thể biết
 IP nội bộ của thiết bị (WebRTC leak đã bị chặn từ lâu). Hai thứ bù lại:

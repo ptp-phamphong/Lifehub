@@ -1,0 +1,11 @@
+@import '../chart-shared';
+
+/* Mot chuoi -> mot mau, khong chu giai. */
+.bar {
+  fill: var(--color-series-1);
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}

@@ -76,6 +76,15 @@ import { VisitorLogListComponent } from './all-app-component/visitor-log/visitor
 import { VisitorProfileListComponent } from './all-app-component/visitor-log/visitor-profile-list/visitor-profile-list.component';
 import { KnownIpListComponent } from './all-app-component/visitor-log/known-ip-list/known-ip-list.component';
 import { VisitTrendChartComponent } from './all-app-component/visitor-log/visit-trend-chart/visit-trend-chart.component';
+import { ExpenseAnalyticsPageComponent } from './all-app-component/expense-analytics/expense-analytics-page/expense-analytics-page.component';
+import { ChartPanelComponent } from './all-app-component/expense-analytics/chart-panel/chart-panel.component';
+import { AnalyticsKpiRowComponent } from './all-app-component/expense-analytics/analytics-kpi-row/analytics-kpi-row.component';
+import { IncomeExpenseChartComponent } from './all-app-component/expense-analytics/income-expense-chart/income-expense-chart.component';
+import { CategoryRankChartComponent } from './all-app-component/expense-analytics/category-rank-chart/category-rank-chart.component';
+import { CategoryStackChartComponent } from './all-app-component/expense-analytics/category-stack-chart/category-stack-chart.component';
+import { WeekdayChartComponent } from './all-app-component/expense-analytics/weekday-chart/weekday-chart.component';
+import { DayHeatmapChartComponent } from './all-app-component/expense-analytics/day-heatmap-chart/day-heatmap-chart.component';
+import { CumulativeMonthChartComponent } from './all-app-component/expense-analytics/cumulative-month-chart/cumulative-month-chart.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -106,6 +115,15 @@ import { VisitTrendChartComponent } from './all-app-component/visitor-log/visit-
         VisitorProfileListComponent,
         KnownIpListComponent,
         VisitTrendChartComponent,
+        ExpenseAnalyticsPageComponent,
+        ChartPanelComponent,
+        AnalyticsKpiRowComponent,
+        IncomeExpenseChartComponent,
+        CategoryRankChartComponent,
+        CategoryStackChartComponent,
+        WeekdayChartComponent,
+        DayHeatmapChartComponent,
+        CumulativeMonthChartComponent,
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,

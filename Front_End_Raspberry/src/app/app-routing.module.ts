@@ -12,6 +12,7 @@ import { SystemConfigurationListComponent } from './all-app-component/system-con
 import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme-settings.component';
 import { UserListComponent } from './all-app-component/user-management/user-list/user-list.component';
 import { VisitorLogPageComponent } from './all-app-component/visitor-log/visitor-log-page/visitor-log-page.component';
+import { ExpenseAnalyticsPageComponent } from './all-app-component/expense-analytics/expense-analytics-page/expense-analytics-page.component';
 import { AuthGuard } from './guards/auth.guard';
 import { LoginComponent } from './all-app-component/login/login.component';
 
@@ -25,6 +26,7 @@ const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'system-info' },
       { path: 'system-info', component: SystemInfoTabComponent },
       { path: 'expense-record-list', component: ExpenseRecordListComponent },
+      { path: 'expense-analytics', component: ExpenseAnalyticsPageComponent },
       { path: 'course-calendar', component: CourseCalendarComponent },
       {
         path: 'settings',

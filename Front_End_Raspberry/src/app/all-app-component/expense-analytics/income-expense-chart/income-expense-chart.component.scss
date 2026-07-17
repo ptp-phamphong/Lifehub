@@ -1,0 +1,16 @@
+@import '../chart-shared';
+
+.bar {
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+/* Hai chuoi -> hai slot phan loai lien nhau, da kiem tach biet khi mu mau. */
+.bar-chi { fill: var(--color-series-1); }
+.bar-thu { fill: var(--color-series-2); }
+
+.swatch-chi { background: var(--color-series-1); }
+.swatch-thu { background: var(--color-series-2); }

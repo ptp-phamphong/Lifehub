@@ -1,0 +1,219 @@
+$radius: 12px;
+$radius-sm: 8px;
+
+.analytics-container {
+  padding: 24px 28px;
+  background: var(--color-surface);
+  border-radius: $radius;
+  box-shadow: var(--shadow-lg);
+}
+
+.page-head {
+  margin-bottom: 18px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: var(--color-text);
+  }
+}
+
+.page-sub {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+}
+
+/* ─── Bo loc: MOT hang, tren tat ca bieu do ─────────────────────────── */
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Cho phep co lai duoi kich thuoc noi dung, neu khong flex item se giu nguyen
+     be rong tu nhien va day ca trang tran ngang o man hinh hep. */
+  min-width: 0;
+
+  &.grow {
+    flex: 1 1 240px;
+  }
+
+  > label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+
+  select {
+    padding: 7px 10px;
+    border-radius: $radius-sm;
+    border: 1px solid var(--color-border);
+    background: var(--color-input-bg);
+    color: var(--color-text);
+    min-width: 0;
+    max-width: 100%;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      background: var(--color-input-focus-bg);
+    }
+  }
+}
+
+.label-hint {
+  text-transform: none;
+  letter-spacing: 0;
+  font-style: italic;
+}
+
+.range-buttons {
+  display: flex;
+  flex-wrap: wrap;   // 4 nut khong du cho o man hinh hep -> xuong dong, khong day tran
+  gap: 4px;
+}
+
+.range-btn {
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  border: 1px solid var(--color-border);
+  border-radius: $radius-sm;
+  background: var(--color-surface);
+  color: var(--color-text-sec);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-primary);
+  }
+
+  &.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+.filter-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.btn-reload {
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  border: 1px solid var(--color-border);
+  border-radius: $radius-sm;
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.loaded-at {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* ─── Ghi chu trang thai ────────────────────────────────────────────── */
+
+.filter-note {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  background: var(--color-summary-bg);
+  color: var(--color-summary-text);
+  border-radius: $radius-sm;
+}
+
+.btn-clear {
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Khoan khong co ngay: phai noi ra chu khong duoc am tham bo qua */
+.skipped-note {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
+  border-radius: $radius-sm;
+}
+
+.load-error {
+  padding: 16px;
+  font-size: 0.88rem;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error-text);
+  border-radius: $radius-sm;
+}
+
+/* ─── Bo cuc bieu do ────────────────────────────────────────────────── */
+
+.panels {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* minmax(340px, 1fr) se tran o khung hep hon 340px -> min() cho no co lai. */
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: 16px;
+}
+
+/* Man hinh hep: padding 28px moi ben an mat qua nhieu trong 320px. */
+@media (max-width: 480px) {
+  .analytics-container {
+    padding: 16px 12px;
+  }
+
+  .filter-bar {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .filter-group.grow {
+    flex-basis: 100%;
+  }
+
+  .filter-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+}

@@ -1,0 +1,12 @@
+<div class="kpi-row">
+  <div class="kpi-card" *ngFor="let t of tiles; trackBy: trackByLabel">
+    <div class="kpi-label">{{ t.label }}</div>
+    <div class="kpi-value">{{ format(t.value) }}</div>
+
+    <div class="kpi-delta" [ngClass]="deltaClass(t)" [title]="deltaTitle(t)">
+      <span class="kpi-arrow" *ngIf="deltaArrow(t)">{{ deltaArrow(t) }}</span>
+      <span>{{ deltaText(t) }}</span>
+      <span class="kpi-hint">{{ t.hint }}</span>
+    </div>
+  </div>
+</div>

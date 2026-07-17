@@ -1,0 +1,116 @@
+@import '../chart-shared';
+
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* minmax(0, 1fr) chu khong phai 1fr: "1fr" ngam la minmax(AUTO, 1fr), va phan
+   auto khong cho track co nho hon noi dung - aspect-ratio + min-height se ep o
+   rong toi thieu 30px va day ca trang tran ngang o man hinh hep. */
+.heat-head,
+.heat-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;   // khe mau nen tach cac o, khong dung vien
+}
+
+.heat-dow {
+  text-align: center;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  padding-bottom: 2px;
+}
+
+.heat-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  border-radius: 6px;
+  background: var(--color-ramp-empty);
+
+  &.padding {
+    background: transparent;
+  }
+
+  &:not(.padding):hover {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+  }
+}
+
+/* O khong chi: o nen toi bac 1 nam kha sat nen, nen o rong can vien de khong
+   bi doc nham thanh "chi it". */
+.heat-cell.empty {
+  border: 1px solid var(--color-border);
+}
+
+/* Ngay CHUA TOI cua thang dang dien ra. Phai khac han o "khong chi": to giong
+   nhau la noi rang hom do khong tieu gi, trong khi that ra hom do chua xay ra.
+   Cung ly do bat duong luy ke phai dung o hom nay. */
+.heat-cell.future {
+  background: transparent;
+  border: 1px dashed var(--color-border);
+
+  .heat-day {
+    opacity: 0.45;
+  }
+}
+
+.heat-day {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ramp mot sac. Bac 5-6 la mau dam -> so ngay doi sang mau nen de con doc duoc.
+   Day la ngoai le duy nhat cua luat "chu khong mang mau du lieu": chu nam BEN
+   TRONG mang mau nen phai chon theo do sang cua chinh mang do. */
+@each $i in (1, 2, 3, 4, 5, 6) {
+  .level-#{$i} {
+    background: var(--color-ramp-#{$i});
+  }
+}
+
+.level-5 .heat-day,
+.level-6 .heat-day {
+  color: var(--color-surface);
+}
+
+/* Thang mau */
+.heat-scale {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 10px;
+}
+
+.scale-step {
+  width: 16px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--color-ramp-empty);
+
+  &.empty {
+    border: 1px solid var(--color-border);
+  }
+}
+
+.scale-text {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+
+  &:first-child {
+    margin-right: 3px;
+  }
+
+  &:last-child {
+    margin-left: 3px;
+  }
+}

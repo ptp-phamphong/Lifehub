@@ -1,0 +1,35 @@
+<figure class="chart-card">
+  <figcaption class="chart-head">
+    <div class="chart-heading">
+      <h3 class="chart-title">{{ title }}</h3>
+      <p class="chart-sub" *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+
+    <div class="view-toggle" *ngIf="hasData">
+      <button
+        type="button"
+        class="view-btn"
+        [class.active]="view === 'chart'"
+        (click)="view = 'chart'">Biểu đồ</button>
+      <button
+        type="button"
+        class="view-btn"
+        [class.active]="view === 'table'"
+        (click)="view = 'table'">Bảng</button>
+    </div>
+  </figcaption>
+
+  <p class="chart-note" *ngIf="note">{{ note }}</p>
+
+  <div class="chart-empty" *ngIf="!hasData">{{ emptyText }}</div>
+
+  <!-- [hidden] chứ không phải *ngIf: nội dung chiếu vào chỉ khởi tạo một lần,
+       nên chuyển qua lại Biểu đồ/Bảng không phải dựng lại SVG. -->
+  <div class="chart-body" [hidden]="!hasData || view !== 'chart'">
+    <ng-content select="[chart]"></ng-content>
+  </div>
+
+  <div class="table-body" [hidden]="!hasData || view !== 'table'">
+    <ng-content select="[table]"></ng-content>
+  </div>
+</figure>

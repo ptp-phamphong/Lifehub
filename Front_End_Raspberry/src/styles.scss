@@ -153,6 +153,41 @@
 
   // ── Scrollbar ──
   --color-scrollbar:    #cbd5e1;
+
+  // ── Bảng màu chuỗi dữ liệu (biểu đồ phân tích chi tiêu) ──
+  // 8 bậc phân loại, đã kiểm bằng script trên đúng nền --color-surface (#ffffff):
+  // độ sáng, chroma, tách biệt khi mù màu (protan/deutan), và ngưỡng thị lực thường.
+  // THỨ TỰ SLOT LÀ CƠ CHẾ AN TOÀN MÙ MÀU, KHÔNG PHẢI THẨM MỸ - đảo thứ tự thì
+  // phải chạy lại script kiểm tra. Vài bậc dưới 3:1 tương phản nên mỗi biểu đồ
+  // BẮT BUỘC có bảng số đi kèm (xem chart-panel). Không bao giờ dùng cho chữ.
+  --color-series-1:     #2a78d6;
+  --color-series-2:     #008300;
+  --color-series-3:     #e87ba4;
+  --color-series-4:     #eda100;
+  --color-series-5:     #1baf7a;
+  --color-series-6:     #eb6834;
+  --color-series-7:     #4a3aa7;
+  --color-series-8:     #e34948;
+
+  // Nhóm "Khác" và "Chưa phân loại": là phần dư / sự vắng mặt, không phải một
+  // loại ngang hàng -> không bao giờ chiếm một slot phân loại. Cũng dùng cho
+  // chuỗi nền của biểu đồ nhấn mạnh (tháng trước).
+  --color-series-muted: #94a3b8;
+
+  // Khe 2px tách các đoạn cột chồng. Trỏ vào surface nên tự đúng ở cả 2 theme.
+  --color-chart-gap:    var(--color-surface);
+
+  --chart-grid:         #e2e8f0;
+  --chart-axis:         #cbd5e1;
+
+  // ── Ramp một sắc cho heatmap chi theo ngày: nhạt = chi ít ──
+  --color-ramp-1:       #cde2fb;
+  --color-ramp-2:       #9ec5f4;
+  --color-ramp-3:       #6da7ec;
+  --color-ramp-4:       #3987e5;
+  --color-ramp-5:       #256abf;
+  --color-ramp-6:       #184f95;
+  --color-ramp-empty:   #f1f5f9;   // ngày không chi - phải khác hẳn bậc 1
 }
 
 body.dark-theme {
@@ -301,6 +336,37 @@ body.dark-theme {
 
   // ── Scrollbar ──
   --color-scrollbar:    #475569;
+
+  // ── Bảng màu chuỗi dữ liệu (biểu đồ phân tích chi tiêu) ──
+  // Cùng 8 sắc, chọn lại bậc cho nền tối (#1e293b) và đã kiểm bằng script trên
+  // đúng nền đó - KHÔNG phải bản lật tự động của khối sáng.
+  --color-series-1:     #3987e5;
+  --color-series-2:     #008300;
+  --color-series-3:     #d55181;
+  --color-series-4:     #c98500;
+  --color-series-5:     #199e70;
+  --color-series-6:     #d95926;
+  --color-series-7:     #9085e9;
+  --color-series-8:     #e66767;
+
+  --color-series-muted: #64748b;
+
+  // --color-chart-gap kế thừa var(--color-surface) -> tự thành #1e293b.
+
+  --chart-grid:         #334155;
+  --chart-axis:         #475569;
+
+  // ── Ramp heatmap ĐẢO CHIỀU cho nền tối ──
+  // Luật là "chi ít CHÌM VÀO NỀN", không phải "chi ít = màu nhạt". Trên nền
+  // #1e293b thì bậc nhạt lại là bậc NỔI nhất, nên nếu bê nguyên ramp sáng sang
+  // thì ngày chi nhiều sẽ chìm còn ngày chi ít lại chói - ngược hẳn ý nghĩa.
+  --color-ramp-1:       #184f95;
+  --color-ramp-2:       #256abf;
+  --color-ramp-3:       #3987e5;
+  --color-ramp-4:       #6da7ec;
+  --color-ramp-5:       #9ec5f4;
+  --color-ramp-6:       #cde2fb;
+  --color-ramp-empty:   #334155;   // bậc 1 nằm sát nền tối -> ô rỗng cần thêm viền
 }
 
 html, body { height: 100%; }

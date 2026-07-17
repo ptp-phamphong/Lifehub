@@ -1,0 +1,23 @@
+@import '../chart-shared';
+
+.piece {
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+/* Slot 1..8 = mau phan loai, gan on dinh theo tung loai tren ca cua so thoi gian.
+   Slot 0 = nhom gop / chua phan loai -> xam, khong bao gio chiem mot slot. */
+@each $i in (1, 2, 3, 4, 5, 6, 7, 8) {
+  .slot-#{$i} {
+    fill: var(--color-series-#{$i});
+    background: var(--color-series-#{$i});   // dung chung cho o vuong chu giai
+  }
+}
+
+.slot-0 {
+  fill: var(--color-series-muted);
+  background: var(--color-series-muted);
+}

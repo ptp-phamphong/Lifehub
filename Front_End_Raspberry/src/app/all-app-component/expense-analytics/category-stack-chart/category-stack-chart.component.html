@@ -1,0 +1,53 @@
+<svg
+  class="chart-svg"
+  [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
+  role="img"
+  aria-label="Cơ cấu loại chi qua các tháng">
+
+  <g class="grid">
+    <line
+      *ngFor="let g of gridLines; trackBy: trackByGrid"
+      [attr.x1]="paddingLeft"
+      [attr.x2]="viewWidth"
+      [attr.y1]="g.y"
+      [attr.y2]="g.y" />
+    <text
+      *ngFor="let g of gridLines; trackBy: trackByGrid"
+      class="axis-label"
+      [attr.x]="paddingLeft - 8"
+      [attr.y]="g.y + 3"
+      text-anchor="end">{{ g.label }}</text>
+  </g>
+
+  <g *ngFor="let c of columns; trackBy: trackByColumn">
+    <rect
+      *ngFor="let p of c.pieces; trackBy: trackByPiece"
+      class="piece"
+      [ngClass]="'slot-' + p.slot"
+      [attr.x]="p.x"
+      [attr.y]="p.y"
+      [attr.width]="p.width"
+      [attr.height]="p.height"
+      rx="2">
+      <title>{{ p.tooltip }}</title>
+    </rect>
+  </g>
+
+  <g>
+    <text
+      *ngFor="let c of columns; let i = index; trackBy: trackByColumn"
+      class="axis-label"
+      [class.hidden-label]="!showLabel(i)"
+      [attr.x]="c.labelX"
+      [attr.y]="viewHeight - 6"
+      text-anchor="middle">{{ c.label }}</text>
+  </g>
+</svg>
+
+<!-- Chu giai luon co mat khi tu 2 chuoi tro len: mau khong bao giờ la kenh
+     nhan dang duy nhat. -->
+<div class="chart-legend">
+  <span class="legend-item" *ngFor="let l of model.legend">
+    <i class="legend-swatch" [ngClass]="'slot-' + l.slot"></i>{{ l.label }}
+  </span>
+</div>

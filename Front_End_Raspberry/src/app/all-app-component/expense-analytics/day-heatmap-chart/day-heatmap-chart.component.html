@@ -1,0 +1,26 @@
+<div class="heatmap">
+  <div class="heat-head">
+    <span class="heat-dow" *ngFor="let t of thu">{{ t }}</span>
+  </div>
+
+  <div class="heat-week" *ngFor="let w of model.weeks; trackBy: trackByWeek">
+    <div
+      *ngFor="let c of w; trackBy: trackByCell"
+      class="heat-cell"
+      [class.padding]="c.isPadding"
+      [class.future]="c.isFuture"
+      [class.empty]="!c.isPadding && !c.isFuture && c.level === 0"
+      [ngClass]="c.isPadding || c.isFuture ? '' : 'level-' + c.level"
+      [title]="tooltip(c)">
+      <span class="heat-day" *ngIf="!c.isPadding">{{ c.day }}</span>
+    </div>
+  </div>
+
+  <!-- Thang mau: bat buoc voi ma hoa lien tuc, neu khong thi mau khong doc duoc -->
+  <div class="heat-scale">
+    <span class="scale-text">Chi ít</span>
+    <i class="scale-step empty"></i>
+    <i class="scale-step" *ngFor="let b of bacRamp" [ngClass]="'level-' + b"></i>
+    <span class="scale-text">{{ nhanCao }}</span>
+  </div>
+</div>

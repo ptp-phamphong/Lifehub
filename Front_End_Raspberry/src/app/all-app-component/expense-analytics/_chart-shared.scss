@@ -1,0 +1,114 @@
+// Kiểu dùng chung cho các biểu đồ của trang Phân tích.
+//
+// Là partial SCSS chứ không phải class toàn cục: nội dung chiếu qua <ng-content>
+// thuộc về component khai báo nó, nên bảng số nằm trong phạm vi style của từng
+// biểu đồ. Import partial giữ được encapsulation mà không phải chép lại kiểu.
+//
+// Mọi màu đều qua var(--color-*) -> dark mode tự chạy, không cần vẽ lại.
+
+// height:auto + viewBox = biểu đồ co giãn theo bề rộng mà chữ không bị kéo méo.
+.chart-svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.grid line,
+.axis line {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;   // lưới là nét liền mảnh, không bao giờ nét đứt
+}
+
+.axis-label {
+  fill: var(--color-text-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hidden-label {
+  display: none;
+}
+
+// Nhãn trực tiếp trên mark. Dùng token chữ, KHÔNG bao giờ màu của chuỗi dữ liệu:
+// các sắc nhạt (vàng, hồng) đọc không nổi khi làm chữ.
+.value-label {
+  fill: var(--color-text-sec);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+// ─── Chú giải ─────────────────────────────────────────────────────────
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-text-sec);   // chữ mang token chữ, chấm bên cạnh mới mang màu chuỗi
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex: none;
+}
+
+.legend-line {
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  flex: none;
+}
+
+// ─── Bảng số (bản sinh đôi của mọi biểu đồ) ───────────────────────────
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th,
+  td {
+    padding: 7px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  // Cột số phải thẳng hàng dọc -> đây đúng là chỗ dùng tabular-nums.
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tfoot td {
+    border-top: 1px solid var(--color-border);
+    font-weight: 700;
+  }
+}

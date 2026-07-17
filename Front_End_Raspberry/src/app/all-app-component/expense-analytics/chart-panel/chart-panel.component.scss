@@ -1,0 +1,91 @@
+$radius: 12px;
+$radius-sm: 8px;
+
+.chart-card {
+  margin: 0;
+  padding: 18px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+}
+
+/* wrap + min-width:0 tren phan tieu de: khong co hai thu nay thi o khung hep
+   nut "Bieu do/Bang" se bop tieu de lai con moi dong mot chu. */
+.chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-bottom: 14px;
+}
+
+.chart-heading {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.chart-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.chart-sub {
+  margin: 3px 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.chart-note {
+  margin: -6px 0 12px;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.chart-empty {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Chuyen Bieu do / Bang */
+.view-toggle {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  padding: 2px;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: $radius-sm;
+}
+
+.view-btn {
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-sec);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text);
+  }
+
+  &.active {
+    background: var(--color-surface);
+    color: var(--color-primary);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-card {
+    padding: 14px 12px;
+  }
+}

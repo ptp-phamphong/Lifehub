@@ -1,0 +1,8 @@
+<div class="rank-list">
+  <div class="rank-row" *ngFor="let r of rows; trackBy: trackByLabel">
+    <div class="rank-bar" [class.muted]="r.isMuted" [style.width.%]="r.percent"></div>
+    <span class="rank-label" [title]="r.label">{{ r.label }}</span>
+    <span class="rank-share">{{ share(r) }}</span>
+    <span class="rank-total">{{ format(r.total) }}</span>
+  </div>
+</div>

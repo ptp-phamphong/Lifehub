@@ -1,0 +1,27 @@
+@import '../chart-shared';
+
+/* vector-effect="non-scaling-stroke" o template la bat buoc: duong nam trong
+   viewBox co gian nen neu khong co no thi 2px se khong ra 2px tren man hinh. */
+.line {
+  stroke-width: 2;
+}
+
+/* Dang NHAN MANH: thang neo mang mau nhan, thang truoc lui ve xam. */
+.line-nay   { stroke: var(--color-series-1); }
+.line-truoc { stroke: var(--color-series-muted); }
+
+.end-dot {
+  fill: var(--color-series-1);
+  /* Vong 2px mau nen de cham con doc duoc khi no de len duong ke hoac luoi */
+  stroke: var(--color-surface);
+  stroke-width: 2;
+}
+
+/* Chu giai cua duong dung net ke, khong dung o vuong */
+.line-nay-key   { background: var(--color-series-1); }
+.line-truoc-key { background: var(--color-series-muted); }
+
+.partial {
+  font-style: normal;
+  color: var(--color-text-muted);
+}

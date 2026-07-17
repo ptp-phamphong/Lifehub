@@ -1,0 +1,44 @@
+<svg
+  class="chart-svg"
+  [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
+  role="img"
+  aria-label="Chi theo thứ trong tuần">
+
+  <g class="grid">
+    <line
+      *ngFor="let g of gridLines; trackBy: trackByGrid"
+      [attr.x1]="paddingLeft"
+      [attr.x2]="viewWidth"
+      [attr.y1]="g.y"
+      [attr.y2]="g.y" />
+    <text
+      *ngFor="let g of gridLines; trackBy: trackByGrid"
+      class="axis-label"
+      [attr.x]="paddingLeft - 8"
+      [attr.y]="g.y + 3"
+      text-anchor="end">{{ g.label }}</text>
+  </g>
+
+  <g>
+    <rect
+      *ngFor="let b of bars; trackBy: trackByLabel"
+      class="bar"
+      [attr.x]="b.x"
+      [attr.y]="b.y"
+      [attr.width]="b.width"
+      [attr.height]="b.height"
+      rx="4">
+      <title>{{ b.tooltip }}</title>
+    </rect>
+  </g>
+
+  <!-- Chi 7 cot nen nhan truc X luon du cho, khong can thua bot -->
+  <g>
+    <text
+      *ngFor="let b of bars; trackBy: trackByLabel"
+      class="axis-label"
+      [attr.x]="b.centerX"
+      [attr.y]="viewHeight - 6"
+      text-anchor="middle">{{ b.label }}</text>
+  </g>
+</svg>
