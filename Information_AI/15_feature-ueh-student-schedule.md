@@ -309,22 +309,21 @@ The HTML returned by the Perior view contains a `<table>` with the following col
 
 ## Integration with Course Schedule Reset
 
-`POST /ResetImportCourseScheduleFromUeh` and `ScheduleImportBackgroundService` both delegate to
+`POST /ResetImportCourseScheduleFromUeh` and the Hangfire recurring job `ScheduleImportJob` both delegate to
 `ICourseScheduleUehSyncService.ResetImportByWeekAsync()` — they used to duplicate the logic between them.
 Change the sync flow there, not in either caller. Full description and the two safety guards:
 `07_feature-course-schedule-crud.md`.
 
-Runtime configuration:
+Runtime configuration (runs on Hangfire now — see `23_feature-hangfire-jobs.md`):
 
 ```json
-"ScheduleImportJob": {
-  "Enabled": true,
-  "IntervalMinutes": 120
+"HangfireJobs": {
+  "ScheduleImportCron": "0 * * * *"
 }
 ```
 
-- `Enabled`: turn automatic refresh on or off
-- `IntervalMinutes`: run frequency in minutes
+- `ScheduleImportCron`: cron for the automatic refresh (replaced the old `Enabled`/`IntervalMinutes`)
+- On-demand trigger: `POST /Jobs/Trigger/schedule-import`, or "Chạy ngay" on `/app/settings/jobs-settings`
 - ⚠ Each run is now **~52 portal requests** instead of 1. Verified fine at 400ms spacing, but consider a
   longer interval than the old default.
 - Recommended migration step: remove any old Raspberry Pi `crontab` entry for `reset_schedule.sh` to avoid duplicate imports

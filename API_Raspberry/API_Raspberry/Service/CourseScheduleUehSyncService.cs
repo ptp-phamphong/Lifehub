@@ -9,7 +9,7 @@ namespace API_Raspberry.Service
 
     /// <summary>
     /// Đồng bộ TKB học kỳ hiện tại từ portal UEH theo từng tuần.
-    /// Tách riêng khỏi Controller vì cả endpoint thủ công lẫn ScheduleImportBackgroundService
+    /// Tách riêng khỏi Controller vì cả endpoint thủ công lẫn ScheduleImportJob (chạy qua Hangfire)
     /// đều cần đúng flow này — trước đây hai chỗ chép lại logic của nhau.
     /// </summary>
     public class CourseScheduleUehSyncService : ICourseScheduleUehSyncService

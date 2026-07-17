@@ -4,6 +4,10 @@ using API_Raspberry.Data;
 using API_Raspberry.Mapper;
 using API_Raspberry.Repository;
 using API_Raspberry.Service;
+using API_Raspberry.Service.Jobs;
+using Hangfire;
+using Hangfire.Dashboard;
+using Hangfire.MySql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +63,29 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(8, 0, 36))));
 
 // ----------------------------
+// 2.5️⃣ Hangfire - chạy job định kỳ + lưu lịch sử chạy
+// ----------------------------
+// Dùng chung MariaDB với app: Hangfire tự tạo bảng tiền tố "Hangfire_" ngay lần chạy đầu
+// (không qua EF migration), nên lịch sử job cũng nằm trong bản backup DB sẵn có.
+// Connection string phải có "Allow User Variables=True" thì script schema của storage mới chạy được.
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseStorage(new MySqlStorage(connectionString, new MySqlStorageOptions
+    {
+        TablesPrefix = "Hangfire_",
+        PrepareSchemaIfNecessary = true,
+        // Mặc định 15s: bấm "Chạy ngay" xong phải đợi tới 15 giây job mới nhúc nhích, tưởng hỏng.
+        // 5s cho cảm giác tức thì mà mỗi phút cũng chỉ thêm vài query nhẹ vào MariaDB.
+        QueuePollInterval = TimeSpan.FromSeconds(5)
+    })));
+
+// Mặc định Hangfire mở 20 worker thread. Pi chỉ có vài nhân và cả app này chỉ có mấy job chạy
+// thưa, nên 2 worker là đủ mà đỡ tốn RAM/CPU.
+builder.Services.AddHangfireServer(options => options.WorkerCount = 2);
+
+// ----------------------------
 // 3️⃣ Dependency Injection - Mappers
 // ----------------------------
 builder.Services.AddScoped<IReasonTypeMapper, ReasonTypeMapper>();
@@ -71,6 +98,7 @@ builder.Services.AddScoped<IPhoneNotificationMapper, PhoneNotificationMapper>();
 builder.Services.AddScoped<INotificationFilterMapper, NotificationFilterMapper>();
 builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
 builder.Services.AddScoped<IVisitEventMapper, VisitEventMapper>();
+builder.Services.AddScoped<IJobRunMapper, JobRunMapper>();
 builder.Services.AddScoped<IVisitorKnownIpMapper, VisitorKnownIpMapper>();
 
 // ----------------------------
@@ -109,6 +137,11 @@ builder.Services.AddScoped<IRequestEnrichmentService, RequestEnrichmentService>(
 builder.Services.AddScoped<IVisitorLogSettingsService, VisitorLogSettingsService>();
 builder.Services.AddScoped<IVisitEventService, VisitEventService>();
 builder.Services.AddScoped<IVisitorAnalyticsService, VisitorAnalyticsService>();
+
+// Job chạy nền (Hangfire tự resolve trong scope riêng mỗi lần chạy)
+builder.Services.AddScoped<IScheduleImportJob, ScheduleImportJob>();
+builder.Services.AddScoped<IVisitorLogMaintenanceJob, VisitorLogMaintenanceJob>();
+builder.Services.AddScoped<IJobsService, JobsService>();
 
 // GeoIp là Singleton: file .mmdb chỉ mở một lần, DatabaseReader vốn thread-safe.
 builder.Services.AddSingleton<IGeoIpService, GeoIpService>();
@@ -186,10 +219,37 @@ if (buttonListenerEnabled)
     builder.Services.AddHostedService<ButtonListener>();
 }
 
-builder.Services.AddHostedService<ScheduleImportBackgroundService>();
-builder.Services.AddHostedService<VisitorLogMaintenanceService>();
-
 var app = builder.Build();
+
+// ----------------------------
+// Đăng ký job định kỳ cho Hangfire
+// ----------------------------
+// Cron thay cho IntervalMinutes cũ.
+// Phải lấy IRecurringJobManager từ DI chứ không dùng API tĩnh RecurringJob.AddOrUpdate:
+// JobStorage.Current chỉ được gán khi Hangfire server khởi động (tức là sau app.Run()),
+// nên gọi API tĩnh ở đây sẽ ném "Current JobStorage instance has not been initialized yet".
+try
+{
+    using var jobScope = app.Services.CreateScope();
+    var recurringJobManager = jobScope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+
+    var scheduleImportCron = builder.Configuration["HangfireJobs:ScheduleImportCron"] ?? Cron.Hourly();
+    recurringJobManager.AddOrUpdate<IScheduleImportJob>(
+        JobDefinitions.ScheduleImportRecurringId,
+        job => job.RunAsync(),
+        scheduleImportCron);
+
+    var visitorLogMaintenanceCron = builder.Configuration["HangfireJobs:VisitorLogMaintenanceCron"] ?? "0 */6 * * *";
+    recurringJobManager.AddOrUpdate<IVisitorLogMaintenanceJob>(
+        JobDefinitions.VisitorLogMaintenanceRecurringId,
+        job => job.RunAsync(),
+        visitorLogMaintenanceCron);
+}
+catch (Exception ex)
+{
+    // Cùng thái độ với khối migration ở trên: job hỏng thì API vẫn phải phục vụ được.
+    Console.WriteLine($"⚠️ Hangfire recurring job registration failed: {ex.Message}");
+}
 
 // ----------------------------
 // Auto-apply EF Core migrations khi khởi động
@@ -266,6 +326,23 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// ----------------------------
+// Dashboard Hangfire: KHÔNG mở ra ngoài internet, chỉ vào qua SSH tunnel.
+// ----------------------------
+// AllowAnonymous là BẮT BUỘC chứ không phải nới lỏng bảo mật: dashboard là endpoint nên bị
+// FallbackPolicy JWT của app áp vào, mà app chỉ nhận bearer token — trình duyệt mở URL không
+// đính token được nên sẽ luôn 401, kể cả khi đã tunnel vào. Bỏ JWT ra rồi để LocalRequestsOnly
+// làm cổng gác:
+//   - Vào qua SSH tunnel (ssh -L 5000:127.0.0.1:5000): Kestrel thấy IP loopback thật -> cho vào.
+//   - Vào qua Caddy từ internet: UseForwardedHeaders đã thay RemoteIpAddress bằng IP thật của
+//     khách nên khác loopback -> chặn.
+// Caddyfile chặn sẵn /api/hangfire* thêm một lớp nữa, phòng khi Caddy ngừng gửi X-Forwarded-For
+// thì mọi request lại trông như loopback. Xem Information_AI/23_feature-hangfire-jobs.md.
+app.MapHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new LocalRequestsOnlyAuthorizationFilter() }
+}).AllowAnonymous();
 
 // ----------------------------
 // 7️⃣ Lắng nghe cổng nội bộ cố định cho Caddy reverse proxy

@@ -22,7 +22,7 @@ namespace API_Raspberry.Service
 
     public class VisitorAnalyticsService : IVisitorAnalyticsService
     {
-        /// <summary>Marker cho dòng tổng của cả ngày trong visitorDailyStat (xem VisitorLogMaintenanceService).</summary>
+        /// <summary>Marker cho dòng tổng của cả ngày trong visitorDailyStat (xem VisitorLogMaintenanceJob).</summary>
         public const string TotalMarker = "*";
 
         private const int TopListSize = 10;

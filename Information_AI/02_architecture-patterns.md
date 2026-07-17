@@ -83,11 +83,15 @@ Implications:
 
 ### 1.6 Hosted Service Pattern
 
-The project also uses a hosted background service:
+The project uses `AddHostedService` only for the GPIO listener:
 - `ButtonListener` is registered with `AddHostedService<ButtonListener>()`
 
 Purpose:
 - Run Raspberry Pi GPIO button listening in the background beside the HTTP API.
+
+**Recurring / scheduled work does not use `AddHostedService`** — it runs on **Hangfire**
+(`Service/Jobs/*`, registered via `IRecurringJobManager`), which also records each run's history. See
+`23_feature-hangfire-jobs.md`.
 
 ## 2. Web Frontend Architecture
 

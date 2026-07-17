@@ -1,0 +1,179 @@
+$radius: 12px;
+$radius-sm: 8px;
+
+.jobs-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.jobs-title {
+  margin: 0 0 4px;
+  color: var(--color-text);
+}
+
+.jobs-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-sec);
+}
+
+.btn-refresh {
+  padding: 6px 12px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.job-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-run {
+  padding: 7px 14px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-btn-edit-border);
+  background: var(--color-btn-edit-bg);
+  color: var(--color-btn-edit-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.job-message {
+  margin: 0 0 12px;
+  font-size: 0.83rem;
+  color: var(--color-text-sec);
+}
+
+.jobs-table-wrapper {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  padding: 16px 18px;
+}
+
+/* Bang rong hon man hinh thi cuon ngang trong khung nay,
+   khong bao gio lam ca trang bi cuon ngang. */
+.table-scroll {
+  overflow-x: auto;
+}
+
+.jobs-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.86rem;
+  color: var(--color-text);
+
+  th,
+  td {
+    padding: 9px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--color-bg-alt);
+    color: var(--color-text-sec);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  tbody tr:hover {
+    background: var(--color-surface-alt);
+  }
+}
+
+/* Dong loi bam vao xem duoc ly do -> bao hieu bang con tro. */
+tr.has-error {
+  cursor: pointer;
+}
+
+.empty-row {
+  padding: 28px 10px;
+  text-align: center;
+  color: var(--color-text-muted);
+  white-space: normal;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.badge-succeeded {
+  background: var(--color-badge-active-bg);
+  color: var(--color-badge-active-text);
+}
+
+/* Dung cap btn-delete chu khong phai --color-danger: cap nay co ca ban sang lan ban toi
+   nen chu van doc duoc o dark mode. */
+.badge-failed {
+  background: var(--color-btn-delete-bg);
+  color: var(--color-btn-delete-text);
+}
+
+.badge-running {
+  background: var(--color-btn-edit-bg);
+  color: var(--color-btn-edit-text);
+}
+
+.badge-retry {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.error-row:hover {
+  background: transparent;
+}
+
+.error-detail {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-btn-delete-border);
+  background: var(--color-btn-delete-bg);
+  color: var(--color-btn-delete-text);
+  font-size: 0.78rem;
+  /* Loi cua UEH dai va khong co khoang trang -> phai cho xuong dong, khong duoc tran ra. */
+  white-space: pre-wrap;
+  word-break: break-word;
+}

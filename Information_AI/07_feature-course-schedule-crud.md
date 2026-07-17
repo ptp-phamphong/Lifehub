@@ -49,8 +49,8 @@ CourseScheduleController → ICourseScheduleService → ICourseScheduleRepositor
                          → ICourseScheduleMapper (DTO ↔ Entity)
 ```
 
-`ScheduleImportBackgroundService` calls the **same** `ICourseScheduleUehSyncService` as the controller —
-the two used to duplicate this logic. Put changes to the sync flow there, not in either caller.
+The Hangfire recurring job `ScheduleImportJob` calls the **same** `ICourseScheduleUehSyncService` as the
+controller — the two used to duplicate this logic. Put changes to the sync flow there, not in either caller.
 
 ### Key files
 
@@ -156,15 +156,19 @@ Typical real run: `75 sessions from 26/52 weeks`.
 
 ### Background refresh job
 
-- Hosted service: `ScheduleImportBackgroundService`
-- Registration: `Program.cs` via `AddHostedService<ScheduleImportBackgroundService>()`
-- Trigger source: in-app `BackgroundService`, not Linux `crontab`
-- Config in `appsettings.json`:
+Runs on **Hangfire** now (was a `BackgroundService`). See `23_feature-hangfire-jobs.md` for the full jobs
+feature — this is just the course-schedule side.
+
+- Job class: `Service/Jobs/ScheduleImportJob.cs` (recurring job `schedule-import-job`)
+- Registration: `Program.cs` via `IRecurringJobManager.AddOrUpdate<IScheduleImportJob>(…)`
+- Trigger source: Hangfire recurring schedule (cron), **not** Linux `crontab`
+- Can also be triggered on demand: `POST /Jobs/Trigger/schedule-import`, or the "Chạy ngay" button on the
+  Angular page `/app/settings/jobs-settings`
+- Config in `appsettings.json` (cron replaced the old `IntervalMinutes`):
 
 ```json
-"ScheduleImportJob": {
-  "Enabled": true,
-  "IntervalMinutes": 120
+"HangfireJobs": {
+  "ScheduleImportCron": "0 * * * *"
 }
 ```
 

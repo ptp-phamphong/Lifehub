@@ -71,6 +71,7 @@ import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme
 import { UserListComponent } from './all-app-component/user-management/user-list/user-list.component';
 import { UserFormComponent } from './all-app-component/user-management/user-form/user-form.component';
 import { VisitorLogPageComponent } from './all-app-component/visitor-log/visitor-log-page/visitor-log-page.component';
+import { JobsPageComponent } from './all-app-component/jobs/jobs-page/jobs-page.component';
 import { VisitorOverviewComponent } from './all-app-component/visitor-log/visitor-overview/visitor-overview.component';
 import { VisitorLogListComponent } from './all-app-component/visitor-log/visitor-log-list/visitor-log-list.component';
 import { VisitorProfileListComponent } from './all-app-component/visitor-log/visitor-profile-list/visitor-profile-list.component';
@@ -110,6 +111,7 @@ import { CumulativeMonthChartComponent } from './all-app-component/expense-analy
         UserFormComponent,
         LoginComponent,
         VisitorLogPageComponent,
+        JobsPageComponent,
         VisitorOverviewComponent,
         VisitorLogListComponent,
         VisitorProfileListComponent,

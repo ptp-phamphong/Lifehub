@@ -1,0 +1,73 @@
+<div class="jobs-page">
+	<div class="jobs-header">
+		<div>
+			<h5 class="jobs-title">Tác vụ nền</h5>
+			<p class="jobs-subtitle">
+				Các tác vụ chạy tự động theo lịch. Bấm "Chạy ngay" nếu muốn chạy luôn không cần đợi.
+			</p>
+		</div>
+		<button class="btn-refresh" type="button" (click)="loadHistory()" [disabled]="loading">
+			{{ loading ? 'Đang tải...' : '↻ Làm mới' }}
+		</button>
+	</div>
+
+	<div class="job-actions">
+		<button
+			*ngFor="let job of jobs"
+			class="btn-run"
+			type="button"
+			[disabled]="triggering === job.key"
+			(click)="runJob(job.key)"
+		>
+			{{ triggering === job.key ? 'Đang gửi...' : '▶ ' + job.label }}
+		</button>
+	</div>
+
+	<p class="job-message" *ngIf="message">{{ message }}</p>
+
+	<div class="jobs-table-wrapper">
+		<div class="table-scroll">
+			<table class="jobs-table">
+				<thead>
+					<tr>
+						<th>Tên tác vụ</th>
+						<th>Trạng thái</th>
+						<th>Bắt đầu</th>
+						<th>Kết thúc</th>
+						<th>Thời gian chạy</th>
+					</tr>
+				</thead>
+				<tbody>
+					<ng-container *ngFor="let job of history">
+						<tr
+							[class.has-error]="job.errorMessage"
+							(click)="toggleError(job)"
+							[title]="job.errorMessage ? 'Bấm để xem lý do lỗi' : ''"
+						>
+							<td>{{ job.jobName }}</td>
+							<td>
+								<span class="badge" [ngClass]="statusClass(job.status)">
+									{{ statusLabel(job.status) }}
+								</span>
+							</td>
+							<td>{{ job.startedAt ? (job.startedAt | date: 'dd/MM/yyyy HH:mm:ss') : '—' }}</td>
+							<td>{{ job.finishedAt ? (job.finishedAt | date: 'dd/MM/yyyy HH:mm:ss') : '—' }}</td>
+							<td>{{ formatDuration(job.durationMs) }}</td>
+						</tr>
+						<tr class="error-row" *ngIf="expandedJobId === job.jobId && job.errorMessage">
+							<td colspan="5">
+								<pre class="error-detail">{{ job.errorMessage }}</pre>
+							</td>
+						</tr>
+					</ng-container>
+
+					<tr *ngIf="!history.length && !loading">
+						<td colspan="5" class="empty-row">
+							{{ loadFailed ? 'Không tải được lịch sử tác vụ.' : 'Chưa có lần chạy nào.' }}
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

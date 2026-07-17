@@ -1,63 +1,54 @@
 using API_Raspberry.Model;
 using API_Raspberry.Repository;
 
-namespace API_Raspberry.Service
+namespace API_Raspberry.Service.Jobs
 {
     /// <summary>
-    /// Chạy nền: dồn dữ liệu thô thành số liệu theo ngày và xóa dữ liệu thô quá hạn.
-    /// Nhờ vậy bảng visitEvent không phình mãi trên thẻ nhớ của Pi, mà biểu đồ dài hạn vẫn còn.
+    /// Thay cho VisitorLogMaintenanceService cũ (vòng while + Task.Delay).
+    /// Dồn dữ liệu thô thành số liệu theo ngày và xóa dữ liệu thô quá hạn, nhờ vậy bảng visitEvent
+    /// không phình mãi trên thẻ nhớ của Pi mà biểu đồ dài hạn vẫn còn.
+    /// Hangfire tự tạo DI scope cho mỗi lần chạy nên không cần IServiceScopeFactory nữa.
+    /// Số lần thử lại khai báo bằng [AutomaticRetry] trên IVisitorLogMaintenanceJob, không phải ở đây.
     /// </summary>
-    public class VisitorLogMaintenanceService : BackgroundService
+    public class VisitorLogMaintenanceJob : IVisitorLogMaintenanceJob
     {
         /// <summary>Dựng lại 7 ngày gần nhất mỗi lần chạy: nếu hôm nay mới đánh dấu một IP là "của mình"
         /// thì số liệu vài ngày trước cũng được tính lại cho đúng.</summary>
         private const int RebuildTrailingDays = 7;
 
-        private const int IntervalHours = 6;
+        private const int MaxStatPathLength = 191;
 
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ILogger<VisitorLogMaintenanceService> _logger;
+        private readonly IVisitorLogSettingsService _settingsService;
+        private readonly IVisitEventRepository _eventRepository;
+        private readonly IVisitorKnownIpRepository _knownIpRepository;
+        private readonly IVisitorDailyStatRepository _dailyStatRepository;
+        private readonly ILogger<VisitorLogMaintenanceJob> _logger;
 
-        public VisitorLogMaintenanceService(
-            IServiceScopeFactory scopeFactory,
-            ILogger<VisitorLogMaintenanceService> logger)
+        public VisitorLogMaintenanceJob(
+            IVisitorLogSettingsService settingsService,
+            IVisitEventRepository eventRepository,
+            IVisitorKnownIpRepository knownIpRepository,
+            IVisitorDailyStatRepository dailyStatRepository,
+            ILogger<VisitorLogMaintenanceJob> logger)
         {
-            _scopeFactory = scopeFactory;
+            _settingsService = settingsService;
+            _eventRepository = eventRepository;
+            _knownIpRepository = knownIpRepository;
+            _dailyStatRepository = dailyStatRepository;
             _logger = logger;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        public Task RunAsync()
         {
-            // Đợi app khởi động xong (migration chạy trước) rồi mới đụng vào DB.
-            await Task.Delay(TimeSpan.FromSeconds(60), stoppingToken);
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                try
-                {
-                    Run();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "VisitorLogMaintenance: lỗi khi chạy bảo trì.");
-                }
-
-                await Task.Delay(TimeSpan.FromHours(IntervalHours), stoppingToken);
-            }
+            Run();
+            return Task.CompletedTask;
         }
 
         private void Run()
         {
-            using var scope = _scopeFactory.CreateScope();
+            var settings = _settingsService.Get();
 
-            var settingsService = scope.ServiceProvider.GetRequiredService<IVisitorLogSettingsService>();
-            var eventRepository = scope.ServiceProvider.GetRequiredService<IVisitEventRepository>();
-            var knownIpRepository = scope.ServiceProvider.GetRequiredService<IVisitorKnownIpRepository>();
-            var dailyStatRepository = scope.ServiceProvider.GetRequiredService<IVisitorDailyStatRepository>();
-
-            var settings = settingsService.Get();
-
-            var known = knownIpRepository.GetAllSelf();
+            var known = _knownIpRepository.GetAllSelf();
             var selfIps = known.Where(k => !string.IsNullOrEmpty(k.IpAddress)).Select(k => k.IpAddress).Distinct().ToList();
             var selfVisitorIds = known.Where(k => !string.IsNullOrEmpty(k.VisitorId)).Select(k => k.VisitorId).Distinct().ToList();
 
@@ -66,8 +57,8 @@ namespace API_Raspberry.Service
             for (var i = 0; i < RebuildTrailingDays; i++)
             {
                 var date = today.AddDays(-i);
-                var rows = BuildDailyStats(eventRepository, date, selfIps, selfVisitorIds);
-                dailyStatRepository.ReplaceForDate(date, rows);
+                var rows = BuildDailyStats(date, selfIps, selfVisitorIds);
+                _dailyStatRepository.ReplaceForDate(date, rows);
             }
 
             // 2) Xóa dữ liệu thô quá hạn. Số liệu tổng hợp ở trên vẫn giữ lại lịch sử.
@@ -76,17 +67,17 @@ namespace API_Raspberry.Service
                 var cutoff = today.AddDays(-settings.RetentionDays);
 
                 // Ngày sắp bị xóa cũng phải được tổng hợp trước, nếu không sẽ mất luôn.
-                var oldest = eventRepository.GetOldestVisitDate();
+                var oldest = _eventRepository.GetOldestVisitDate();
                 if (oldest.HasValue)
                 {
                     for (var date = oldest.Value.Date; date < cutoff; date = date.AddDays(1))
                     {
-                        var rows = BuildDailyStats(eventRepository, date, selfIps, selfVisitorIds);
-                        dailyStatRepository.ReplaceForDate(date, rows);
+                        var rows = BuildDailyStats(date, selfIps, selfVisitorIds);
+                        _dailyStatRepository.ReplaceForDate(date, rows);
                     }
                 }
 
-                var deleted = eventRepository.PurgeOlderThan(cutoff);
+                var deleted = _eventRepository.PurgeOlderThan(cutoff);
                 if (deleted > 0)
                     _logger.LogInformation("VisitorLogMaintenance: đã xóa {Count} dòng thô cũ hơn {Cutoff:yyyy-MM-dd}.", deleted, cutoff);
             }
@@ -100,12 +91,11 @@ namespace API_Raspberry.Service
         /// sẽ đếm trùng một khách xem nhiều trang.
         /// </summary>
         private List<VisitorDailyStat> BuildDailyStats(
-            IVisitEventRepository eventRepository,
             DateTime date,
             List<string> selfIps,
             List<string> selfVisitorIds)
         {
-            var events = eventRepository.GetPageViewsForDate(date, selfIps, selfVisitorIds);
+            var events = _eventRepository.GetPageViewsForDate(date, selfIps, selfVisitorIds);
             var rows = new List<VisitorDailyStat>();
 
             if (!events.Any())
@@ -160,8 +150,6 @@ namespace API_Raspberry.Service
 
             return rows;
         }
-
-        private const int MaxStatPathLength = 191;
 
         private static string TruncatePath(string path)
         {
