@@ -1,44 +1,144 @@
 <div class="login-container">
   <div class="login-card">
-    <h2>🔒 Đăng nhập</h2>
-    <p class="subtitle">Raspberry Pi Expense Tracker</p>
+    <!-- ============ ĐĂNG NHẬP ============ -->
+    <ng-container *ngIf="mode === 'login'">
+      <h2>🔒 Đăng nhập</h2>
+      <p class="subtitle">Quản lý chi tiêu Raspberry Pi</p>
 
-    <div *ngIf="errorMessage" class="error-message">
-      {{ errorMessage }}
-    </div>
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
 
-    <div class="form-group">
-      <label for="username">Username</label>
-      <input
-        id="username"
-        type="text"
-        [(ngModel)]="username"
-        (keyup.enter)="login()"
-        placeholder="Nhập username"
-        [disabled]="isLoading"
-        autocomplete="username"
-      />
-    </div>
+      <div class="form-group">
+        <label for="username">Tên đăng nhập</label>
+        <input
+          id="username"
+          type="text"
+          [(ngModel)]="username"
+          (keyup.enter)="login()"
+          placeholder="Nhập tên đăng nhập"
+          [disabled]="isLoading"
+          autocomplete="username"
+        />
+      </div>
 
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        [(ngModel)]="password"
-        (keyup.enter)="login()"
-        placeholder="Nhập password"
-        [disabled]="isLoading"
-        autocomplete="current-password"
-      />
-    </div>
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <div class="password-row">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            [(ngModel)]="password"
+            (keyup.enter)="login()"
+            placeholder="Nhập mật khẩu"
+            [disabled]="isLoading"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            class="eye-button"
+            (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+          >
+            {{ showPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
 
-    <button
-      (click)="login()"
-      [disabled]="isLoading"
-      class="login-button"
-    >
-      {{ isLoading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
-    </button>
+      <button (click)="login()" [disabled]="isLoading" class="login-button">
+        {{ isLoading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
+      </button>
+
+      <button type="button" class="link-button" (click)="openForgot()" [disabled]="isLoading">
+        Quên mật khẩu?
+      </button>
+    </ng-container>
+
+    <!-- ============ QUÊN MẬT KHẨU - BƯỚC 1: NHẬP USERNAME ============ -->
+    <ng-container *ngIf="mode === 'forgot-request'">
+      <h2>🔐 Quên mật khẩu</h2>
+      <p class="subtitle">Nhập tên đăng nhập để nhận mã OTP qua email</p>
+
+      <div *ngIf="forgotError" class="error-message">{{ forgotError }}</div>
+
+      <div class="form-group">
+        <label for="forgotUsername">Tên đăng nhập</label>
+        <input
+          id="forgotUsername"
+          type="text"
+          [(ngModel)]="forgotUsername"
+          (keyup.enter)="requestOtp()"
+          placeholder="Nhập tên đăng nhập"
+          [disabled]="isLoading"
+          autocomplete="username"
+        />
+      </div>
+
+      <button (click)="requestOtp()" [disabled]="isLoading" class="login-button">
+        {{ isLoading ? 'Đang gửi...' : 'Gửi mã OTP' }}
+      </button>
+
+      <button type="button" class="link-button" (click)="backToLogin()" [disabled]="isLoading">
+        ← Quay lại đăng nhập
+      </button>
+    </ng-container>
+
+    <!-- ============ QUÊN MẬT KHẨU - BƯỚC 2: NHẬP OTP + MẬT KHẨU MỚI ============ -->
+    <ng-container *ngIf="mode === 'forgot-reset'">
+      <h2>🔐 Đặt lại mật khẩu</h2>
+      <p class="subtitle">
+        Nhập mã OTP đã gửi tới {{ maskedEmail || 'email của bạn' }}
+      </p>
+
+      <div *ngIf="forgotInfo && !forgotError" class="info-message">{{ forgotInfo }}</div>
+      <div *ngIf="forgotError" class="error-message">{{ forgotError }}</div>
+
+      <div class="form-group">
+        <label for="otp">Mã OTP</label>
+        <input
+          id="otp"
+          type="text"
+          inputmode="numeric"
+          maxlength="6"
+          [(ngModel)]="otp"
+          placeholder="Nhập mã 6 số"
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="newPassword">Mật khẩu mới</label>
+        <div class="password-row">
+          <input
+            id="newPassword"
+            [type]="showNewPassword ? 'text' : 'password'"
+            [(ngModel)]="newPassword"
+            (keyup.enter)="resetPassword()"
+            placeholder="Nhập mật khẩu mới"
+            [disabled]="isLoading"
+            autocomplete="new-password"
+          />
+          <button
+            type="button"
+            class="eye-button"
+            (click)="showNewPassword = !showNewPassword"
+            [attr.aria-label]="showNewPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+          >
+            {{ showNewPassword ? '🙈' : '👁️' }}
+          </button>
+        </div>
+      </div>
+
+      <button (click)="resetPassword()" [disabled]="isLoading" class="login-button">
+        {{ isLoading ? 'Đang xử lý...' : 'Đặt lại mật khẩu' }}
+      </button>
+
+      <button type="button" class="link-button" (click)="requestOtp()" [disabled]="isLoading">
+        Gửi lại mã
+      </button>
+      <button type="button" class="link-button" (click)="backToLogin()" [disabled]="isLoading">
+        ← Quay lại đăng nhập
+      </button>
+    </ng-container>
   </div>
 </div>

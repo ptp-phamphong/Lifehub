@@ -285,7 +285,7 @@ export default function ExpenseListScreen() {
             <Text style={[styles.editBtnText, { color: colors.primary }]}>Sửa</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => handleDelete(item)} style={[styles.deleteBtn, { backgroundColor: isDark ? '#450a0a' : '#fff0f0' }]}>
-            <Text style={[styles.deleteBtnText, { color: colors.danger }]}>Xoá</Text>
+            <Text style={[styles.deleteBtnText, { color: colors.danger }]}>Xóa</Text>
           </TouchableOpacity>
         </View>
       </View>

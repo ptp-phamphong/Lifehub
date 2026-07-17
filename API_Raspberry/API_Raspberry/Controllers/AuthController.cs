@@ -10,15 +10,18 @@ namespace API_Raspberry.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IVisitEventService _visitEventService;
+        private readonly IPasswordResetService _passwordResetService;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             IAuthService authService,
             IVisitEventService visitEventService,
+            IPasswordResetService passwordResetService,
             ILogger<AuthController> logger)
         {
             _authService = authService;
             _visitEventService = visitEventService;
+            _passwordResetService = passwordResetService;
             _logger = logger;
         }
 
@@ -45,6 +48,40 @@ namespace API_Raspberry.Controllers
                 return Unauthorized(new { message = "Invalid username or password" });
 
             return Ok(result);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Quên mật khẩu — Bước 1: gửi mã OTP về email của user.
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpPost]
+        [Route("Auth/ForgotPassword")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto dto)
+        {
+            var result = await _passwordResetService.RequestOtpAsync(dto?.Username);
+            if (!result.Success)
+                return BadRequest(new { message = result.Message });
+
+            return Ok(new ForgotPasswordResponseDto
+            {
+                Message = result.Message,
+                MaskedEmail = result.MaskedEmail
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Quên mật khẩu — Bước 2: xác thực OTP + đặt mật khẩu mới.
+        // ─────────────────────────────────────────────────────────────────────
+        [HttpPost]
+        [Route("Auth/ResetPassword")]
+        [AllowAnonymous]
+        public IActionResult ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            var result = _passwordResetService.VerifyAndReset(dto?.Username, dto?.Otp, dto?.NewPassword);
+            if (!result.Success)
+                return BadRequest(new { message = result.Message });
+
+            return Ok(new { message = result.Message });
         }
     }
 }

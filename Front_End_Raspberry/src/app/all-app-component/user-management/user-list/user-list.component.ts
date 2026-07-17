@@ -28,7 +28,7 @@ export class UserListComponent {
       next: (data) => {
         this.users = data;
       },
-      error: (err) => console.error('Loi khi tai du lieu:', err)
+      error: (err) => console.error('Lỗi khi tải dữ liệu:', err)
     });
   }
 

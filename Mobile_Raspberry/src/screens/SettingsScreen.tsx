@@ -56,7 +56,7 @@ export default function SettingsScreen() {
 
       {/* API URL Section */}
       <View style={[styles.section, { backgroundColor: colors.surface }]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>API Base URL</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Địa chỉ API</Text>
         <Text style={[styles.hint, { color: colors.textMuted }]}>
           Thay đổi URL để test với backend khác (local, Pi, ...)
         </Text>

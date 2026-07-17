@@ -12,6 +12,8 @@ namespace API_Raspberry.Service
     public class ButtonListener : BackgroundService
     {
         private readonly int _pin = 27;
+
+        // null khi không mở được GPIO (vd dev trên Windows). ExecuteAsync sẽ thoát ngay.
         private readonly GpioController _controller;
 
         private readonly string _logFile;
@@ -25,18 +27,7 @@ namespace API_Raspberry.Service
 
         public ButtonListener(IConfiguration configuration)
         {
-            _controller = new GpioController();
             _logFile = ResolveLogFilePath(configuration);
-
-            try
-            {
-                // GIỐNG PYTHON: pull_up=False -> dùng PULL-DOWN
-                _controller.OpenPin(_pin, PinMode.InputPullDown);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ GPIO pin {_pin} could not be opened: {ex.Message}");
-            }
 
             // Tạo thư mục + file log nếu chưa có
             var logDir = Path.GetDirectoryName(_logFile);
@@ -48,6 +39,19 @@ namespace API_Raspberry.Service
             if (!File.Exists(_logFile))
             {
                 File.WriteAllText(_logFile, $"== Log started at {DateTime.Now} ==\n");
+            }
+
+            try
+            {
+                _controller = new GpioController();
+
+                // GIỐNG PYTHON: pull_up=False -> dùng PULL-DOWN
+                _controller.OpenPin(_pin, PinMode.InputPullDown);
+            }
+            catch (Exception ex)
+            {
+                _controller = null;
+                Console.WriteLine($"⚠️ GPIO pin {_pin} could not be opened: {ex.Message}");
             }
         }
 
@@ -73,7 +77,7 @@ namespace API_Raspberry.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (!_controller.IsPinOpen(_pin))
+            if (_controller == null || !_controller.IsPinOpen(_pin))
             {
                 WriteLog("GPIO pin 27 is not available. ButtonListener disabled.");
                 return;
@@ -137,11 +141,14 @@ namespace API_Raspberry.Service
 
         public override void Dispose()
         {
-            if (_controller.IsPinOpen(_pin))
+            if (_controller != null)
             {
-                _controller.ClosePin(_pin);
+                if (_controller.IsPinOpen(_pin))
+                {
+                    _controller.ClosePin(_pin);
+                }
+                _controller.Dispose();
             }
-            _controller.Dispose();
             base.Dispose();
         }
     }

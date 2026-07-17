@@ -13,6 +13,7 @@ export class UserFormComponent {
   id: number = 0;
   username: string = '';
   name: string = '';
+  email: string = '';
   active: boolean = true;
   password: string = '';
   confirmPassword: string = '';
@@ -39,20 +40,21 @@ export class UserFormComponent {
         next: (res) => {
           this.username = res.username;
           this.name = res.name;
+          this.email = res.email || '';
           this.active = res.active;
         },
         error: (err) => {
           console.error(err);
-          this.message = 'Khong the tai thong tin user.';
+          this.message = 'Không thể tải thông tin người dùng.';
         }
       });
   }
 
   get dialogTitle(): string {
     switch (this.mode) {
-      case 'create': return 'Them user moi';
-      case 'edit': return 'Chinh sua user';
-      case 'password': return 'Doi mat khau';
+      case 'create': return 'Thêm người dùng mới';
+      case 'edit': return 'Chỉnh sửa người dùng';
+      case 'password': return 'Đổi mật khẩu';
     }
   }
 
@@ -61,18 +63,19 @@ export class UserFormComponent {
 
     if (this.mode === 'create') {
       if (!this.username || !this.name || !this.password) {
-        this.message = 'Vui long nhap day du thong tin.';
+        this.message = 'Vui lòng nhập đầy đủ thông tin.';
         return;
       }
       if (this.password !== this.confirmPassword) {
-        this.message = 'Mat khau xac nhan khong khop.';
+        this.message = 'Mật khẩu xác nhận không khớp.';
         return;
       }
 
       const payload = {
         username: this.username,
         password: this.password,
-        name: this.name
+        name: this.name,
+        email: this.email
       };
 
       this.http.post(`${environment.apiBaseUrl}/User/Create`, payload)
@@ -80,18 +83,19 @@ export class UserFormComponent {
           next: () => this.dialogRef.close('saved'),
           error: (err) => {
             console.error(err);
-            this.message = 'Tao user that bai.';
+            this.message = 'Tạo người dùng thất bại.';
           }
         });
 
     } else if (this.mode === 'edit') {
       if (!this.name) {
-        this.message = 'Vui long nhap ten.';
+        this.message = 'Vui lòng nhập tên.';
         return;
       }
 
       const payload = {
         name: this.name,
+        email: this.email,
         active: this.active
       };
 
@@ -100,17 +104,17 @@ export class UserFormComponent {
           next: () => this.dialogRef.close('saved'),
           error: (err) => {
             console.error(err);
-            this.message = 'Cap nhat that bai.';
+            this.message = 'Cập nhật thất bại.';
           }
         });
 
     } else if (this.mode === 'password') {
       if (!this.password) {
-        this.message = 'Vui long nhap mat khau moi.';
+        this.message = 'Vui lòng nhập mật khẩu mới.';
         return;
       }
       if (this.password !== this.confirmPassword) {
-        this.message = 'Mat khau xac nhan khong khop.';
+        this.message = 'Mật khẩu xác nhận không khớp.';
         return;
       }
 
@@ -123,7 +127,7 @@ export class UserFormComponent {
           next: () => this.dialogRef.close('saved'),
           error: (err) => {
             console.error(err);
-            this.message = 'Doi mat khau that bai.';
+            this.message = 'Đổi mật khẩu thất bại.';
           }
         });
     }

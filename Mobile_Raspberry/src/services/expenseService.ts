@@ -42,7 +42,7 @@ export async function updateExpense(id: number, record: ExpenseRecord): Promise<
   return apiPut<boolean>(`/UpdateById/${id}`, record);
 }
 
-/** Xoá chi tiêu theo Id */
+/** Xóa chi tiêu theo Id */
 export async function deleteExpenseById(id: number): Promise<void> {
   await apiDelete(`/DeleteById/${id}`);
 }

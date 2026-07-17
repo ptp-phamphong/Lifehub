@@ -1,24 +1,24 @@
 <div class="expense-form">
-  <h2>{{ id > 0 ? 'Chinh sua hoc ky' : 'Them hoc ky moi' }}</h2>
+  <h2>{{ id > 0 ? 'Chỉnh sửa học kỳ' : 'Thêm học kỳ mới' }}</h2>
 
   <form (ngSubmit)="submitForm()">
     <div class="form-group">
-      <label for="semesterName">Ten hoc ky</label>
-      <input id="semesterName" type="text" [(ngModel)]="semesterName" name="semesterName" placeholder="Nhap ten hoc ky..." />
+      <label for="semesterName">Tên học kỳ</label>
+      <input id="semesterName" type="text" [(ngModel)]="semesterName" name="semesterName" placeholder="Nhập tên học kỳ..." />
     </div>
 
     <div class="form-group">
-      <label for="codeSemester">Ma hoc ky</label>
-      <input id="codeSemester" type="text" [(ngModel)]="codeSemester" name="codeSemester" placeholder="Nhap ma hoc ky..." />
+      <label for="codeSemester">Mã học kỳ</label>
+      <input id="codeSemester" type="text" [(ngModel)]="codeSemester" name="codeSemester" placeholder="Nhập mã học kỳ..." />
     </div>
 
     <div class="form-group">
-      <label for="year">Nam</label>
-      <input id="year" type="number" [(ngModel)]="year" name="year" placeholder="Nhap nam hoc ky..." />
+      <label for="year">Năm</label>
+      <input id="year" type="number" [(ngModel)]="year" name="year" placeholder="Nhập năm học kỳ..." />
     </div>
 
     <div class="form-group form-group-checkbox">
-      <label for="isCurrentSemester">Hoc ky hien tai</label>
+      <label for="isCurrentSemester">Học kỳ hiện tại</label>
       <label class="toggle">
         <input id="isCurrentSemester" type="checkbox" [(ngModel)]="isCurrentSemester" name="isCurrentSemester" />
         <span class="toggle-track">
@@ -27,12 +27,12 @@
       </label>
     </div>
 
-    <button type="submit">Luu</button>
+    <button type="submit">Lưu</button>
   </form>
 
   <p class="message" *ngIf="message">{{ message }}</p>
 
   <div class="cancel-row">
-    <button type="button" (click)="cancel()">Huy</button>
+    <button type="button" (click)="cancel()">Hủy</button>
   </div>
 </div>

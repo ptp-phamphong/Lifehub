@@ -1,7 +1,7 @@
 <div class="chart-card">
   <h3 class="chart-title" *ngIf="title">{{ title }}</h3>
 
-  <div class="chart-empty" *ngIf="!bars.length">Chua co du lieu trong khoang thoi gian nay</div>
+  <div class="chart-empty" *ngIf="!bars.length">Chưa có dữ liệu trong khoảng thời gian này</div>
 
   <svg
     *ngIf="bars.length"
@@ -36,7 +36,7 @@
         [attr.width]="b.width"
         [attr.height]="b.height"
         rx="2">
-        <title>{{ b.label }}: {{ b.views }} luot xem / {{ b.visitors }} khach</title>
+        <title>{{ b.label }}: {{ b.views }} lượt xem / {{ b.visitors }} khách</title>
       </rect>
     </g>
 

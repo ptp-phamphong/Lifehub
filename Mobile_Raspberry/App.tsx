@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React, { useEffect, useState } from 'react';
-import { Text, ActivityIndicator, View } from 'react-native';
+import { Text, ActivityIndicator, View, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import SystemInfoScreen from './src/screens/SystemInfoScreen';
 import ExpenseListScreen from './src/screens/ExpenseListScreen';
 import ReasonTypeScreen from './src/screens/ReasonTypeScreen';
@@ -12,13 +12,33 @@ import CourseScheduleScreen from './src/screens/CourseScheduleScreen';
 import NotificationMonitorScreen from './src/screens/NotificationMonitorScreen';
 import NotificationFilterScreen from './src/screens/NotificationFilterScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import { isAuthenticated } from './src/services/authService';
+import { isAuthenticated, logout } from './src/services/authService';
 import { ThemeProvider, useTheme } from './src/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
-function AppNavigator() {
+function AppNavigator({ onLogout }: { onLogout: () => void }) {
   const { isDark, colors } = useTheme();
+
+  // Hỏi lại trước khi đăng xuất - lỡ tay chạm nhầm thì phải đăng nhập lại từ đầu.
+  const confirmLogout = () => {
+    Alert.alert('Đăng xuất', 'Bạn có chắc muốn đăng xuất?', [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: 'Đăng xuất',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await logout();
+          } finally {
+            // Kể cả xóa token lỗi vẫn phải đá về màn đăng nhập,
+            // nếu không người dùng kẹt lại trong app mà tưởng đã thoát.
+            onLogout();
+          }
+        },
+      },
+    ]);
+  };
 
   const navTheme = isDark
     ? {
@@ -49,13 +69,24 @@ function AppNavigator() {
             backgroundColor: colors.tabBarBg,
             borderTopColor: colors.tabBarBorder,
           },
+          // Đặt ở screenOptions -> nút đăng xuất có mặt trên mọi tab.
+          headerRight: () => (
+            <TouchableOpacity
+              style={styles.logoutButton}
+              onPress={confirmLogout}
+              accessibilityRole="button"
+              accessibilityLabel="Đăng xuất"
+            >
+              <Text style={styles.logoutText}>🚪 Đăng xuất</Text>
+            </TouchableOpacity>
+          ),
         }}
       >
         <Tab.Screen
           name="SystemInfo"
           component={SystemInfoScreen}
           options={{
-            title: 'System Info',
+            title: 'Thông tin hệ thống',
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text>,
           }}
         />
@@ -111,7 +142,7 @@ function AppNavigator() {
           name="SpeechToText"
           component={SpeechToTextScreen}
           options={{
-            title: 'Speech to Text',
+            title: 'Giọng nói thành văn bản',
             tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🎤</Text>,
           }}
         /> */}
@@ -154,5 +185,20 @@ function AppWithAuth() {
     return <LoginScreen onLoginSuccess={() => setIsLoggedIn(true)} />;
   }
 
-  return <AppNavigator />;
+  return <AppNavigator onLogout={() => setIsLoggedIn(false)} />;
 }
+
+const styles = StyleSheet.create({
+  logoutButton: {
+    marginRight: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  // Header nền đậm ở cả 2 theme (#0d6efd sáng / #1e293b tối) nên chữ trắng
+  // hợp cả hai - khớp với headerTintColor phía trên.
+  logoutText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});

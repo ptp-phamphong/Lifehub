@@ -21,7 +21,7 @@ export class ThemeSettingsComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Loi khi tai theme setting:', err);
+        console.error('Lỗi khi tải cài đặt giao diện:', err);
         this.loading = false;
       }
     });
@@ -45,7 +45,7 @@ export class ThemeSettingsComponent implements OnInit {
         this.saving = false;
       },
       error: (err) => {
-        console.error('Loi khi luu theme setting:', err);
+        console.error('Lỗi khi lưu cài đặt giao diện:', err);
         this.saving = false;
       }
     });

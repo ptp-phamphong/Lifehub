@@ -43,7 +43,7 @@ export class VisitorProfileListComponent implements OnChanges {
         this.loading = false;
       },
       error: err => {
-        console.error('Loi khi tai danh sach khach:', err);
+        console.error('Lỗi khi tải danh sách khách:', err);
         this.loading = false;
       }
     });
@@ -77,7 +77,7 @@ export class VisitorProfileListComponent implements OnChanges {
         this.dataChanged.emit();
         this.load();
       },
-      error: err => console.error('Loi khi danh dau khach:', err)
+      error: err => console.error('Lỗi khi đánh dấu khách:', err)
     });
   }
 

@@ -18,6 +18,10 @@ namespace API_Raspberry.Model
         [Required]
         public string Name { get; set; }
 
+        // Email nhận mã OTP khi quên mật khẩu. Mỗi user có email riêng, có thể sửa
+        // trong màn hình quản lý user. Admin mặc định được seed ptp.phamphong@gmail.com.
+        public string Email { get; set; }
+
         public bool Active { get; set; } = true;
     }
 }

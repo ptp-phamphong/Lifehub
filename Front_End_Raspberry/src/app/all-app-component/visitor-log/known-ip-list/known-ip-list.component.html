@@ -1,15 +1,15 @@
 <div class="known-ip-wrapper">
 
   <p class="intro">
-    IP nao dang o day va duoc bat <strong>La toi</strong> se bi an khoi thong ke khi bo loc
-    "An traffic cua toi" dang bat. Moi lan ban dang nhap thanh cong vao trang admin,
-    IP do se <strong>tu dong</strong> duoc them vao day - nen IP nha co doi cung khong sao.
+    IP nào đang ở đây và được bật <strong>Là tôi</strong> sẽ bị ẩn khỏi thống kê khi bộ lọc
+    "Ẩn traffic của tôi" đang bật. Mỗi lần bạn đăng nhập thành công vào trang admin,
+    IP đó sẽ <strong>tự động</strong> được thêm vào đây - nên IP nhà có đổi cũng không sao.
   </p>
 
   <div class="add-form">
-    <input type="text" [(ngModel)]="newIp" placeholder="Dia chi IP (vi du 113.161.20.10)" />
-    <input type="text" [(ngModel)]="newLabel" placeholder="Ten goi (Nha, 4G, Cong ty...)" />
-    <button class="btn-add" (click)="add()">+ Them IP</button>
+    <input type="text" [(ngModel)]="newIp" placeholder="Địa chỉ IP (ví dụ 113.161.20.10)" />
+    <input type="text" [(ngModel)]="newLabel" placeholder="Tên gọi (Nhà, 4G, Công ty...)" />
+    <button class="btn-add" (click)="add()">+ Thêm IP</button>
   </div>
 
   <div class="message" *ngIf="message">{{ message }}</div>
@@ -19,17 +19,17 @@
       <thead>
         <tr>
           <th>IP</th>
-          <th>Trinh duyet (VisitorId)</th>
-          <th>Ten goi</th>
-          <th>La toi</th>
-          <th>Ngay them</th>
-          <th>Hanh dong</th>
+          <th>Trình duyệt (VisitorId)</th>
+          <th>Tên gọi</th>
+          <th>Là tôi</th>
+          <th>Ngày thêm</th>
+          <th>Hành động</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngIf="!knownIps.length">
-          <td class="empty-row" colspan="6">Chua danh dau IP nao.</td>
+          <td class="empty-row" colspan="6">Chưa đánh dấu IP nào.</td>
         </tr>
 
         <tr *ngFor="let item of knownIps">
@@ -38,15 +38,15 @@
           <td>{{ item.label || '-' }}</td>
           <td>
             <span class="badge" [class.badge-active]="item.isSelf" [class.badge-inactive]="!item.isSelf">
-              {{ item.isSelf ? 'Co' : 'Khong' }}
+              {{ item.isSelf ? 'Có' : 'Không' }}
             </span>
           </td>
           <td>{{ item.createdDate ? (item.createdDate | date: 'dd/MM/yyyy') : '-' }}</td>
           <td class="col-actions">
             <button class="btn-action btn-edit" (click)="toggleSelf(item)">
-              {{ item.isSelf ? 'Bo danh dau' : 'Danh dau la toi' }}
+              {{ item.isSelf ? 'Bỏ đánh dấu' : 'Đánh dấu là tôi' }}
             </button>
-            <button class="btn-action btn-delete" (click)="remove(item)">Xoa</button>
+            <button class="btn-action btn-delete" (click)="remove(item)">Xóa</button>
           </td>
         </tr>
       </tbody>

@@ -1,19 +1,19 @@
 <div class="expense-table-container">
-  <h2>Danh sach hoc ky</h2>
+  <h2>Danh sách học kỳ</h2>
 
   <div class="toolbar">
-    <button class="btn-add" (click)="openEditDialog(0)">+ Them moi</button>
+    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm mới</button>
   </div>
 
   <table class="expense-table">
     <thead>
       <tr>
-        <th>Id</th>
-        <th>Ma hoc ky</th>
-        <th>Ten hoc ky</th>
-        <th>Nam</th>
-        <th>Hoc ky hien tai</th>
-        <th>Hanh dong</th>
+        <th>Mã</th>
+        <th>Mã học kỳ</th>
+        <th>Tên học kỳ</th>
+        <th>Năm</th>
+        <th>Học kỳ hiện tại</th>
+        <th>Hành động</th>
       </tr>
     </thead>
     <tbody>
@@ -24,12 +24,12 @@
         <td>{{ item.year }}</td>
         <td>
           <span class="badge" [class.badge-active]="item.isCurrentSemester" [class.badge-inactive]="!item.isCurrentSemester">
-            {{ item.isCurrentSemester ? 'Current' : 'No' }}
+            {{ item.isCurrentSemester ? 'Hiện tại' : 'Không' }}
           </span>
         </td>
         <td class="col-actions">
-          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">Sua</button>
-          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoa</button>
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">Sửa</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xóa</button>
         </td>
       </tr>
     </tbody>

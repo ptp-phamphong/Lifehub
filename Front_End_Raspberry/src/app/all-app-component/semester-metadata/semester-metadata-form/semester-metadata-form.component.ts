@@ -42,29 +42,29 @@ export class SemesterMetadataFormComponent {
         },
         error: (err) => {
           console.error(err);
-          this.message = 'Gui that bai.';
+          this.message = 'Gửi thất bại.';
         }
       });
   }
 
   submitForm() {
     if (!this.semesterName) {
-      this.message = 'Vui long nhap ten hoc ky.';
+      this.message = 'Vui lòng nhập tên học kỳ.';
       return;
     }
 
     if (!this.codeSemester) {
-      this.message = 'Vui long nhap ma hoc ky.';
+      this.message = 'Vui lòng nhập mã học kỳ.';
       return;
     }
 
     if (this.year == null || Number.isNaN(this.year)) {
-      this.message = 'Vui long nhap nam hoc ky.';
+      this.message = 'Vui lòng nhập năm học kỳ.';
       return;
     }
 
     if (this.isCurrentSemester && this.hasAnotherCurrentSemester()) {
-      this.message = 'Chi duoc ton tai mot hoc ky hien tai.';
+      this.message = 'Chỉ được tồn tại một học kỳ hiện tại.';
       return;
     }
 
@@ -83,7 +83,7 @@ export class SemesterMetadataFormComponent {
           },
           error: (err) => {
             console.error(err);
-            this.message = 'Cap nhat that bai.';
+            this.message = 'Cập nhật thất bại.';
           }
         });
     } else {
@@ -94,7 +94,7 @@ export class SemesterMetadataFormComponent {
           },
           error: (err) => {
             console.error(err);
-            this.message = 'Tao moi that bai.';
+            this.message = 'Tạo mới thất bại.';
           }
         });
     }

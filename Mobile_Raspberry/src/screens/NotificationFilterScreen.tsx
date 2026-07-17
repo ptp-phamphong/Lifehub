@@ -43,7 +43,7 @@ export default function NotificationFilterScreen() {
       const filters = await getAllFilters();
       const grouped: FilterSection[] = [
         {
-          title: 'Android Flags',
+          title: 'Cờ Android',
           icon: '🚩',
           filterType: 'flag',
           data: filters.filter(f => f.filterType === 'flag'),

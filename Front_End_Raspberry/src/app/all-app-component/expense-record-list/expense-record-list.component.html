@@ -60,7 +60,7 @@
   <table class="expense-table" *ngIf="!groupByDay">
     <thead>
       <tr>
-        <th class="sortable" (click)="onSort('id')">Id <span class="sort-icon">{{getSortIcon('id')}}</span></th>
+        <th class="sortable" (click)="onSort('id')">Mã <span class="sort-icon">{{getSortIcon('id')}}</span></th>
         <th class="sortable" (click)="onSort('createdDate')">{{dateLabel}} <span class="sort-icon">{{getSortIcon('createdDate')}}</span></th>
         <th class="sortable" (click)="onSort('reason')">Lý do <span class="sort-icon">{{getSortIcon('reason')}}</span></th>
         <th *ngIf="isExpenseTab" class="sortable" (click)="onSort('reasonType')">Loại lý do <span class="sort-icon">{{getSortIcon('reasonType')}}</span></th>
@@ -77,7 +77,7 @@
         <td class="col-amount">{{ formatCurrency(item.amount) }}</td>
         <td class="col-actions">
           <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
-          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoá</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xóa</button>
         </td>
       </tr>
     </tbody>
@@ -94,7 +94,7 @@
       <table class="expense-table">
         <thead>
           <tr>
-            <th>Id</th>
+            <th>Mã</th>
             <th>{{dateLabel}}</th>
             <th>Lý do</th>
             <th *ngIf="isExpenseTab">Loại lý do</th>
@@ -111,7 +111,7 @@
             <td class="col-amount">{{ formatCurrency(item.amount) }}</td>
             <td class="col-actions">
               <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
-              <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoá</button>
+              <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xóa</button>
             </td>
           </tr>
         </tbody>

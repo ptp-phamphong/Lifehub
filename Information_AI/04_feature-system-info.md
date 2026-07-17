@@ -53,9 +53,10 @@ Returns a `SystemInfo` model with string fields: `CpuTemperature`, `RamAvailable
 
 ### Notes
 
-- This only works on Raspberry Pi (Linux). On Windows dev, the bash commands will fail.
+- The shell commands only exist on the Pi. **Off-Linux, `GetSystemStatus()` returns stub values instead of failing** (`"42.0"`, `"1.5GiB available (dev stub)"`, `"12GB free (dev stub)"`), so the endpoint and the UI still work when developing on Windows. Don't delete the call to make local dev work — it already degrades.
 - No database involved — purely runtime shell execution.
-- No authentication required.
+- **Requires authentication**, like every endpoint: the global JWT `FallbackPolicy` in `Program.cs` covers this controller, and it carries no `[AllowAnonymous]`. Calling `GET /SystemInfo` without a bearer token returns 401.
+- The `"B available"` / `"B free"` suffixes are produced by the `awk` commands, so this feature's values render in English even though the rest of the UI is Vietnamese.
 
 ## Angular Web Frontend
 

@@ -28,6 +28,50 @@ export async function login(username: string, password: string): Promise<LoginRe
   return data;
 }
 
+export interface ForgotPasswordResponse {
+  message: string;
+  maskedEmail: string;
+}
+
+/**
+ * Bước 1 quên mật khẩu: gửi mã OTP về email của user.
+ * Trả về email đã được che bớt để hiển thị cho người dùng.
+ */
+export async function requestPasswordReset(username: string): Promise<ForgotPasswordResponse> {
+  const response = await fetch(`${getApiBaseUrl()}/Auth/ForgotPassword`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.message || 'Không gửi được mã OTP');
+  }
+  return data as ForgotPasswordResponse;
+}
+
+/**
+ * Bước 2 quên mật khẩu: xác thực OTP + đặt mật khẩu mới.
+ */
+export async function resetPassword(
+  username: string,
+  otp: string,
+  newPassword: string
+): Promise<string> {
+  const response = await fetch(`${getApiBaseUrl()}/Auth/ResetPassword`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, otp, newPassword }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.message || 'Đặt lại mật khẩu thất bại');
+  }
+  return data?.message || 'Đặt lại mật khẩu thành công';
+}
+
 export async function logout(): Promise<void> {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
   await SecureStore.deleteItemAsync(EXPIRATION_KEY);

@@ -38,19 +38,19 @@ export class SystemConfigurationFormComponent {
         },
         error: (err) => {
           console.error(err);
-          this.message = 'Gui that bai.';
+          this.message = 'Gửi thất bại.';
         }
       });
   }
 
   submitForm() {
     if (!this.keyConfig) {
-      this.message = 'Vui long nhap key config.';
+      this.message = 'Vui lòng nhập khóa cấu hình.';
       return;
     }
 
     if (!this.valueConfig) {
-      this.message = 'Vui long nhap value config.';
+      this.message = 'Vui lòng nhập giá trị cấu hình.';
       return;
     }
 
@@ -67,7 +67,7 @@ export class SystemConfigurationFormComponent {
           },
           error: (err) => {
             console.error(err);
-            this.message = 'Cap nhat that bai.';
+            this.message = 'Cập nhật thất bại.';
           }
         });
     } else {
@@ -78,7 +78,7 @@ export class SystemConfigurationFormComponent {
           },
           error: (err) => {
             console.error(err);
-            this.message = 'Tao moi that bai.';
+            this.message = 'Tạo mới thất bại.';
           }
         });
     }

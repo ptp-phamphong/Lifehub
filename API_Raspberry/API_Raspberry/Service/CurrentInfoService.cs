@@ -18,6 +18,18 @@ namespace API_Raspberry.Service
 
         public SystemInfo GetSystemStatus()
         {
+            // vcgencmd/free/df chạy qua /usr/bin/bash nên chỉ có trên Pi.
+            // Khi dev trên Windows, trả số liệu giả để UI vẫn render được thay vì lỗi 500.
+            if (!OperatingSystem.IsLinux())
+            {
+                return new SystemInfo
+                {
+                    CpuTemperature = "42.0",
+                    RamAvailable = "1.5GiB available (dev stub)",
+                    MemoryAvailable = "12GB free (dev stub)"
+                };
+            }
+
             try
             {
                 string cpu = RunCommand("/usr/bin/vcgencmd measure_temp | cut -d'=' -f2 | tr -d \"'C\"");

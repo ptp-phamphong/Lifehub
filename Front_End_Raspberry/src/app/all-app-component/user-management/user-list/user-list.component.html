@@ -1,18 +1,19 @@
 <div class="expense-table-container">
-  <h2>Quan ly nguoi dung</h2>
+  <h2>Quản lý người dùng</h2>
 
   <div class="toolbar">
-    <button class="btn-add" (click)="openCreateDialog()">+ Them user</button>
+    <button class="btn-add" (click)="openCreateDialog()">+ Thêm người dùng</button>
   </div>
 
   <table class="expense-table">
     <thead>
       <tr>
-        <th>Id</th>
-        <th>Username</th>
-        <th>Name</th>
-        <th>Active</th>
-        <th>Hanh dong</th>
+        <th>Mã</th>
+        <th>Tên đăng nhập</th>
+        <th>Tên hiển thị</th>
+        <th>Email</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
       </tr>
     </thead>
     <tbody>
@@ -20,15 +21,16 @@
         <td>{{ user.id }}</td>
         <td>{{ user.username }}</td>
         <td>{{ user.name }}</td>
+        <td>{{ user.email || '—' }}</td>
         <td>
           <span class="badge" [class.badge-active]="user.active" [class.badge-inactive]="!user.active">
-            {{ user.active ? 'Active' : 'Inactive' }}
+            {{ user.active ? 'Đang hoạt động' : 'Ngừng hoạt động' }}
           </span>
         </td>
         <td class="col-actions">
-          <button class="btn-action btn-edit" (click)="openEditDialog(user)">Sua</button>
-          <button class="btn-action btn-password" (click)="openChangePasswordDialog(user)">Doi MK</button>
-          <button class="btn-action btn-delete" (click)="deleteUser(user)">Xoa</button>
+          <button class="btn-action btn-edit" (click)="openEditDialog(user)">Sửa</button>
+          <button class="btn-action btn-password" (click)="openChangePasswordDialog(user)">Đổi mật khẩu</button>
+          <button class="btn-action btn-delete" (click)="deleteUser(user)">Xóa</button>
         </td>
       </tr>
     </tbody>

@@ -30,14 +30,14 @@ export class KnownIpListComponent implements OnInit {
   load(): void {
     this.visitorLogService.getKnownIps().subscribe({
       next: data => (this.knownIps = data),
-      error: err => console.error('Loi khi tai danh sach IP:', err)
+      error: err => console.error('Lỗi khi tải danh sách IP:', err)
     });
   }
 
   add(): void {
     const ip = this.newIp.trim();
     if (!ip) {
-      this.message = 'Nhap dia chi IP truoc da.';
+      this.message = 'Nhập địa chỉ IP trước đã.';
       return;
     }
 
@@ -50,8 +50,8 @@ export class KnownIpListComponent implements OnInit {
         this.dataChanged.emit();
       },
       error: err => {
-        console.error('Loi khi them IP:', err);
-        this.message = 'Khong them duoc IP.';
+        console.error('Lỗi khi thêm IP:', err);
+        this.message = 'Không thêm được IP.';
       }
     });
   }
@@ -63,7 +63,7 @@ export class KnownIpListComponent implements OnInit {
         this.load();
         this.dataChanged.emit();
       },
-      error: err => console.error('Loi khi cap nhat IP:', err)
+      error: err => console.error('Lỗi khi cập nhật IP:', err)
     });
   }
 
@@ -78,7 +78,7 @@ export class KnownIpListComponent implements OnInit {
         this.load();
         this.dataChanged.emit();
       },
-      error: err => console.error('Loi khi xoa IP:', err)
+      error: err => console.error('Lỗi khi xóa IP:', err)
     });
   }
 }

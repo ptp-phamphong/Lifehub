@@ -2,12 +2,12 @@
 
   <div class="table-toolbar">
     <div class="result-count" *ngIf="result">
-      <strong>{{ result.totalCount }}</strong> luot truy cap
+      <strong>{{ result.totalCount }}</strong> lượt truy cập
       <span *ngIf="result.totalPages > 1"> - trang {{ result.page }}/{{ result.totalPages }}</span>
     </div>
 
     <div class="page-size">
-      <label for="pageSize">Moi trang</label>
+      <label for="pageSize">Mỗi trang</label>
       <select id="pageSize" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
         <option *ngFor="let size of pageSizes" [ngValue]="size">{{ size }}</option>
       </select>
@@ -19,7 +19,7 @@
       <thead>
         <tr>
           <th class="sortable" (click)="onSort('visitedAt')">
-            Thoi gian <span class="sort-icon">{{ getSortIcon('visitedAt') }}</span>
+            Thời gian <span class="sort-icon">{{ getSortIcon('visitedAt') }}</span>
           </th>
           <th class="sortable" (click)="onSort('path')">
             Trang <span class="sort-icon">{{ getSortIcon('path') }}</span>
@@ -28,28 +28,28 @@
             IP <span class="sort-icon">{{ getSortIcon('ipAddress') }}</span>
           </th>
           <th class="sortable" (click)="onSort('countryCode')">
-            Vi tri <span class="sort-icon">{{ getSortIcon('countryCode') }}</span>
+            Vị trí <span class="sort-icon">{{ getSortIcon('countryCode') }}</span>
           </th>
           <th class="sortable" (click)="onSort('referrerDomain')">
-            Nguon <span class="sort-icon">{{ getSortIcon('referrerDomain') }}</span>
+            Nguồn <span class="sort-icon">{{ getSortIcon('referrerDomain') }}</span>
           </th>
           <th class="sortable" (click)="onSort('browser')">
-            Trinh duyet <span class="sort-icon">{{ getSortIcon('browser') }}</span>
+            Trình duyệt <span class="sort-icon">{{ getSortIcon('browser') }}</span>
           </th>
           <th class="sortable" (click)="onSort('deviceType')">
-            Thiet bi <span class="sort-icon">{{ getSortIcon('deviceType') }}</span>
+            Thiết bị <span class="sort-icon">{{ getSortIcon('deviceType') }}</span>
           </th>
           <th class="sortable" (click)="onSort('durationMs')">
-            Thoi gian doc <span class="sort-icon">{{ getSortIcon('durationMs') }}</span>
+            Thời gian đọc <span class="sort-icon">{{ getSortIcon('durationMs') }}</span>
           </th>
-          <th>Hanh dong</th>
+          <th>Hành động</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngIf="result && !result.items.length">
           <td class="empty-row" colspan="9">
-            Khong co du lieu. Neu vua bat tracking thi hay thu truy cap portfolio mot lan.
+            Không có dữ liệu. Nếu vừa bật tracking thì hãy thử truy cập portfolio một lần.
           </td>
         </tr>
 
@@ -64,7 +64,7 @@
 
           <td class="col-ip">
             {{ row.ipAddress || '-' }}
-            <span class="badge badge-self" *ngIf="row.isSelf">{{ row.knownLabel || 'Cua toi' }}</span>
+            <span class="badge badge-self" *ngIf="row.isSelf">{{ row.knownLabel || 'Của tôi' }}</span>
             <span class="badge badge-bot" *ngIf="row.isBot">bot</span>
           </td>
 
@@ -79,23 +79,23 @@
               class="btn-action btn-edit"
               *ngIf="row.visitorId"
               (click)="showVisitor.emit(row.visitorId!)"
-              title="Xem tat ca luot truy cap cua khach nay">Khach</button>
+              title="Xem tất cả lượt truy cập của khách này">Khách</button>
 
             <button
               class="btn-action btn-delete"
               *ngIf="row.ipAddress && !row.isSelf"
               (click)="markAsMine(row)"
-              title="Danh dau IP nay la cua toi (an khoi thong ke)">La toi</button>
+              title="Đánh dấu IP này là của tôi (ẩn khỏi thống kê)">Là tôi</button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Phan trang: xu ly o server nen bang bao nhieu dong cung khong cham -->
+  <!-- Phân trang: xử lý ở server nên bảng bao nhiêu dòng cũng không chậm -->
   <div class="pager" *ngIf="result && result.totalPages > 1">
     <button class="btn-page" [disabled]="result.page <= 1" (click)="goToPage(1)">&laquo;</button>
-    <button class="btn-page" [disabled]="result.page <= 1" (click)="goToPage(result.page - 1)">Truoc</button>
+    <button class="btn-page" [disabled]="result.page <= 1" (click)="goToPage(result.page - 1)">Trước</button>
 
     <button
       class="btn-page"

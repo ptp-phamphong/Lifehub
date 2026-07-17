@@ -14,6 +14,19 @@ export class LoginComponent implements OnInit {
   password = '';
   errorMessage = '';
   isLoading = false;
+  showPassword = false;
+
+  // ── Luồng quên mật khẩu ──
+  // 'login' = form đăng nhập; 'forgot-request' = nhập username để lấy OTP;
+  // 'forgot-reset' = nhập OTP + mật khẩu mới.
+  mode: 'login' | 'forgot-request' | 'forgot-reset' = 'login';
+  forgotUsername = '';
+  otp = '';
+  newPassword = '';
+  showNewPassword = false;
+  maskedEmail = '';
+  forgotError = '';
+  forgotInfo = '';
 
   constructor(
     private authService: AuthService,
@@ -83,6 +96,72 @@ export class LoginComponent implements OnInit {
         } else {
           this.errorMessage = 'Lỗi kết nối server';
         }
+      }
+    });
+  }
+
+  // ── Quên mật khẩu ──
+
+  openForgot(): void {
+    this.mode = 'forgot-request';
+    this.forgotUsername = this.username; // điền sẵn username đang gõ cho tiện
+    this.otp = '';
+    this.newPassword = '';
+    this.showNewPassword = false;
+    this.maskedEmail = '';
+    this.forgotError = '';
+    this.forgotInfo = '';
+  }
+
+  backToLogin(): void {
+    this.mode = 'login';
+    this.forgotError = '';
+    this.forgotInfo = '';
+  }
+
+  requestOtp(): void {
+    if (!this.forgotUsername) {
+      this.forgotError = 'Vui lòng nhập username';
+      return;
+    }
+    this.isLoading = true;
+    this.forgotError = '';
+    this.forgotInfo = '';
+
+    this.authService.requestPasswordReset(this.forgotUsername).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        this.maskedEmail = res.maskedEmail || '';
+        this.forgotInfo = res.message || 'Đã gửi mã OTP.';
+        this.mode = 'forgot-reset';
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.forgotError = err?.error?.message || 'Không gửi được mã OTP';
+      }
+    });
+  }
+
+  resetPassword(): void {
+    if (!this.otp || !this.newPassword) {
+      this.forgotError = 'Vui lòng nhập mã OTP và mật khẩu mới';
+      return;
+    }
+    this.isLoading = true;
+    this.forgotError = '';
+    this.forgotInfo = '';
+
+    this.authService.resetPassword(this.forgotUsername, this.otp, this.newPassword).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        this.mode = 'login';
+        this.username = this.forgotUsername;
+        this.password = '';
+        this.errorMessage = (res?.message || 'Đặt lại mật khẩu thành công.') + ' Hãy đăng nhập bằng mật khẩu mới.';
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.forgotError = err?.error?.message || 'Đặt lại mật khẩu thất bại';
       }
     });
   }

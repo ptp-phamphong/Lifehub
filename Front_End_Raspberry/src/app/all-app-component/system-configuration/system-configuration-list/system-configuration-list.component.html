@@ -1,17 +1,17 @@
 <div class="expense-table-container">
-  <h2>Cau hinh dac biet</h2>
+  <h2>Cấu hình đặc biệt</h2>
 
   <div class="toolbar">
-    <button class="btn-add" (click)="openEditDialog(0)">+ Them moi</button>
+    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm mới</button>
   </div>
 
   <table class="expense-table">
     <thead>
       <tr>
-        <th>Id</th>
-        <th>KeyConfig</th>
-        <th>ValueConfig</th>
-        <th>Hanh dong</th>
+        <th>Mã</th>
+        <th>Khóa cấu hình</th>
+        <th>Giá trị cấu hình</th>
+        <th>Hành động</th>
       </tr>
     </thead>
     <tbody>
@@ -20,8 +20,8 @@
         <td>{{ item.keyConfig }}</td>
         <td>{{ item.valueConfig }}</td>
         <td class="col-actions">
-          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">Sua</button>
-          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoa</button>
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">Sửa</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xóa</button>
         </td>
       </tr>
     </tbody>

@@ -34,7 +34,7 @@
   <table class="course-table">
     <thead>
       <tr>
-        <th>Id</th>
+        <th>Mã</th>
         <th>Mã môn</th>
         <th>Tên môn</th>
         <th>Ngày bắt đầu</th>
@@ -59,7 +59,7 @@
         <td><span class="semester-badge">{{ semesterDisplay(item) }}</span></td>
         <td class="col-actions">
           <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
-          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xoá</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xóa</button>
         </td>
       </tr>
       <tr *ngIf="courses.length === 0">

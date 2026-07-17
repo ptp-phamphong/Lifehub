@@ -25,10 +25,10 @@ export class VisitorLogPageComponent implements OnInit {
 
   // Các lựa chọn nhanh cho khoảng thời gian.
   readonly rangeOptions = [
-    { label: '7 ngay', days: 7 },
-    { label: '30 ngay', days: 30 },
-    { label: '90 ngay', days: 90 },
-    { label: 'Tat ca', days: 0 }
+    { label: '7 ngày', days: 7 },
+    { label: '30 ngày', days: 30 },
+    { label: '90 ngày', days: 90 },
+    { label: 'Tất cả', days: 0 }
   ];
   selectedRange = 30;
 
@@ -81,7 +81,7 @@ export class VisitorLogPageComponent implements OnInit {
   loadSummary(): void {
     this.visitorLogService.getSummary(this.filter).subscribe({
       next: data => (this.summary = data),
-      error: err => console.error('Loi khi tai tong quan:', err)
+      error: err => console.error('Lỗi khi tải tổng quan:', err)
     });
   }
 
@@ -93,7 +93,7 @@ export class VisitorLogPageComponent implements OnInit {
 
     this.visitorLogService.getHistory().subscribe({
       next: data => (this.history = data),
-      error: err => console.error('Loi khi tai lich su dai han:', err)
+      error: err => console.error('Lỗi khi tải lịch sử dài hạn:', err)
     });
   }
 

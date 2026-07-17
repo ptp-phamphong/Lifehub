@@ -1,6 +1,6 @@
 <div class="container-fluid mt-4 px-4 main-shell">
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0 text-primary">Raspberry Controller</h3>
+    <h3 class="mb-0 text-primary">Bảng điều khiển Raspberry</h3>
     <button (click)="logout()" class="btn btn-outline-danger btn-sm">🚪 Đăng xuất</button>
   </div>
 
@@ -11,14 +11,14 @@
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
         class="nav-link fw-semibold"
-      >🏠 System Info</a>
+      >🏠 Thông tin hệ thống</a>
     </li>
     <li class="nav-item">
       <a
         [routerLink]="['/expense-record-list']"
         routerLinkActive="active"
         class="nav-link fw-semibold"
-      >📊 Expense Record List</a>
+      >📊 Chi tiêu</a>
     </li>
     <li class="nav-item">
       <a

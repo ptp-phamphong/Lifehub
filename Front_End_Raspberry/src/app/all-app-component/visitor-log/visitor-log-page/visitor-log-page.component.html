@@ -1,14 +1,14 @@
 <div class="visitor-log-container">
 
   <div class="page-head">
-    <h2>Nhat ky truy cap</h2>
-    <p class="page-sub">Ai da ghe tham portfolio, xem trang nao, luc nao va quay lai bao nhieu lan.</p>
+    <h2>Nhật ký truy cập</h2>
+    <p class="page-sub">Ai đã ghé thăm portfolio, xem trang nào, lúc nào và quay lại bao nhiêu lần.</p>
   </div>
 
-  <!-- Bo loc chung cho moi tab -->
+  <!-- Bộ lọc chung cho mọi tab -->
   <div class="filter-bar">
     <div class="filter-group">
-      <label>Khoang thoi gian</label>
+      <label>Khoảng thời gian</label>
       <div class="range-buttons">
         <button
           *ngFor="let option of rangeOptions"
@@ -21,45 +21,45 @@
     </div>
 
     <div class="filter-group">
-      <label for="area">Khu vuc</label>
+      <label for="area">Khu vực</label>
       <select id="area" [(ngModel)]="selectedArea" (change)="applyFilter()">
-        <option [ngValue]="null">Tat ca</option>
+        <option [ngValue]="null">Tất cả</option>
         <option [ngValue]="1">Portfolio</option>
-        <option [ngValue]="2">Trang login</option>
+        <option [ngValue]="2">Trang đăng nhập</option>
       </select>
     </div>
 
     <div class="filter-group">
-      <label for="path">Trang chua chu</label>
-      <input id="path" type="text" [(ngModel)]="pathContains" (keyup.enter)="applyFilter()" placeholder="vi du: about" />
+      <label for="path">Trang chứa chữ</label>
+      <input id="path" type="text" [(ngModel)]="pathContains" (keyup.enter)="applyFilter()" placeholder="ví dụ: about" />
     </div>
 
     <div class="filter-group checks">
       <label class="check">
         <input type="checkbox" [(ngModel)]="excludeSelf" (change)="applyFilter()" />
-        <span>An traffic cua toi</span>
+        <span>Ẩn traffic của tôi</span>
       </label>
       <label class="check">
         <input type="checkbox" [(ngModel)]="excludeBots" (change)="applyFilter()" />
-        <span>An bot</span>
+        <span>Ẩn bot</span>
       </label>
     </div>
 
-    <button class="btn-apply" (click)="applyFilter()">Loc</button>
+    <button class="btn-apply" (click)="applyFilter()">Lọc</button>
   </div>
 
-  <!-- Dang xem rieng mot khach -->
+  <!-- Đang xem riêng một khách -->
   <div class="visitor-filter-note" *ngIf="filter?.visitorId">
-    Dang xem rieng khach <code>{{ filter.visitorId }}</code>
-    <button class="btn-clear" (click)="clearVisitorFilter()">Bo loc nay</button>
+    Đang xem riêng khách <code>{{ filter.visitorId }}</code>
+    <button class="btn-clear" (click)="clearVisitorFilter()">Bỏ lọc này</button>
   </div>
 
   <!-- Tabs -->
   <div class="tab-bar">
-    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Tong quan</button>
-    <button class="tab-btn" [class.active]="activeTab === 'visits'" (click)="setTab('visits')">Luot truy cap</button>
-    <button class="tab-btn" [class.active]="activeTab === 'visitors'" (click)="setTab('visitors')">Khach</button>
-    <button class="tab-btn" [class.active]="activeTab === 'myips'" (click)="setTab('myips')">IP cua toi</button>
+    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Tổng quan</button>
+    <button class="tab-btn" [class.active]="activeTab === 'visits'" (click)="setTab('visits')">Lượt truy cập</button>
+    <button class="tab-btn" [class.active]="activeTab === 'visitors'" (click)="setTab('visitors')">Khách</button>
+    <button class="tab-btn" [class.active]="activeTab === 'myips'" (click)="setTab('myips')">IP của tôi</button>
   </div>
 
   <div class="tab-content">
@@ -89,8 +89,8 @@
     </app-known-ip-list>
   </div>
 
-  <!-- Giay phep CC-BY cua DB-IP yeu cau dan link ve trang chu khi hien du lieu vi tri -->
+  <!-- Giấy phép CC-BY của DB-IP yêu cầu dẫn link về trang chủ khi hiện dữ liệu vị trí -->
   <p class="attribution">
-    Du lieu vi tri: <a href="https://db-ip.com" target="_blank" rel="noopener">IP Geolocation by DB-IP</a>
+    Dữ liệu vị trí: <a href="https://db-ip.com" target="_blank" rel="noopener">IP Geolocation by DB-IP</a>
   </p>
 </div>

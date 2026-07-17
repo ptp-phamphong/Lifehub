@@ -20,6 +20,7 @@ namespace API_Raspberry.Service
                 Id = u.Id,
                 Username = u.Username,
                 Name = u.Name,
+                Email = u.Email,
                 Active = u.Active
             }).ToList();
         }
@@ -34,6 +35,7 @@ namespace API_Raspberry.Service
                 Id = user.Id,
                 Username = user.Username,
                 Name = user.Name,
+                Email = user.Email,
                 Active = user.Active
             };
         }
@@ -45,6 +47,7 @@ namespace API_Raspberry.Service
                 Username = dto.Username,
                 Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 Name = dto.Name,
+                Email = dto.Email,
                 Active = true
             };
 
@@ -57,6 +60,7 @@ namespace API_Raspberry.Service
             if (user == null) return;
 
             user.Name = dto.Name;
+            user.Email = dto.Email;
             user.Active = dto.Active;
             _userRepository.Update(user);
         }

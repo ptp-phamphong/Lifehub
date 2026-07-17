@@ -134,6 +134,10 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Quên mật khẩu bằng OTP: OtpStore giữ mã trong RAM (Singleton), service xử lý luồng (Scoped).
+builder.Services.AddSingleton<IOtpStore, OtpStore>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+
 // ----------------------------
 // 6.6 JWT Authentication
 // ----------------------------
@@ -173,7 +177,14 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHostedService<ButtonListener>();
+// ButtonListener cần GPIO nên chỉ chạy được trên Pi. Mặc định: bật khi Linux, tắt khi dev Windows.
+// Ghi đè bằng "ButtonListener:Enabled" trong appsettings nếu cần tắt/bật thủ công.
+var buttonListenerEnabled = builder.Configuration.GetValue<bool?>("ButtonListener:Enabled") ?? OperatingSystem.IsLinux();
+if (buttonListenerEnabled)
+{
+    builder.Services.AddHostedService<ButtonListener>();
+}
+
 builder.Services.AddHostedService<ScheduleImportBackgroundService>();
 builder.Services.AddHostedService<VisitorLogMaintenanceService>();
 
@@ -196,6 +207,9 @@ try
     var visitorLogSettingsService = scope.ServiceProvider.GetRequiredService<IVisitorLogSettingsService>();
     visitorLogSettingsService.SeedDefaults();
 
+    // Email admin mặc định nhận OTP (có thể cấu hình qua Auth:AdminEmail hoặc sửa trong quản lý user).
+    var adminEmail = builder.Configuration["Auth:AdminEmail"] ?? "ptp.phamphong@gmail.com";
+
     // Seed default user if no users exist
     if (!db.Users.Any())
     {
@@ -206,9 +220,22 @@ try
             Username = defaultUsername,
             Password = defaultPasswordHash,
             Name = defaultUsername,
+            Email = adminEmail,
             Active = true
         });
         db.SaveChanges();
+    }
+    else
+    {
+        // DB cũ đã có user nhưng cột Email vừa được thêm (null): điền email admin mặc định
+        // cho các tài khoản chưa có email, nếu không thì luồng quên mật khẩu không gửi được OTP.
+        var usersWithoutEmail = db.Users.Where(u => u.Email == null || u.Email == "").ToList();
+        if (usersWithoutEmail.Count > 0)
+        {
+            foreach (var u in usersWithoutEmail)
+                u.Email = adminEmail;
+            db.SaveChanges();
+        }
     }
 }
 catch (Exception ex)

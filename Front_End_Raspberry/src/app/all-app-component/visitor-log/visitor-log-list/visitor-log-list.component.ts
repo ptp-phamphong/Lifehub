@@ -53,7 +53,7 @@ export class VisitorLogListComponent implements OnChanges {
         this.loading = false;
       },
       error: err => {
-        console.error('Loi khi tai visitor log:', err);
+        console.error('Lỗi khi tải nhật ký truy cập:', err);
         this.loading = false;
       }
     });
@@ -104,7 +104,7 @@ export class VisitorLogListComponent implements OnChanges {
         this.dataChanged.emit();
         this.load();
       },
-      error: err => console.error('Loi khi danh dau IP:', err)
+      error: err => console.error('Lỗi khi đánh dấu IP:', err)
     });
   }
 
