@@ -5,6 +5,7 @@ using API_Raspberry.Mapper;
 using API_Raspberry.Repository;
 using API_Raspberry.Service;
 using API_Raspberry.Service.Jobs;
+using API_Raspberry.Service.Zalo;
 using Hangfire;
 using Hangfire.Dashboard;
 using Hangfire.MySql;
@@ -218,6 +219,14 @@ if (buttonListenerEnabled)
 {
     builder.Services.AddHostedService<ButtonListener>();
 }
+
+// ----------------------------
+// Zalo: gửi tin nhắn qua Playwright (Chromium hệ thống trên Pi).
+// ----------------------------
+// Singleton vì Zalo Web chỉ cho một phiên web/tài khoản: manager tự nối tiếp mọi thao tác browser
+// và đóng sạch sau mỗi lần dùng cho nhẹ RAM. Tự tắt khi không phải Linux (xem ZaloSessionManager).
+builder.Services.Configure<ZaloOptions>(builder.Configuration.GetSection("Zalo"));
+builder.Services.AddSingleton<IZaloSessionManager, ZaloSessionManager>();
 
 var app = builder.Build();
 

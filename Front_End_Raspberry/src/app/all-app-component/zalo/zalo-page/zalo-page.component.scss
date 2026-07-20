@@ -1,0 +1,165 @@
+$radius: 12px;
+$radius-sm: 8px;
+
+.zalo-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.zalo-title {
+  margin: 0 0 4px;
+  color: var(--color-text);
+}
+
+.zalo-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-sec);
+}
+
+.btn-refresh {
+  padding: 6px 12px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+.zalo-disabled {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-warning-text);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: 0.85rem;
+}
+
+.zalo-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: $radius;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  max-width: 520px;
+}
+
+.card-title {
+  margin: 0 0 12px;
+  color: var(--color-text);
+}
+
+.field-label {
+  display: block;
+  margin: 12px 0 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-sec);
+}
+
+.zalo-select,
+.zalo-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+  font-size: 0.88rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+  }
+}
+
+.zalo-textarea {
+  resize: vertical;
+  min-height: 84px;
+  font-family: inherit;
+}
+
+.btn-run {
+  margin-top: 14px;
+  padding: 8px 16px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-btn-edit-border);
+  background: var(--color-btn-edit-bg);
+  color: var(--color-btn-edit-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.zalo-hint {
+  margin: 12px 0 0;
+  font-size: 0.83rem;
+  color: var(--color-text-sec);
+}
+
+.qr-box {
+  margin-top: 14px;
+  display: inline-block;
+  padding: 12px;
+  border-radius: $radius-sm;
+  border: 1px solid var(--color-border);
+  /* Nền trắng cố định: QR luôn cần nền sáng để quét được, kể cả ở dark mode. */
+  background: #ffffff;
+
+  img {
+    display: block;
+    max-width: 100%;
+    width: 260px;
+    height: auto;
+  }
+}
+
+.send-message {
+  margin: 12px 0 0;
+  font-size: 0.84rem;
+
+  &.ok {
+    color: var(--color-badge-active-text);
+  }
+
+  &.err {
+    color: var(--color-btn-delete-text);
+  }
+}
+
+.send-screenshot {
+  margin-top: 14px;
+
+  .screenshot-hint {
+    margin: 0 0 6px;
+    font-size: 0.8rem;
+    color: var(--color-text-sec);
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    border-radius: $radius-sm;
+    border: 1px solid var(--color-border);
+  }
+}

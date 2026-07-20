@@ -13,6 +13,7 @@ import { ThemeSettingsComponent } from './all-app-component/theme-settings/theme
 import { UserListComponent } from './all-app-component/user-management/user-list/user-list.component';
 import { VisitorLogPageComponent } from './all-app-component/visitor-log/visitor-log-page/visitor-log-page.component';
 import { JobsPageComponent } from './all-app-component/jobs/jobs-page/jobs-page.component';
+import { ZaloPageComponent } from './all-app-component/zalo/zalo-page/zalo-page.component';
 import { ExpenseAnalyticsPageComponent } from './all-app-component/expense-analytics/expense-analytics-page/expense-analytics-page.component';
 import { AuthGuard } from './guards/auth.guard';
 import { LoginComponent } from './all-app-component/login/login.component';
@@ -41,7 +42,8 @@ const routes: Routes = [
           { path: 'theme-settings', component: ThemeSettingsComponent },
           { path: 'user-settings', component: UserListComponent },
           { path: 'visitor-log-settings', component: VisitorLogPageComponent },
-          { path: 'jobs-settings', component: JobsPageComponent }
+          { path: 'jobs-settings', component: JobsPageComponent },
+          { path: 'zalo-settings', component: ZaloPageComponent }
         ]
       },
       { path: 'reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },

@@ -1,0 +1,64 @@
+<div class="zalo-page">
+	<div class="zalo-header">
+		<div>
+			<h5 class="zalo-title">Gửi tin nhắn Zalo</h5>
+			<p class="zalo-subtitle">
+				Đăng nhập Zalo một lần bằng mã QR, sau đó chọn người nhận và gửi tin nhắn.
+			</p>
+		</div>
+		<button class="btn-refresh" type="button" (click)="refreshStatus()">↻ Kiểm tra trạng thái</button>
+	</div>
+
+	<p class="zalo-disabled" *ngIf="statusChecked && !enabled">
+		⚠️ Tính năng chỉ chạy trên Raspberry Pi (không hoạt động khi chạy máy cục bộ).
+	</p>
+
+	<ng-container *ngIf="enabled">
+		<!-- Khu đăng nhập -->
+		<div class="zalo-card" *ngIf="!loggedIn">
+			<h6 class="card-title">Đăng nhập Zalo</h6>
+			<button class="btn-run" type="button" (click)="startLogin()" [disabled]="loginPolling">
+				{{ loginPolling ? 'Đang chờ quét...' : '▶ Đăng nhập Zalo' }}
+			</button>
+			<p class="zalo-hint" *ngIf="loginMessage">{{ loginMessage }}</p>
+			<div class="qr-box" *ngIf="qrImage">
+				<img [src]="qrImage" alt="Mã QR đăng nhập Zalo" />
+			</div>
+		</div>
+
+		<!-- Khu gửi tin -->
+		<div class="zalo-card" *ngIf="loggedIn">
+			<h6 class="card-title">Soạn tin nhắn</h6>
+
+			<label class="field-label" for="zalo-contact">Người nhận</label>
+			<select id="zalo-contact" class="zalo-select" [(ngModel)]="selectedContactId">
+				<option *ngFor="let c of contacts" [value]="c.id">{{ c.label }}</option>
+				<option *ngIf="!contacts.length" [ngValue]="null" disabled>Chưa cấu hình người nhận</option>
+			</select>
+
+			<label class="field-label" for="zalo-message">Nội dung</label>
+			<textarea
+				id="zalo-message"
+				class="zalo-textarea"
+				rows="4"
+				[(ngModel)]="message"
+				placeholder="Nhập nội dung tin nhắn..."
+			></textarea>
+
+			<button class="btn-run" type="button" (click)="send()" [disabled]="sending">
+				{{ sending ? 'Đang gửi...' : '➤ Gửi tin nhắn' }}
+			</button>
+
+			<p class="send-message" [class.ok]="sendOk" [class.err]="!sendOk" *ngIf="sendMessage">
+				{{ sendMessage }}
+			</p>
+
+			<div class="send-screenshot" *ngIf="sendScreenshot">
+				<p class="screenshot-hint">Ảnh chụp sau khi gửi — kiểm tra xem đã gửi đúng người chưa:</p>
+				<a [href]="sendScreenshot" target="_blank" rel="noopener" title="Bấm để xem ảnh lớn">
+					<img [src]="sendScreenshot" alt="Ảnh chụp hội thoại sau khi gửi" />
+				</a>
+			</div>
+		</div>
+	</ng-container>
+</div>
