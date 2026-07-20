@@ -212,11 +212,16 @@ $radius-sm: 8px;
   &.active {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-primary);
   }
 
   &:disabled {
     opacity: 0.45;
     cursor: not-allowed;
   }
+}
+
+.sort-icon.msym {
+  font-size: 0.95rem;
+  vertical-align: -0.15em;
 }

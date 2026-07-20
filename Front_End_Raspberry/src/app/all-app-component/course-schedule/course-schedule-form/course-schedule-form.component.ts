@@ -22,6 +22,9 @@ export class CourseScheduleFormComponent {
   semesterMetadataId: number | null = null;
   dayOfWeek: number | null = null;
   message: string = '';
+  // Xem ghi chú ở expense-record.component.ts: emoji cũ là tín hiệu duy nhất
+  // phân biệt thành công/lỗi, nên bỏ emoji thì phải có trường trạng thái này.
+  messageType: 'success' | 'error' | 'warning' = 'success';
   id: number = 0;
   semesters: SemesterMetadata[] = [];
 
@@ -69,14 +72,16 @@ export class CourseScheduleFormComponent {
         },
         error: (err) => {
           console.error(err);
-          this.message = '❌ Tải dữ liệu thất bại!';
+          this.messageType = 'error';
+          this.message = 'Tải dữ liệu thất bại!';
         }
       });
   }
 
   submitForm() {
     if (!this.courseName || !this.courseCode) {
-      this.message = '⚠️ Vui lòng nhập tên môn và mã môn.';
+      this.messageType = 'warning';
+      this.message = 'Vui lòng nhập tên môn và mã môn.';
       return;
     }
 
@@ -97,24 +102,28 @@ export class CourseScheduleFormComponent {
       this.http.put(`${environment.apiBaseUrl}/UpdateCourseSchedule/${this.id}`, payload)
         .subscribe({
           next: () => {
-            this.message = '✅ Cập nhật thành công!';
+            this.messageType = 'success';
+            this.message = 'Cập nhật thành công!';
             this.dialogRef.close('saved');
           },
           error: (err) => {
             console.error(err);
-            this.message = '❌ Cập nhật thất bại!';
+            this.messageType = 'error';
+            this.message = 'Cập nhật thất bại!';
           }
         });
     } else {
       this.http.post(`${environment.apiBaseUrl}/AddCourseSchedule`, payload)
         .subscribe({
           next: () => {
-            this.message = '✅ Thêm thành công!';
+            this.messageType = 'success';
+            this.message = 'Thêm thành công!';
             this.dialogRef.close('saved');
           },
           error: (err) => {
             console.error(err);
-            this.message = '❌ Thêm thất bại!';
+            this.messageType = 'error';
+            this.message = 'Thêm thất bại!';
           }
         });
     }

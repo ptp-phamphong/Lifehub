@@ -4,7 +4,7 @@
     <div class="kpi-value">{{ format(t.value) }}</div>
 
     <div class="kpi-delta" [ngClass]="deltaClass(t)" [title]="deltaTitle(t)">
-      <span class="kpi-arrow" *ngIf="deltaArrow(t)">{{ deltaArrow(t) }}</span>
+      <span class="kpi-arrow msym" aria-hidden="true" *ngIf="deltaArrow(t)">{{ deltaArrow(t) }}</span>
       <span>{{ deltaText(t) }}</span>
       <span class="kpi-hint">{{ t.hint }}</span>
     </div>

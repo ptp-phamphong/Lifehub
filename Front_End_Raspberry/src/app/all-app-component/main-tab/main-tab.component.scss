@@ -1,29 +1,173 @@
+// ═══════════════════════════════════════════════════════
+// Vỏ ứng dụng: thanh tiêu đề + điều hướng + khung nội dung.
+//
+// Thanh tiêu đề và điều hướng DÍNH trên đầu màn hình: danh sách chi tiêu dài
+// hàng trăm dòng, không dính thì phải cuộn ngược lên đầu mới đổi được tab.
+// ═══════════════════════════════════════════════════════
+
+$shell-max: 1360px;
+
 .main-shell {
   width: 100%;
-  max-width: 100%;
+  min-height: 100vh;
+  background: var(--color-bg);
 }
 
-.main-content-panel {
-  min-height: calc(100vh - 180px);
-  background: var(--color-bg-alt);
-  border-color: var(--color-border);
+// ─── Thanh tiêu đề ───
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 24px 12px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.nav-tabs .nav-link {
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+// Dấu nhận diện: lưới chấm mô phỏng hàng chân cắm GPIO của bo mạch Pi.
+// Không dùng emoji, không dùng ảnh - vẽ bằng gradient nên tự đổi màu theo theme.
+.brand-mark {
+  flex: none;
+  width: 28px;
+  height: 16px;
+  background-image: radial-gradient(circle, var(--color-primary) 1.6px, transparent 1.9px);
+  background-size: 6px 6px;
+  background-position: 1px 2px;
+  background-repeat: repeat;
+  opacity: 0.9;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.brand-name {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.brand-sub {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+// ─── Nút đăng xuất: yên tĩnh cho tới khi rê chuột ───
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 13px;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-sec);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+
+  .msym { font-size: 1.05rem; }
+
+  &:hover {
+    color: var(--color-danger);
+    border-color: var(--color-danger-border);
+    background: var(--color-danger-light);
+  }
+}
+
+// ─── Điều hướng chính ───
+.app-nav {
+  position: sticky;
+  top: 57px;
+  z-index: 29;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 0 24px;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 11px 14px;
+  font-size: var(--text-base);
+  font-weight: 500;
+  white-space: nowrap;
   color: var(--color-nav-link);
+  text-decoration: none;
+  // Gạch chân là chỉ báo tab đang mở; đặt sẵn màu trong suốt để không nhảy layout.
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  .msym {
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+    transition: color 0.15s ease;
+  }
+
+  &:hover {
+    color: var(--color-text);
+    text-decoration: none;
+
+    .msym { color: var(--color-text-sec); }
+  }
+
+  // Nhãn tab đang mở là CHỮ trên nền trang -> bậc đậm cho đủ tương phản.
+  // Gạch chân thì dùng bậc nền, vì nó là mảng màu chứ không phải chữ.
+  &.active {
+    color: var(--color-primary-strong);
+    border-bottom-color: var(--color-primary);
+
+    .msym {
+      color: var(--color-primary-strong);
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  }
 }
 
-.nav-tabs .nav-link:hover {
-  background-color: var(--color-nav-hover-bg);
+// ─── Khung nội dung ───
+// KHÔNG đặt min-height theo chiều cao màn hình. Bản cũ dùng
+// `min-height: calc(100vh - 180px)` nên trang ít nội dung (Thông tin hệ thống)
+// hiện ra như một hộp rỗng cao gần cả màn hình.
+.main-content-panel {
+  display: block;
+  max-width: $shell-max;
+  margin: 0 auto;
+  padding: 24px;
 }
 
-.nav-tabs .nav-link.active {
-  background-color: var(--color-nav-active-bg);
-  color: var(--color-nav-active-text) !important;
-}
-
-h3.text-primary {
-  color: var(--color-primary) !important;
+@media (max-width: 768px) {
+  .app-bar { padding: 12px 16px 10px; }
+  .app-nav { padding: 0 16px; top: 53px; }
+  .nav-item { padding: 10px 11px; }
+  .main-content-panel { padding: 16px; }
+  .brand-sub { display: none; }
 }

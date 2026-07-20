@@ -7,7 +7,7 @@
 			</p>
 		</div>
 		<button class="btn-refresh" type="button" (click)="loadHistory()" [disabled]="loading">
-			{{ loading ? 'Đang tải...' : '↻ Làm mới' }}
+			<span class="msym" aria-hidden="true">refresh</span><span>{{ loading ? 'Đang tải…' : 'Làm mới' }}</span>
 		</button>
 	</div>
 
@@ -19,7 +19,7 @@
 			[disabled]="triggering === job.key"
 			(click)="runJob(job.key)"
 		>
-			{{ triggering === job.key ? 'Đang gửi...' : '▶ ' + job.label }}
+			<span class="msym" aria-hidden="true">play_arrow</span><span>{{ triggering === job.key ? 'Đang gửi…' : job.label }}</span>
 		</button>
 	</div>
 

@@ -2,12 +2,12 @@
 
   <!-- Header: Week Navigation -->
   <div class="week-header">
-    <button class="btn-nav" (click)="prevWeek()">◀</button>
+    <button class="btn-nav" (click)="prevWeek()"><span class="msym" aria-hidden="true">chevron_left</span></button>
     <div class="week-label" (click)="goToCurrentWeek(); $event.stopPropagation()">
       <span class="week-title">{{ weekRangeLabel }}</span>
-      <span class="swipe-hint">👆 Vuốt để chuyển tuần</span>
+      <span class="swipe-hint"><span class="msym" aria-hidden="true">swipe</span><span>Vuốt để chuyển tuần</span></span>
     </div>
-    <button class="btn-nav" (click)="nextWeek()">▶</button>
+    <button class="btn-nav" (click)="nextWeek()"><span class="msym" aria-hidden="true">chevron_right</span></button>
   </div>
 
   <!-- Timetable Grid -->
@@ -88,7 +88,7 @@
   <!-- Course Detail Panel (overlay) -->
   <div class="detail-panel" *ngIf="selectedCourse" (click)="closeDetail(); $event.stopPropagation()">
     <div class="detail-card" (click)="$event.stopPropagation()">
-      <button class="btn-close-detail" (click)="closeDetail()">✕</button>
+      <button class="btn-close-detail" (click)="closeDetail()"><span class="msym" aria-hidden="true">close</span></button>
       <h3>{{ selectedCourse.courseName }}</h3>
       <table class="detail-table">
         <tr>

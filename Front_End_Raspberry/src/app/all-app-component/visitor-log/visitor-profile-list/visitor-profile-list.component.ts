@@ -61,7 +61,7 @@ export class VisitorProfileListComponent implements OnChanges {
 
   getSortIcon(column: string): string {
     if (this.sortColumn !== column) return '';
-    return this.sortDirection === 'asc' ? '▲' : '▼';
+    return this.sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward';
   }
 
   markAsMine(visitor: VisitorProfile): void {

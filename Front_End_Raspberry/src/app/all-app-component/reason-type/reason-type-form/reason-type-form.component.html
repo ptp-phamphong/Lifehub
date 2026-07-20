@@ -43,7 +43,10 @@
     <button type="submit">Lưu</button>
   </form>
 
-  <p class="message" *ngIf="message">{{ message }}</p>
+  <p class="message" [class.is-success]="messageType === 'success'" [class.is-error]="messageType === 'error'" [class.is-warning]="messageType === 'warning'" *ngIf="message">
+    <span class="msym" aria-hidden="true">{{ messageType === 'success' ? 'check_circle' : messageType === 'error' ? 'error' : 'warning' }}</span>
+    <span>{{ message }}</span>
+  </p>
 
   <div class="cancel-row">
     <button type="button" (click)="cancel()">Hủy</button>

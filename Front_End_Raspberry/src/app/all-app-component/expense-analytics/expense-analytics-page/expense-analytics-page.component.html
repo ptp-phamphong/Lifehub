@@ -73,7 +73,7 @@
   </div>
 
   <!-- Khoan khong co ngay bi loai khoi moi bieu do thoi gian -> phai noi ra. -->
-  <div class="skipped-note" *ngIf="skippedNote">⚠️ {{ skippedNote }}</div>
+  <div class="skipped-note" *ngIf="skippedNote"><span class="msym" aria-hidden="true">warning</span><span>{{ skippedNote }}</span></div>
 
   <div class="load-error" *ngIf="loadError">
     Không tải được dữ liệu. Kiểm tra xem API có đang chạy không, rồi bấm “Tải lại”.

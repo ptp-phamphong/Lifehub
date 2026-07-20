@@ -102,7 +102,7 @@ $radius-sm: 8px;
   &.active {
     background: var(--color-primary);
     border-color: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-primary);
     font-weight: 600;
   }
 }
@@ -216,4 +216,12 @@ $radius-sm: 8px;
     align-items: center;
     gap: 10px;
   }
+}
+
+.skipped-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  .msym { font-size: 1.1rem; flex: none; }
 }

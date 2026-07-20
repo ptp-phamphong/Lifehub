@@ -1,5 +1,5 @@
 <div class="theme-settings-container">
-  <h2>🎨 Cài đặt giao diện</h2>
+  <h2>Cài đặt giao diện</h2>
 
   <div *ngIf="loading" class="loading-msg">Đang tải...</div>
 
@@ -7,7 +7,7 @@
     <!-- Web Dark Mode -->
     <div class="theme-card" (click)="onToggleWebDark()">
       <div class="theme-info">
-        <span class="theme-icon">🌐</span>
+        <span class="theme-icon"><span class="msym" aria-hidden="true">computer</span></span>
         <div class="theme-text">
           <span class="theme-label">Giao diện tối cho web</span>
           <span class="theme-desc">Bật chế độ tối cho giao diện web</span>
@@ -22,7 +22,7 @@
     <!-- Mobile Dark Mode -->
     <div class="theme-card" (click)="onToggleMobileDark()">
       <div class="theme-info">
-        <span class="theme-icon">📱</span>
+        <span class="theme-icon"><span class="msym" aria-hidden="true">smartphone</span></span>
         <div class="theme-text">
           <span class="theme-label">Giao diện tối cho di động</span>
           <span class="theme-desc">Bật chế độ tối cho ứng dụng di động</span>
@@ -34,6 +34,6 @@
       </label>
     </div>
 
-    <div *ngIf="saving" class="saving-indicator">💾 Đang lưu...</div>
+    <div *ngIf="saving" class="saving-indicator"><span class="msym" aria-hidden="true">progress_activity</span><span>Đang lưu…</span></div>
   </div>
 </div>

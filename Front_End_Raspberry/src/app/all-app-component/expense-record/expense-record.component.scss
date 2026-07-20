@@ -62,7 +62,7 @@ $radius-sm: 10px;
   button[type='submit'] {
     width: 100%;
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-primary);
     padding: 12px;
     border: none;
     border-radius: $radius-sm;
@@ -108,12 +108,41 @@ $radius-sm: 10px;
     }
   }
 
+  // Ba trạng thái thông báo. Màu KHÔNG phải kênh duy nhất: mỗi trạng thái còn
+  // có icon riêng, để người không phân biệt được màu vẫn đọc ra ý nghĩa.
   .message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     text-align: center;
-    margin-top: 10px;
+    margin-top: 12px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: var(--text-base);
     color: var(--color-text-sec);
+
+    .msym { font-size: 1.15rem; }
+
+    &.is-success {
+      background: var(--color-success-light);
+      border-color: var(--color-success);
+      color: var(--color-success-text);
+    }
+
+    &.is-error {
+      background: var(--color-error-bg);
+      border-color: var(--color-error-border);
+      color: var(--color-error-text);
+    }
+
+    &.is-warning {
+      background: var(--color-warning-bg);
+      border-color: var(--color-warning-border);
+      color: var(--color-warning-text);
+    }
   }
 }
 
@@ -161,7 +190,7 @@ $radius-sm: 10px;
 
     &.ng-option-selected {
       background: var(--color-primary) !important;
-      color: #fff !important;
+      color: var(--color-on-primary) !important;
     }
   }
 }

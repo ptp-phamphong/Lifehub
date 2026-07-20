@@ -31,7 +31,8 @@
       Hiển thị toàn bộ lịch sử
     </label>
     <button class="btn-group-day" *ngIf="!showAll" [class.active]="groupByDay" (click)="toggleGroupByDay()">
-      {{ groupByDay ? '📅 Đang gom theo ngày' : '📋 Gom theo ngày' }}
+      <span class="msym" aria-hidden="true">{{ groupByDay ? 'event' : 'format_list_bulleted' }}</span>
+      <span>{{ groupByDay ? 'Đang gom theo ngày' : 'Gom theo ngày' }}</span>
     </button>
   </div>
 
@@ -60,18 +61,18 @@
   <table class="expense-table" *ngIf="!groupByDay">
     <thead>
       <tr>
-        <th class="sortable" (click)="onSort('id')">Mã <span class="sort-icon">{{getSortIcon('id')}}</span></th>
-        <th class="sortable" (click)="onSort('createdDate')">{{dateLabel}} <span class="sort-icon">{{getSortIcon('createdDate')}}</span></th>
-        <th class="sortable" (click)="onSort('reason')">Lý do <span class="sort-icon">{{getSortIcon('reason')}}</span></th>
-        <th *ngIf="isExpenseTab" class="sortable" (click)="onSort('reasonType')">Loại lý do <span class="sort-icon">{{getSortIcon('reasonType')}}</span></th>
-        <th class="sortable" (click)="onSort('amount')">Số tiền <span class="sort-icon">{{getSortIcon('amount')}}</span></th>
+        <th class="sortable" (click)="onSort('id')">Mã <span class="sort-icon msym" aria-hidden="true">{{getSortIcon('id')}}</span></th>
+        <th class="sortable" (click)="onSort('createdDate')">{{dateLabel}} <span class="sort-icon msym" aria-hidden="true">{{getSortIcon('createdDate')}}</span></th>
+        <th class="sortable" (click)="onSort('reason')">Lý do <span class="sort-icon msym" aria-hidden="true">{{getSortIcon('reason')}}</span></th>
+        <th *ngIf="isExpenseTab" class="sortable" (click)="onSort('reasonType')">Loại lý do <span class="sort-icon msym" aria-hidden="true">{{getSortIcon('reasonType')}}</span></th>
+        <th class="sortable" (click)="onSort('amount')">Số tiền <span class="sort-icon msym" aria-hidden="true">{{getSortIcon('amount')}}</span></th>
         <th>Hành động</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let item of expenseRecords">
-        <td>{{ item.id }}</td>
-        <td>{{ item.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td class="col-id">{{ item.id }}</td>
+        <td class="col-date">{{ item.createdDate | date:'dd/MM/yyyy' }}</td>
         <td>{{ item.reason }}</td>
         <td *ngIf="isExpenseTab">{{ getReasonTypeLabel(item.reasonType) }}</td>
         <td class="col-amount">{{ formatCurrency(item.amount) }}</td>
@@ -104,8 +105,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of group.records">
-            <td>{{ item.id }}</td>
-            <td>{{ item.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="col-id">{{ item.id }}</td>
+            <td class="col-date">{{ item.createdDate | date:'dd/MM/yyyy' }}</td>
             <td>{{ item.reason }}</td>
             <td *ngIf="isExpenseTab">{{ getReasonTypeLabel(item.reasonType) }}</td>
             <td class="col-amount">{{ formatCurrency(item.amount) }}</td>

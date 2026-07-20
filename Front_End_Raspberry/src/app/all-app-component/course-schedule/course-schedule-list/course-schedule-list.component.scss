@@ -56,7 +56,7 @@ $radius-sm: 8px;
 
 .btn-add {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   border: none;
   padding: 9px 20px;
   border-radius: $radius-sm;
@@ -71,34 +71,34 @@ $radius-sm: 8px;
 }
 
 .btn-import {
-  background: #10b981;
-  color: #fff;
+  background: var(--color-success);
+  color: var(--color-on-success);
   border: none;
   padding: 9px 20px;
   border-radius: $radius-sm;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.2s;
 
   &:hover {
-    background: #059669;
+    filter: brightness(0.92);
   }
 }
 
 .btn-import-html-reset {
-  background: #f59e0b;
-  color: #fff;
-  border: none;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
   padding: 9px 20px;
   border-radius: $radius-sm;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: 500;
   cursor: pointer;
   transition: background 0.2s, opacity 0.2s;
 
   &:hover {
-    background: #d97706;
+    filter: brightness(0.95);
   }
 
   &:disabled {
@@ -107,26 +107,35 @@ $radius-sm: 8px;
   }
 }
 
-.btn-delete {
-  background: #10b981;
-  color: #fff;
-  border: none;
+// "Xóa tất cả" trên thanh công cụ (không mang .btn-action).
+// Ghi chú lịch sử: khối này từng đặt nền #10b981 (xanh lá, copy nhầm từ
+// .btn-import). Nó KHÔNG hiện ra ngoài vì bên dưới còn một quy tắc `.btn-delete`
+// nữa, cùng độ ưu tiên nhưng đứng sau, nên luôn thắng - tức là đoạn đó là CSS
+// chết. Nay tách hẳn selector để hai nút không còn giẫm lên nhau.
+// Xóa toàn bộ thời khóa biểu là thao tác không hoàn tác được -> để dạng viền,
+// không tô đặc, đúng như nút xóa ở các trang danh sách khác.
+.btn-delete:not(.btn-action) {
+  background: var(--color-btn-delete-bg);
+  color: var(--color-btn-delete-text);
+  border: 1px solid var(--color-btn-delete-border);
   padding: 9px 20px;
   border-radius: $radius-sm;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--text-base);
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 
   &:hover {
-    background: #b5232a;
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: #fff;
   }
 }
 
 .import-message {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #10b981;
+  color: var(--color-success);
   padding: 6px 12px;
   background: var(--color-success-light);
   border-radius: 6px;
@@ -216,21 +225,29 @@ $radius-sm: 8px;
   }
 }
 
-.btn-edit {
-  background: var(--color-primary);
-  color: #fff;
+// Nút trong từng dòng bảng: nền trung tính, giống các trang danh sách khác.
+// Cả bảng mà dòng nào cũng có một nút xanh đặc + một nút đỏ đặc thì màu mất hết
+// tác dụng báo hiệu.
+.btn-action.btn-edit {
+  background: var(--color-btn-edit-bg);
+  color: var(--color-btn-edit-text);
+  border: 1px solid var(--color-btn-edit-border);
 
   &:hover {
-    background: var(--color-primary-hover);
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-hover);
   }
 }
 
-.btn-delete {
-  background: var(--color-danger);
-  color: #fff;
+.btn-action.btn-delete {
+  background: var(--color-btn-delete-bg);
+  color: var(--color-btn-delete-text);
+  border: 1px solid var(--color-btn-delete-border);
 
   &:hover {
-    background: var(--color-danger-hover);
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: #fff;
   }
 }
 
@@ -255,4 +272,13 @@ $radius-sm: 8px;
     min-width: 100%;
     max-width: 100%;
   }
+}
+
+.btn-import,
+.btn-import-html-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  .msym { font-size: 1.1rem; }
 }

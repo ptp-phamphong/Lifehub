@@ -177,3 +177,12 @@ tr.has-error {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.btn-refresh,
+.btn-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  .msym { font-size: 1.1rem; }
+}

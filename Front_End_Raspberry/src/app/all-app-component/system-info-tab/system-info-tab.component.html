@@ -1,48 +1,77 @@
 <div class="system-info-container">
   <div class="header">
-    <h2>Thông tin hệ thống</h2>
+    <div class="header-text">
+      <h2>Thông tin hệ thống</h2>
+      <p class="header-sub">Số liệu đọc trực tiếp từ máy, không lưu lại.</p>
+    </div>
     <div class="header-actions">
-      <span class="last-updated" *ngIf="lastUpdated">
-        Cập nhật: {{ lastUpdated | date:'HH:mm:ss' }}
+      <span class="last-updated num" *ngIf="lastUpdated">
+        {{ lastUpdated | date:'HH:mm:ss' }}
       </span>
-      <button class="btn-refresh" (click)="callApi()" [disabled]="loading">
-        <span class="refresh-icon" [class.spinning]="loading">↻</span>
-        {{ loading ? 'Đang tải...' : 'Làm mới' }}
+      <button class="btn-refresh" (click)="callApi()" [disabled]="loading" type="button">
+        <span class="msym" [class.spinning]="loading" aria-hidden="true">refresh</span>
+        {{ loading ? 'Đang tải…' : 'Làm mới' }}
       </button>
     </div>
   </div>
 
-  <div class="cards-grid" *ngIf="result && !result.error">
-    <!-- CPU Temperature -->
-    <div class="info-card card-cpu">
-      <div class="card-icon">🌡️</div>
-      <div class="card-content">
-        <span class="card-label">Nhiệt độ CPU</span>
-        <span class="card-value">{{ result.cpuTemperature }}°C</span>
+  <div class="panel" *ngIf="result && !result.error">
+    <!-- ─── Nhiệt độ CPU: chỉ số duy nhất có thang đo tuyệt đối, nên là chỉ số chính ─── -->
+    <section class="gauge-block" [attr.data-state]="tempState">
+      <div class="gauge-head">
+        <span class="readout-label">Nhiệt độ CPU</span>
+        <span class="gauge-state">{{ tempStateLabel }}</span>
       </div>
-    </div>
 
-    <!-- RAM -->
-    <div class="info-card card-ram">
-      <div class="card-icon">🖥️</div>
-      <div class="card-content">
-        <span class="card-label">RAM khả dụng</span>
-        <span class="card-value">{{ result.ramAvailable }}</span>
+      <div class="gauge-value">
+        <span class="num gauge-number">{{ hasCpuTemp ? (cpuTemp | number:'1.1-1') : '—' }}</span>
+        <span class="gauge-unit">°C</span>
       </div>
-    </div>
 
-    <!-- Storage -->
-    <div class="info-card card-storage">
-      <div class="card-icon">💾</div>
-      <div class="card-content">
-        <span class="card-label">Bộ nhớ trống</span>
-        <span class="card-value">{{ result.memoryAvailable }}</span>
+      <div
+        class="gauge"
+        role="meter"
+        [attr.aria-valuenow]="hasCpuTemp ? cpuTemp : null"
+        [attr.aria-valuemin]="tempMin"
+        [attr.aria-valuemax]="tempMax"
+        [attr.aria-label]="'Nhiệt độ CPU, ngưỡng hạ xung nhịp ' + tempThrottle + ' độ C'"
+      >
+        <div class="gauge-track">
+          <div class="gauge-fill" [style.width.%]="tempPercent"></div>
+          <!-- Vạch 80°C: mốc Pi bắt đầu hạ xung nhịp. -->
+          <div class="gauge-threshold" [style.left.%]="throttlePercent">
+            <span class="gauge-threshold-flag num">{{ tempThrottle }}°</span>
+          </div>
+        </div>
+        <div class="gauge-scale num">
+          <span>{{ tempMin }}°</span>
+          <span class="gauge-scale-note">ngưỡng hạ xung nhịp</span>
+          <span>{{ tempMax }}°</span>
+        </div>
       </div>
+    </section>
+
+    <!-- ─── RAM và đĩa: backend chỉ trả phần CÒN TRỐNG, không có tổng dung lượng,
+             nên không vẽ thanh tỉ lệ - vẽ thì phải bịa ra mẫu số. ─── -->
+    <div class="readout-row">
+      <section class="readout">
+        <span class="readout-label">RAM còn trống</span>
+        <span class="readout-value">
+          <span class="num">{{ ram.value }}</span><span class="readout-unit">{{ ram.unit }}</span>
+        </span>
+      </section>
+
+      <section class="readout">
+        <span class="readout-label">Đĩa còn trống</span>
+        <span class="readout-value">
+          <span class="num">{{ disk.value }}</span><span class="readout-unit">{{ disk.unit }}</span>
+        </span>
+      </section>
     </div>
   </div>
 
   <div class="error-card" *ngIf="result?.error">
-    <span class="error-icon">⚠️</span>
-    <span>Không thể kết nối: {{ result.error }}</span>
+    <span class="msym" aria-hidden="true">error</span>
+    <span>Không đọc được số liệu máy: {{ result.error }}</span>
   </div>
 </div>

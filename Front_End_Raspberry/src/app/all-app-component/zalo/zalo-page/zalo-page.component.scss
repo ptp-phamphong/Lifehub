@@ -163,3 +163,13 @@ $radius-sm: 8px;
     border: 1px solid var(--color-border);
   }
 }
+
+.btn-refresh,
+.btn-run,
+.zalo-disabled {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  .msym { font-size: 1.1rem; flex: none; }
+}

@@ -102,10 +102,10 @@ $radius-sm: 8px;
     width: 22px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: var(--color-toggle-knob);
     border-radius: 50%;
     transition: 0.3s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-sm);
   }
 }
 
@@ -122,4 +122,22 @@ input:checked + .toggle-slider::before {
   color: var(--color-text-sec);
   text-align: center;
   padding: 8px;
+}
+
+.theme-icon .msym { font-size: 1.5rem; color: var(--color-text-sec); }
+
+.saving-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  // Icon quay tròn trong lúc lưu; @media reduced-motion ở styles.scss sẽ tắt.
+  .msym {
+    font-size: 1.1rem;
+    animation: savingSpin 1s linear infinite;
+  }
+}
+
+@keyframes savingSpin {
+  to { transform: rotate(360deg); }
 }

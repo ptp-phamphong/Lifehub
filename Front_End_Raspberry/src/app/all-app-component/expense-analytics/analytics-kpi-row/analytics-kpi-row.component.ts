@@ -45,6 +45,6 @@ export class AnalyticsKpiRowComponent {
 
   deltaArrow(t: KpiTile): string {
     if (t.deltaPercent === null || t.deltaPercent === 0) return '';
-    return t.deltaPercent > 0 ? '▲' : '▼';
+    return t.deltaPercent > 0 ? 'arrow_drop_up' : 'arrow_drop_down';
   }
 }

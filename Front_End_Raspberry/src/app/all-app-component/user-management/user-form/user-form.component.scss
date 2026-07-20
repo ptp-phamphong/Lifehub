@@ -64,7 +64,7 @@ $radius-sm: 10px;
   button[type='submit'] {
     width: 100%;
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-primary);
     border: none;
     border-radius: $radius-sm;
     padding: 12px;

@@ -63,3 +63,10 @@ $radius: 12px;
     flex-wrap: wrap;
   }
 }
+
+// Mũi tên chênh lệch nằm sát con số phần trăm -> để nhỏ và không chiếm chỗ.
+.kpi-arrow.msym {
+  font-size: 1.1rem;
+  vertical-align: -0.22em;
+  margin-right: -2px;
+}

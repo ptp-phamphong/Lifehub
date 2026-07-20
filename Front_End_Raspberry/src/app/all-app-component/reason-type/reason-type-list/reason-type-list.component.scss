@@ -30,7 +30,7 @@ $radius-sm: 8px;
   gap: 6px;
   padding: 9px 20px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   border: none;
   border-radius: $radius-sm;
   font-size: 0.875rem;
@@ -130,7 +130,7 @@ $radius-sm: 8px;
 
     &:hover {
       background: var(--color-primary);
-      color: #fff;
+      color: var(--color-on-primary);
     }
   }
 

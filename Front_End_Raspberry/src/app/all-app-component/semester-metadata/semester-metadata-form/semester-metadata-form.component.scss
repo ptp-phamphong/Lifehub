@@ -68,7 +68,7 @@ $radius-sm: 10px;
   button[type='submit'] {
     width: 100%;
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-primary);
     padding: 12px;
     border: none;
     border-radius: $radius-sm;
@@ -152,10 +152,10 @@ $radius-sm: 10px;
     left: 3px;
     width: 18px;
     height: 18px;
-    background: #fff;
+    background: var(--color-toggle-knob);
     border-radius: 50%;
     transition: transform 0.25s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-sm);
   }
 
   input:checked ~ .toggle-track {

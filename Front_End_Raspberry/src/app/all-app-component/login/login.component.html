@@ -2,7 +2,7 @@
   <div class="login-card">
     <!-- ============ ĐĂNG NHẬP ============ -->
     <ng-container *ngIf="mode === 'login'">
-      <h2>🔒 Đăng nhập</h2>
+      <h2>Đăng nhập</h2>
       <p class="subtitle">Quản lý chi tiêu Raspberry Pi</p>
 
       <div *ngIf="errorMessage" class="error-message">
@@ -40,7 +40,7 @@
             (click)="showPassword = !showPassword"
             [attr.aria-label]="showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
           >
-            {{ showPassword ? '🙈' : '👁️' }}
+            <span class="msym" aria-hidden="true">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
           </button>
         </div>
       </div>
@@ -56,7 +56,7 @@
 
     <!-- ============ QUÊN MẬT KHẨU - BƯỚC 1: NHẬP USERNAME ============ -->
     <ng-container *ngIf="mode === 'forgot-request'">
-      <h2>🔐 Quên mật khẩu</h2>
+      <h2>Quên mật khẩu</h2>
       <p class="subtitle">Nhập tên đăng nhập để nhận mã OTP qua email</p>
 
       <div *ngIf="forgotError" class="error-message">{{ forgotError }}</div>
@@ -79,13 +79,14 @@
       </button>
 
       <button type="button" class="link-button" (click)="backToLogin()" [disabled]="isLoading">
-        ← Quay lại đăng nhập
+        <span class="msym" aria-hidden="true">arrow_back</span>
+        <span>Quay lại đăng nhập</span>
       </button>
     </ng-container>
 
     <!-- ============ QUÊN MẬT KHẨU - BƯỚC 2: NHẬP OTP + MẬT KHẨU MỚI ============ -->
     <ng-container *ngIf="mode === 'forgot-reset'">
-      <h2>🔐 Đặt lại mật khẩu</h2>
+      <h2>Đặt lại mật khẩu</h2>
       <p class="subtitle">
         Nhập mã OTP đã gửi tới {{ maskedEmail || 'email của bạn' }}
       </p>
@@ -124,7 +125,7 @@
             (click)="showNewPassword = !showNewPassword"
             [attr.aria-label]="showNewPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
           >
-            {{ showNewPassword ? '🙈' : '👁️' }}
+            <span class="msym" aria-hidden="true">{{ showNewPassword ? 'visibility_off' : 'visibility' }}</span>
           </button>
         </div>
       </div>
@@ -137,7 +138,8 @@
         Gửi lại mã
       </button>
       <button type="button" class="link-button" (click)="backToLogin()" [disabled]="isLoading">
-        ← Quay lại đăng nhập
+        <span class="msym" aria-hidden="true">arrow_back</span>
+        <span>Quay lại đăng nhập</span>
       </button>
     </ng-container>
   </div>

@@ -1,49 +1,48 @@
-<div class="container-fluid mt-4 px-4 main-shell">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3 class="mb-0 text-primary">Bảng điều khiển Raspberry</h3>
-    <button (click)="logout()" class="btn btn-outline-danger btn-sm">🚪 Đăng xuất</button>
-  </div>
+<div class="main-shell">
+  <header class="app-bar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-text">
+        <span class="brand-name">Raspberry</span>
+        <span class="brand-sub">Bảng điều khiển</span>
+      </span>
+    </div>
 
-  <ul class="nav nav-tabs nav-pills gap-2">
-    <li class="nav-item">
-      <a
-        [routerLink]="['/system-info']"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-        class="nav-link fw-semibold"
-      >🏠 Thông tin hệ thống</a>
-    </li>
-    <li class="nav-item">
-      <a
-        [routerLink]="['/expense-record-list']"
-        routerLinkActive="active"
-        class="nav-link fw-semibold"
-      >📊 Chi tiêu</a>
-    </li>
-    <li class="nav-item">
-      <a
-        [routerLink]="['/expense-analytics']"
-        routerLinkActive="active"
-        class="nav-link fw-semibold"
-      >📈 Phân tích</a>
-    </li>
-    <li class="nav-item">
-      <a
-        [routerLink]="['/course-calendar']"
-        routerLinkActive="active"
-        class="nav-link fw-semibold"
-      >🗓️ Thời khóa biểu</a>
-    </li>
-    <li class="nav-item">
-      <a
-        [routerLink]="['/settings']"
-        routerLinkActive="active"
-        class="nav-link fw-semibold"
-      >⚙️ Cài đặt</a>
-    </li>
-  </ul>
+    <button (click)="logout()" class="btn-logout" type="button">
+      <span class="msym" aria-hidden="true">logout</span>
+      <span>Đăng xuất</span>
+    </button>
+  </header>
 
-  <div class="mt-3 p-3 border rounded main-content-panel">
+  <nav class="app-nav" aria-label="Điều hướng chính">
+    <a
+      [routerLink]="['/system-info']"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="nav-item"
+    >
+      <span class="msym" aria-hidden="true">developer_board</span>
+      <span>Thông tin hệ thống</span>
+    </a>
+    <a [routerLink]="['/expense-record-list']" routerLinkActive="active" class="nav-item">
+      <span class="msym" aria-hidden="true">receipt_long</span>
+      <span>Chi tiêu</span>
+    </a>
+    <a [routerLink]="['/expense-analytics']" routerLinkActive="active" class="nav-item">
+      <span class="msym" aria-hidden="true">insights</span>
+      <span>Phân tích</span>
+    </a>
+    <a [routerLink]="['/course-calendar']" routerLinkActive="active" class="nav-item">
+      <span class="msym" aria-hidden="true">calendar_month</span>
+      <span>Thời khóa biểu</span>
+    </a>
+    <a [routerLink]="['/settings']" routerLinkActive="active" class="nav-item">
+      <span class="msym" aria-hidden="true">settings</span>
+      <span>Cài đặt</span>
+    </a>
+  </nav>
+
+  <main class="main-content-panel">
     <router-outlet></router-outlet>
-  </div>
+  </main>
 </div>

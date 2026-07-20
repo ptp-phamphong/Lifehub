@@ -189,7 +189,7 @@ export class ExpenseRecordListComponent implements OnInit {
 
   getSortIcon(column: string): string {
     if (this.sortColumn !== column) return '';
-    return this.sortDirection === 'asc' ? '▲' : '▼';
+    return this.sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward';
   }
 
   loadExpensesByMonth(month: number, year: number) {

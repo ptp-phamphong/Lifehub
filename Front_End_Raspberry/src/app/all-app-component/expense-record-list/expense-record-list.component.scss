@@ -45,7 +45,7 @@ $radius-sm: 8px;
 
   &.active {
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-primary);
     box-shadow: var(--shadow-sm);
   }
 }
@@ -105,7 +105,7 @@ $radius-sm: 8px;
   gap: 6px;
   padding: 9px 20px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
   border: none;
   border-radius: $radius-sm;
   font-size: 0.875rem;
@@ -204,13 +204,39 @@ $radius-sm: 8px;
     }
   }
 
+  // Cột số: font chữ số đều bề ngang + canh phải, để so tiền theo hàng dọc là
+  // so trực tiếp độ dài chữ số, không phải đọc từng dòng.
   .col-amount {
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-weight: 500;
     font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .col-id,
+  .col-date {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-sec);
+    white-space: nowrap;
+  }
+
+  .col-id {
+    text-align: right;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
   }
 
   .col-actions {
     white-space: nowrap;
+    text-align: right;
+  }
+
+  // Đầu cột của hai cột canh phải cũng phải canh phải, nếu không nhãn lệch khỏi số.
+  th:nth-last-child(2),
+  th:first-child {
+    text-align: right;
   }
 }
 
@@ -231,7 +257,7 @@ $radius-sm: 8px;
 
     &:hover {
       background: var(--color-primary);
-      color: #fff;
+      color: var(--color-on-primary);
     }
   }
 
@@ -352,4 +378,10 @@ $radius-sm: 8px;
 .day-group .expense-table {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+
+// Mũi tên sắp xếp: nhỏ hơn cỡ .msym mặc định để không đội cao đầu bảng.
+.sort-icon.msym {
+  font-size: 0.95rem;
+  vertical-align: -0.15em;
 }

@@ -15,6 +15,9 @@ export class ReasonTypeFormComponent {
   active: boolean = true;
   defaultFilterType: number = 1;
   message: string = '';
+  // Xem ghi chú ở expense-record.component.ts: emoji cũ là tín hiệu duy nhất
+  // phân biệt thành công/lỗi, nên bỏ emoji thì phải có trường trạng thái này.
+  messageType: 'success' | 'error' | 'warning' = 'success';
   id: number = 0;
 
   constructor(private http: HttpClient,
@@ -43,7 +46,8 @@ export class ReasonTypeFormComponent {
         },
         error: (err) => {
           console.error(err);
-          this.message = '❌ Gửi thất bại!';
+          this.messageType = 'error';
+          this.message = 'Gửi thất bại!';
         }
       });
   }
@@ -51,12 +55,14 @@ export class ReasonTypeFormComponent {
 
   submitForm() {
     if (!this.reasonName) {
-      this.message = '⚠️ Vui lòng nhập đầy đủ thông tin.';
+      this.messageType = 'warning';
+      this.message = 'Vui lòng nhập đầy đủ thông tin.';
       return;
     }
 
     if (!this.defaultFilterType) {
-      this.message = '⚠️ Vui lòng chọn loại lọc mặc định.';
+      this.messageType = 'warning';
+      this.message = 'Vui lòng chọn loại lọc mặc định.';
       return;
     }
 
@@ -72,7 +78,8 @@ export class ReasonTypeFormComponent {
       this.http.put(`${environment.apiBaseUrl}/UpdateReasonTypeById/${this.id}`, payload)
         .subscribe({
           next: (res) => {
-            this.message = '✅ Gửi thành công!';
+            this.messageType = 'success';
+            this.message = 'Gửi thành công!';
             this.reasonName = '';
             this.active = null;
             this.dialogRef.close('saved');
@@ -87,7 +94,8 @@ export class ReasonTypeFormComponent {
       this.http.post(`${environment.apiBaseUrl}/ReasonType`, payload)
         .subscribe({
           next: (res) => {
-            this.message = '✅ Gửi thành công!';
+            this.messageType = 'success';
+            this.message = 'Gửi thành công!';
             this.reasonName = '';
             this.sortOrder = null;
             this.active = null;

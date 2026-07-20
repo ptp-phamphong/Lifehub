@@ -13,12 +13,12 @@
     </select>
 
     <button class="btn-import" (click)="fileInput.click()">
-      📥 Import Excel
+      <span class="msym" aria-hidden="true">upload_file</span><span>Nhập từ Excel</span>
     </button>
     <input #fileInput type="file" accept=".xlsx" hidden (change)="onFileSelected($event)">
 
     <button class="btn-import-html-reset" [disabled]="importing" (click)="resetImportFromUeh()">
-      🔄 Reset + Import từ UEH
+      <span class="msym" aria-hidden="true">sync</span><span>Nhập lại từ UEH</span>
     </button>
 
     <span *ngIf="importMessage" class="import-message" [class.import-error]="importError">

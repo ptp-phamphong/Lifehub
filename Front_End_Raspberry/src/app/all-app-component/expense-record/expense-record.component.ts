@@ -21,6 +21,10 @@ export class ExpenseRecordComponent {
   reason: string = '';
   amount: number = 0;
   message: string = '';
+  // Trước đây trạng thái thành công/thất bại chỉ nằm ở emoji đầu chuỗi (✅/❌/⚠️),
+  // còn khung thông báo thì luôn một màu xám. Bỏ emoji thì phải có trường này,
+  // nếu không người dùng không phân biệt được báo thành công với báo lỗi.
+  messageType: 'success' | 'error' | 'warning' = 'success';
   id: number = 0;
   flowType: 'expense' | 'income' = 'expense';
   reasonTypes: ReasonType[] = [];
@@ -121,7 +125,8 @@ export class ExpenseRecordComponent {
         },
         error: (err) => {
           console.error(err);
-          this.message = '❌ Gửi thất bại!';
+          this.messageType = 'error';
+          this.message = 'Gửi thất bại!';
         }
       });
   }
@@ -129,7 +134,8 @@ export class ExpenseRecordComponent {
 
   submitForm() {
     if (!this.reason || this.amount === null) {
-      this.message = '⚠️ Vui lòng nhập đầy đủ thông tin.';
+      this.messageType = 'warning';
+      this.message = 'Vui lòng nhập đầy đủ thông tin.';
       return;
     }
 
@@ -149,7 +155,8 @@ export class ExpenseRecordComponent {
       this.http.put(`${environment.apiBaseUrl}/${this.getRoute('update')}/${this.id}`, payload)
         .subscribe({
           next: (res) => {
-            this.message = '✅ Gửi thành công!';
+            this.messageType = 'success';
+            this.message = 'Gửi thành công!';
             this.reason = '';
             this.amount = 0;
             this.dialogRef.close('saved');
@@ -164,7 +171,8 @@ export class ExpenseRecordComponent {
       this.http.post(`${environment.apiBaseUrl}/${this.getRoute('add')}`, payload)
         .subscribe({
           next: (res) => {
-            this.message = '✅ Gửi thành công!';
+            this.messageType = 'success';
+            this.message = 'Gửi thành công!';
             this.reason = '';
             this.amount = 0;
             this.dialogRef.close('saved');
@@ -204,7 +212,8 @@ export class ExpenseRecordComponent {
     }
 
     if (!this.aiPrompt.trim()) {
-      this.message = '⚠️ Vui lòng nhập mô tả chi tiêu.';
+      this.messageType = 'warning';
+      this.message = 'Vui lòng nhập mô tả chi tiêu.';
       return;
     }
 
@@ -216,20 +225,23 @@ export class ExpenseRecordComponent {
         next: (res) => {
           this.aiLoading = false;
           if (res.success && res.expenseId) {
-            this.message = '✅ ' + res.message;
+            this.messageType = 'success';
+            this.message = res.message;
             this.aiPrompt = '';
             this.aiMode = false;
             // Switch to edit mode with new ID
             this.id = res.expenseId;
             this.loadExpense();
           } else {
-            this.message = '❌ ' + (res.message || 'AI không thể xử lý.');
+            this.messageType = 'error';
+            this.message = (res.message || 'AI không thể xử lý.');
           }
         },
         error: (err) => {
           this.aiLoading = false;
           console.error(err);
-          this.message = '❌ Lỗi khi gọi AI.';
+          this.messageType = 'error';
+          this.message = 'Lỗi khi gọi AI.';
         }
       });
   }

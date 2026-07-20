@@ -2,12 +2,12 @@
 
   <!-- Header: Navigation -->
   <div class="calendar-header">
-    <button class="btn-nav" (click)="prevMonth()">◀</button>
+    <button class="btn-nav" (click)="prevMonth()"><span class="msym" aria-hidden="true">chevron_left</span></button>
     <div class="header-center" (click)="goToToday()">
       <h2 class="month-label">{{ monthYearLabel }}</h2>
-      <p class="swipe-hint">👆 Vuốt để chuyển tháng</p>
+      <p class="swipe-hint"><span class="msym" aria-hidden="true">swipe</span><span>Vuốt để chuyển tháng</span></p>
     </div>
-    <button class="btn-nav" (click)="nextMonth()">▶</button>
+    <button class="btn-nav" (click)="nextMonth()"><span class="msym" aria-hidden="true">chevron_right</span></button>
   </div>
 
   <!-- Calendar Grid -->
@@ -71,7 +71,7 @@
   <!-- Expense Detail Panel -->
   <div class="detail-panel" *ngIf="selectedDayExpenses" (click)="closeExpenseDetail()">
     <div class="detail-card expense-detail-card" (click)="$event.stopPropagation()">
-      <button class="btn-close-detail" (click)="closeExpenseDetail()">✕</button>
+      <button class="btn-close-detail" (click)="closeExpenseDetail()"><span class="msym" aria-hidden="true">close</span></button>
       <h3>Chi tiêu ngày {{ selectedDayExpenses.date | date:'dd/MM/yyyy' }}</h3>
       <div class="expense-detail-list">
         <div class="expense-detail-item" *ngFor="let e of selectedDayExpenses.items">
@@ -88,7 +88,7 @@
   <!-- Day Detail Panel (all courses for a day) -->
   <div class="detail-panel" *ngIf="selectedDay" (click)="closeDayDetail()">
     <div class="detail-card day-detail-card" (click)="$event.stopPropagation()">
-      <button class="btn-close-detail" (click)="closeDayDetail()">✕</button>
+      <button class="btn-close-detail" (click)="closeDayDetail()"><span class="msym" aria-hidden="true">close</span></button>
       <h3>{{ selectedDay.date | date:'EEEE, dd/MM/yyyy' }}</h3>
       <div class="day-detail-list">
         <div
@@ -109,7 +109,7 @@
   <!-- Course Detail Panel -->
   <div class="detail-panel" *ngIf="selectedCourse" (click)="closeDetail()">
     <div class="detail-card" (click)="$event.stopPropagation()">
-      <button class="btn-close-detail" (click)="closeDetail()">✕</button>
+      <button class="btn-close-detail" (click)="closeDetail()"><span class="msym" aria-hidden="true">close</span></button>
       <h3>{{ selectedCourse.courseName }}</h3>
       <table class="detail-table">
         <tr>

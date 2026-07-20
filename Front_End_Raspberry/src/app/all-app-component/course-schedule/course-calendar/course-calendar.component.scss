@@ -49,10 +49,10 @@
     height: 20px;
     left: 3px;
     bottom: 3px;
-    background: #fff;
+    background: var(--color-toggle-knob);
     border-radius: 50%;
     transition: transform 0.25s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-sm);
   }
 }
 
