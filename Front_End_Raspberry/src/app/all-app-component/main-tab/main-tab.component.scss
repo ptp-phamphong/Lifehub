@@ -69,6 +69,38 @@ $shell-max: 1360px;
   color: var(--color-text-muted);
 }
 
+// ─── Cụm điều khiển góc phải: theme, ngôn ngữ, đăng xuất ───
+.app-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+}
+
+// Nút chỉ có icon (đổi theme). Vuông, cùng chiều cao với nút đăng xuất.
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: var(--color-text-sec);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+
+  .msym { font-size: 1.15rem; }
+
+  &:hover {
+    color: var(--color-primary-strong);
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+  }
+}
+
 // ─── Nút đăng xuất: yên tĩnh cho tới khi rê chuột ───
 .btn-logout {
   display: inline-flex;

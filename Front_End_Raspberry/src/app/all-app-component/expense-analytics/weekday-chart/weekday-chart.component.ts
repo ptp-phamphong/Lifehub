@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { WeekdayRow } from 'src/app/model/expense-analytics.model';
-import { formatCurrencyCompact, formatCurrencyFull } from '../expense-analytics.transform';
+import { AnalyticsFormatService } from '../analytics-format.service';
 
 interface Bar {
   x: number;
@@ -29,7 +29,7 @@ export class WeekdayChartComponent implements OnChanges {
   @Input() rows: WeekdayRow[] = [];
 
   readonly viewWidth = 720;
-  readonly viewHeight = 200;
+  readonly viewHeight = 160;
   readonly paddingLeft = 54;
   readonly paddingBottom = 22;
   readonly paddingTop = 10;
@@ -37,7 +37,8 @@ export class WeekdayChartComponent implements OnChanges {
   bars: Bar[] = [];
   gridLines: { y: number; label: string }[] = [];
 
-  formatFull = formatCurrencyFull;
+  /** Nhãn/tooltip nằm trong SVG — xem chú thích ở `income-expense-chart`. */
+  private readonly fmt = inject(AnalyticsFormatService);
 
   ngOnChanges(): void {
     this.build();
@@ -70,14 +71,21 @@ export class WeekdayChartComponent implements OnChanges {
     this.bars = rows.map((r, i) => {
       const height = (r.total / max) * chartHeight;
       const x = this.paddingLeft + i * slotWidth + (slotWidth - barWidth) / 2;
+      // Dùng lại đúng bộ khoá của Thời khóa biểu để hai chỗ không viết tắt lệch
+      // nhau ('T2' / 'Mon').
+      const dow = this.fmt.t(`course.dowShort.${r.dow}`);
       return {
         x,
         y: baseline - height,
         width: barWidth,
         height: Math.max(height, r.total > 0 ? 2 : 0),
         centerX: x + barWidth / 2,
-        label: r.label,
-        tooltip: `${r.label}: ${formatCurrencyFull(r.total)} · ${r.count} khoản`
+        label: dow,
+        tooltip: this.fmt.t('analytics.tooltipWeekday', {
+          dow,
+          amount: this.fmt.full(r.total),
+          count: r.count
+        })
       };
     });
 
@@ -85,7 +93,7 @@ export class WeekdayChartComponent implements OnChanges {
       const value = (max / 2) * i;
       this.gridLines.push({
         y: baseline - (value / max) * chartHeight,
-        label: formatCurrencyCompact(Math.round(value))
+        label: this.fmt.compact(Math.round(value))
       });
     }
   }

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ViewContainerRef } from '@angular/core';
+import { Component, ViewContainerRef, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { SystemConfiguration } from 'src/app/model/system-configuration.model';
 import { environment } from 'src/environments/environment';
@@ -12,6 +13,10 @@ import { SystemConfigurationFormComponent } from '../system-configuration-form/s
 })
 export class SystemConfigurationListComponent {
   configurations: SystemConfiguration[] = [];
+
+  // `window.confirm` cần chuỗi ngay tại chỗ gọi — một trong số ít nơi dùng
+  // `instant()`. Không lưu kết quả vào field.
+  private readonly translate = inject(TranslateService);
 
   constructor(
     private http: HttpClient,
@@ -47,7 +52,10 @@ export class SystemConfigurationListComponent {
   }
 
   deleteRecord(item: SystemConfiguration) {
-    const confirmed = window.confirm(`Ban co chac chan muon xoa cau hinh "${item.keyConfig}" khong?`);
+    // Khóa cấu hình chèn nguyên văn từ DB — chỉ câu chữ quanh nó mới dịch.
+    const confirmed = window.confirm(
+      this.translate.instant('systemConfig.confirmDelete', { name: item.keyConfig })
+    );
     if (!confirmed) {
       return;
     }

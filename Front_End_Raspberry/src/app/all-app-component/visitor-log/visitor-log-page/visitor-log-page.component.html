@@ -1,65 +1,71 @@
 <div class="visitor-log-container">
 
   <div class="page-head">
-    <h2>Nhật ký truy cập</h2>
-    <p class="page-sub">Ai đã ghé thăm portfolio, xem trang nào, lúc nào và quay lại bao nhiêu lần.</p>
+    <h2>{{ 'visitor.title' | translate }}</h2>
+    <p class="page-sub">{{ 'visitor.subtitle' | translate }}</p>
   </div>
 
   <!-- Bộ lọc chung cho mọi tab -->
   <div class="filter-bar">
     <div class="filter-group">
-      <label>Khoảng thời gian</label>
+      <label>{{ 'visitor.dateRange' | translate }}</label>
       <div class="range-buttons">
         <button
           *ngFor="let option of rangeOptions"
           class="range-btn"
           [class.active]="selectedRange === option.days"
           (click)="selectedRange = option.days; applyFilter()">
-          {{ option.label }}
+          {{ option.labelKey | translate }}
         </button>
       </div>
     </div>
 
     <div class="filter-group">
-      <label for="area">Khu vực</label>
+      <label for="area">{{ 'visitor.area' | translate }}</label>
       <select id="area" [(ngModel)]="selectedArea" (change)="applyFilter()">
-        <option [ngValue]="null">Tất cả</option>
+        <option [ngValue]="null">{{ 'visitor.areaAll' | translate }}</option>
+        <!-- "Portfolio" là tên riêng nên không dịch. -->
         <option [ngValue]="1">Portfolio</option>
-        <option [ngValue]="2">Trang đăng nhập</option>
+        <option [ngValue]="2">{{ 'visitor.areaLogin' | translate }}</option>
       </select>
     </div>
 
     <div class="filter-group">
-      <label for="path">Trang chứa chữ</label>
-      <input id="path" type="text" [(ngModel)]="pathContains" (keyup.enter)="applyFilter()" placeholder="ví dụ: about" />
+      <label for="path">{{ 'visitor.pathContains' | translate }}</label>
+      <input
+        id="path"
+        type="text"
+        [(ngModel)]="pathContains"
+        (keyup.enter)="applyFilter()"
+        [placeholder]="'visitor.pathPlaceholder' | translate" />
     </div>
 
     <div class="filter-group checks">
       <label class="check">
         <input type="checkbox" [(ngModel)]="excludeSelf" (change)="applyFilter()" />
-        <span>Ẩn traffic của tôi</span>
+        <span>{{ 'visitor.hideSelf' | translate }}</span>
       </label>
       <label class="check">
         <input type="checkbox" [(ngModel)]="excludeBots" (change)="applyFilter()" />
-        <span>Ẩn bot</span>
+        <span>{{ 'visitor.hideBots' | translate }}</span>
       </label>
     </div>
 
-    <button class="btn-apply" (click)="applyFilter()">Lọc</button>
+    <button class="btn-apply" (click)="applyFilter()">{{ 'visitor.apply' | translate }}</button>
   </div>
 
   <!-- Đang xem riêng một khách -->
   <div class="visitor-filter-note" *ngIf="filter?.visitorId">
-    Đang xem riêng khách <code>{{ filter.visitorId }}</code>
-    <button class="btn-clear" (click)="clearVisitorFilter()">Bỏ lọc này</button>
+    {{ 'visitor.viewingVisitor' | translate }} <code>{{ filter.visitorId }}</code>
+    <button class="btn-clear" (click)="clearVisitorFilter()">{{ 'visitor.clearVisitorFilter' | translate }}</button>
   </div>
 
   <!-- Tabs -->
   <div class="tab-bar">
-    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">Tổng quan</button>
-    <button class="tab-btn" [class.active]="activeTab === 'visits'" (click)="setTab('visits')">Lượt truy cập</button>
-    <button class="tab-btn" [class.active]="activeTab === 'visitors'" (click)="setTab('visitors')">Khách</button>
-    <button class="tab-btn" [class.active]="activeTab === 'myips'" (click)="setTab('myips')">IP của tôi</button>
+    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setTab('overview')">{{ 'visitor.tabOverview' | translate }}</button>
+    <button class="tab-btn" [class.active]="activeTab === 'visits'" (click)="setTab('visits')">{{ 'visitor.tabVisits' | translate }}</button>
+    <button class="tab-btn" [class.active]="activeTab === 'visitors'" (click)="setTab('visitors')">{{ 'visitor.tabVisitors' | translate }}</button>
+    <button class="tab-btn" [class.active]="activeTab === 'myips'" (click)="setTab('myips')">{{ 'visitor.tabMyIps' | translate }}</button>
   </div>
 
   <div class="tab-content">
@@ -89,8 +95,12 @@
     </app-known-ip-list>
   </div>
 
-  <!-- Giấy phép CC-BY của DB-IP yêu cầu dẫn link về trang chủ khi hiện dữ liệu vị trí -->
+  <!--
+    Giấy phép CC-BY của DB-IP yêu cầu dẫn link về trang chủ khi hiện dữ liệu vị trí.
+    Chỉ nhãn dẫn nguồn được dịch; tên "IP Geolocation by DB-IP" phải giữ NGUYÊN VĂN
+    ở cả hai ngôn ngữ vì đó là điều kiện của giấy phép.
+  -->
   <p class="attribution">
-    Dữ liệu vị trí: <a href="https://db-ip.com" target="_blank" rel="noopener">IP Geolocation by DB-IP</a>
+    {{ 'visitor.locationDataBy' | translate }}: <a href="https://db-ip.com" target="_blank" rel="noopener">IP Geolocation by DB-IP</a>
   </p>
 </div>

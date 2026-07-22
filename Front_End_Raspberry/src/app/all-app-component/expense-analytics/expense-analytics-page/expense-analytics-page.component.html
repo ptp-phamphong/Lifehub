@@ -1,29 +1,33 @@
 <div class="analytics-container">
 
   <div class="page-head">
-    <h2>Phân tích chi tiêu</h2>
-    <p class="page-sub">Xu hướng, cơ cấu và thói quen chi tiêu qua từng thời gian.</p>
+    <h2>{{ 'analytics.title' | translate }}</h2>
+    <p class="page-sub">{{ 'analytics.subtitle' | translate }}</p>
   </div>
 
   <!-- MOT hang loc duy nhat, scope toan trang: moi bieu do ben duoi deu doc
        cung mot lat cat nen cac con so luon khop nhau. -->
   <div class="filter-bar">
     <div class="filter-group">
-      <label>Khoảng thời gian</label>
+      <label>{{ 'analytics.dateRange' | translate }}</label>
       <div class="range-buttons">
         <button
           type="button"
           *ngFor="let o of rangeOptions"
           class="range-btn"
           [class.active]="filter.monthsBack === o.value"
-          (click)="onRangeChange(o.value)">{{ o.label }}</button>
+          (click)="onRangeChange(o.value)">{{ o.labelKey | translate }}</button>
       </div>
     </div>
 
     <!-- Ca IN va OUT, giong het trang Chi tieu: thieu mot trong hai thi tong cua
          hai trang se khong bao gio khop nhau. -->
     <div class="filter-group grow">
-      <label for="loai">Lọc theo loại <span class="label-hint">(chỉ áp dụng cho chi)</span></label>
+      <label for="loai">
+        {{ 'analytics.filterIn' | translate }}
+        <span class="label-hint">{{ 'analytics.filterInHint' | translate }}</span>
+      </label>
+      <!-- `reasonName` là dữ liệu DB nên hiển thị nguyên văn, không dịch. -->
       <ng-select
         id="loai"
         [items]="reasonTypes"
@@ -31,14 +35,14 @@
         bindValue="id"
         [multiple]="true"
         [closeOnSelect]="false"
-        placeholder="Tất cả các loại"
+        [placeholder]="'analytics.filterInPlaceholder' | translate"
         [(ngModel)]="filter.reasonTypeIds"
         (change)="onFilterChange()">
       </ng-select>
     </div>
 
     <div class="filter-group grow">
-      <label for="loaiTru">Lọc theo không phải loại</label>
+      <label for="loaiTru">{{ 'analytics.filterOut' | translate }}</label>
       <ng-select
         id="loaiTru"
         [items]="reasonTypes"
@@ -46,37 +50,42 @@
         bindValue="id"
         [multiple]="true"
         [closeOnSelect]="false"
-        placeholder="Không loại trừ loại nào"
+        [placeholder]="'analytics.filterOutPlaceholder' | translate"
         [(ngModel)]="filter.reasonTypeIdsOut"
         (change)="onFilterChange()">
       </ng-select>
     </div>
 
     <div class="filter-group">
-      <label for="thang">Tháng phân tích</label>
+      <label for="thang">{{ 'analytics.anchorMonth' | translate }}</label>
       <select id="thang" [(ngModel)]="filter.anchorMonth" (change)="onFilterChange()">
-        <option *ngFor="let m of monthOptions" [value]="m.key">{{ m.label }}</option>
+        <option *ngFor="let m of monthOptions" [value]="m">{{ monthTitle(m) }}</option>
       </select>
     </div>
 
     <div class="filter-actions">
       <button type="button" class="btn-reload" (click)="load(true)" [disabled]="loading">
-        Tải lại
+        {{ 'analytics.reload' | translate }}
       </button>
-      <span class="loaded-at" *ngIf="raw">Cập nhật lúc {{ loadedAtLabel }}</span>
+      <span class="loaded-at" *ngIf="raw">{{ loadedAtLabel }}</span>
     </div>
   </div>
 
   <div class="filter-note" *ngIf="vm?.isFiltered">
-    Đang lọc: {{ filterCountLabel }}. Các con số bên dưới chỉ tính phần đã lọc.
-    <button type="button" class="btn-clear" (click)="clearReasonFilter()">Bỏ lọc</button>
+    {{ filteringNote }}
+    <button type="button" class="btn-clear" (click)="clearReasonFilter()">
+      {{ 'analytics.clearFilter' | translate }}
+    </button>
   </div>
 
   <!-- Khoan khong co ngay bi loai khoi moi bieu do thoi gian -> phai noi ra. -->
-  <div class="skipped-note" *ngIf="skippedNote"><span class="msym" aria-hidden="true">warning</span><span>{{ skippedNote }}</span></div>
+  <div class="skipped-note" *ngIf="skippedCount">
+    <span class="msym" aria-hidden="true">warning</span>
+    <span>{{ 'analytics.skippedNote' | translate: { count: skippedCount } }}</span>
+  </div>
 
   <div class="load-error" *ngIf="loadError">
-    Không tải được dữ liệu. Kiểm tra xem API có đang chạy không, rồi bấm “Tải lại”.
+    {{ 'analytics.loadError' | translate }}
   </div>
 
   <div class="panels" *ngIf="vm && !loadError">
@@ -86,8 +95,8 @@
 
     <!-- 2. Thu vs Chi -->
     <app-chart-panel
-      title="Thu và chi theo tháng"
-      [subtitle]="'Khoảng ' + rangeLabel + ' gần nhất'"
+      [title]="'analytics.incomeExpenseTitle' | translate"
+      [subtitle]="rangeSubtitle"
       [note]="incomeExpenseNote"
       [hasData]="vm.monthlyPairs.length > 0">
       <app-income-expense-chart chart [pairs]="vm.monthlyPairs"></app-income-expense-chart>
@@ -95,11 +104,16 @@
       <div table class="table-scroll">
         <table class="data-table">
           <thead>
-            <tr><th>Tháng</th><th class="num">Chi</th><th class="num">Thu</th><th class="num">Số dư</th></tr>
+            <tr>
+              <th>{{ 'analytics.colMonth' | translate }}</th>
+              <th class="num">{{ 'analytics.colExpense' | translate }}</th>
+              <th class="num">{{ 'analytics.colIncome' | translate }}</th>
+              <th class="num">{{ 'analytics.colBalance' | translate }}</th>
+            </tr>
           </thead>
           <tbody>
             <tr *ngFor="let p of vm.monthlyPairs">
-              <td>{{ p.label }}</td>
+              <td>{{ monthShort(p.monthKey) }}</td>
               <td class="num">{{ format(p.expense) }}</td>
               <td class="num">{{ format(p.income) }}</td>
               <td class="num">{{ format(p.income - p.expense) }}</td>
@@ -112,17 +126,22 @@
     <div class="panel-grid">
       <!-- 3. Chi theo loai -->
       <app-chart-panel
-        title="Chi theo loại"
-        [subtitle]="'Khoảng ' + rangeLabel + ' gần nhất, xếp theo tổng tiền'"
+        [title]="'analytics.categoryRankTitle' | translate"
+        [subtitle]="rangeSubtitleByTotal"
         [hasData]="vm.categoryRank.length > 0">
         <app-category-rank-chart chart [rows]="vm.categoryRank"></app-category-rank-chart>
 
         <div table class="table-scroll">
           <table class="data-table">
             <thead>
-              <tr><th>Loại</th><th class="num">Số khoản</th><th class="num">Tổng</th></tr>
+              <tr>
+                <th>{{ 'analytics.colCategory' | translate }}</th>
+                <th class="num">{{ 'analytics.colCount' | translate }}</th>
+                <th class="num">{{ 'analytics.colTotal' | translate }}</th>
+              </tr>
             </thead>
             <tbody>
+              <!-- `r.label` là tên loại từ DB (hoặc nhãn nhóm do transform đặt). -->
               <tr *ngFor="let r of vm.categoryRank">
                 <td>{{ r.label }}</td>
                 <td class="num">{{ r.count }}</td>
@@ -135,19 +154,23 @@
 
       <!-- 5. Chi theo thu trong tuan -->
       <app-chart-panel
-        title="Chi theo thứ trong tuần"
-        subtitle="Cộng dồn cả khoảng đang xem"
+        [title]="'analytics.weekdayTitle' | translate"
+        [subtitle]="'analytics.weekdaySubtitle' | translate"
         [hasData]="vm.weekdays.length > 0">
         <app-weekday-chart chart [rows]="vm.weekdays"></app-weekday-chart>
 
         <div table class="table-scroll">
           <table class="data-table">
             <thead>
-              <tr><th>Thứ</th><th class="num">Số khoản</th><th class="num">Tổng</th></tr>
+              <tr>
+                <th>{{ 'analytics.colWeekday' | translate }}</th>
+                <th class="num">{{ 'analytics.colCount' | translate }}</th>
+                <th class="num">{{ 'analytics.colTotal' | translate }}</th>
+              </tr>
             </thead>
             <tbody>
               <tr *ngFor="let w of vm.weekdays">
-                <td>{{ w.label }}</td>
+                <td>{{ 'course.dowLong.' + w.dow | translate }}</td>
                 <td class="num">{{ w.count }}</td>
                 <td class="num">{{ format(w.total) }}</td>
               </tr>
@@ -159,15 +182,18 @@
 
     <!-- 4. Co cau loai qua cac thang -->
     <app-chart-panel
-      title="Cơ cấu loại chi qua các tháng"
-      [subtitle]="'Sáu loại lớn nhất giữ màu riêng, phần còn lại gộp vào “' + vm.categoryStack.otherLabel + '”'"
+      [title]="'analytics.categoryStackTitle' | translate"
+      [subtitle]="'analytics.categoryStackSubtitle' | translate: { other: vm.categoryStack.otherLabel }"
       [hasData]="vm.categoryStack.legend.length > 0">
       <app-category-stack-chart chart [model]="vm.categoryStack"></app-category-stack-chart>
 
       <div table class="table-scroll">
         <table class="data-table">
           <thead>
-            <tr><th>Loại</th><th class="num">Tổng</th></tr>
+            <tr>
+              <th>{{ 'analytics.colCategory' | translate }}</th>
+              <th class="num">{{ 'analytics.colTotal' | translate }}</th>
+            </tr>
           </thead>
           <tbody>
             <tr *ngFor="let l of vm.categoryStack.legend">
@@ -182,19 +208,23 @@
     <div class="panel-grid">
       <!-- 6. Heatmap -->
       <app-chart-panel
-        [title]="'Nhiệt chi theo ngày — ' + anchorLabel"
-        subtitle="Ô càng đậm là ngày chi càng nhiều"
+        [title]="'analytics.heatmapTitle' | translate: { month: anchorTitle }"
+        [subtitle]="'analytics.heatmapSubtitle' | translate"
         [hasData]="vm.heatmap.weeks.length > 0">
         <app-day-heatmap-chart chart [model]="vm.heatmap"></app-day-heatmap-chart>
 
         <div table class="table-scroll">
           <table class="data-table">
             <thead>
-              <tr><th>Ngày</th><th class="num">Số khoản</th><th class="num">Tổng</th></tr>
+              <tr>
+                <th>{{ 'analytics.colDay' | translate }}</th>
+                <th class="num">{{ 'analytics.colCount' | translate }}</th>
+                <th class="num">{{ 'analytics.colTotal' | translate }}</th>
+              </tr>
             </thead>
             <tbody>
               <tr *ngFor="let c of heatDaysWithData">
-                <td>Ngày {{ c.day }}</td>
+                <td>{{ 'analytics.dayNumber' | translate: { day: c.day } }}</td>
                 <td class="num">{{ c.count }}</td>
                 <td class="num">{{ format(c.total) }}</td>
               </tr>
@@ -205,19 +235,22 @@
 
       <!-- 7. Luy ke -->
       <app-chart-panel
-        [title]="'Chi lũy kế — ' + anchorLabel"
-        [subtitle]="'So với ' + prevAnchorLabel.toLowerCase()"
+        [title]="'analytics.cumulativeTitle' | translate: { month: anchorTitle }"
+        [subtitle]="'analytics.cumulativeSubtitle' | translate: { month: prevAnchorInline }"
         [hasData]="vm.cumulative.current.length > 0 || vm.cumulative.previous.length > 0">
         <app-cumulative-month-chart chart [series]="vm.cumulative"></app-cumulative-month-chart>
 
         <div table class="table-scroll">
           <table class="data-table">
             <thead>
-              <tr><th>Ngày</th><th class="num">Lũy kế {{ anchorLabel.toLowerCase() }}</th></tr>
+              <tr>
+                <th>{{ 'analytics.colDay' | translate }}</th>
+                <th class="num">{{ 'analytics.cumulativeColumn' | translate: { month: anchorInline } }}</th>
+              </tr>
             </thead>
             <tbody>
               <tr *ngFor="let p of vm.cumulative.current">
-                <td>Ngày {{ p.day }}</td>
+                <td>{{ 'analytics.dayNumber' | translate: { day: p.day } }}</td>
                 <td class="num">{{ format(p.total) }}</td>
               </tr>
             </tbody>

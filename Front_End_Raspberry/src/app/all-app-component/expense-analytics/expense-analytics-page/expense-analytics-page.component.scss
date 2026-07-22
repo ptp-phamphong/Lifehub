@@ -1,7 +1,19 @@
 $radius: 12px;
 $radius-sm: 8px;
 
+/*
+ * max-width khớp $shell-max/max-width của các trang danh sách khác
+ * (expense-record-list.component.scss:9) — không phải số tùy ý.
+ *
+ * Lý do bắt buộc phải có: mọi biểu đồ SVG dưới đây dùng `width:100%; height:auto`
+ * với viewBox cố định, nên KHÔNG chỉ chiều cao mà cả cỡ chữ trục và độ dày cột
+ * đều là đơn vị viewBox — không có max-width thì trên màn rộng chúng phóng to
+ * theo tỉ lệ container, chữ trục có thể to hơn hẳn phần chữ còn lại của UI.
+ * Heatmap (CSS grid `aspect-ratio: 1/1`, không phải SVG) cũng phình theo cùng lý do.
+ */
 .analytics-container {
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 24px 28px;
   background: var(--color-surface);
   border-radius: $radius;

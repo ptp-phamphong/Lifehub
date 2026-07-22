@@ -1,13 +1,11 @@
 <div class="jobs-page">
 	<div class="jobs-header">
 		<div>
-			<h5 class="jobs-title">Tác vụ nền</h5>
-			<p class="jobs-subtitle">
-				Các tác vụ chạy tự động theo lịch. Bấm "Chạy ngay" nếu muốn chạy luôn không cần đợi.
-			</p>
+			<h5 class="jobs-title">{{ 'jobs.title' | translate }}</h5>
+			<p class="jobs-subtitle">{{ 'jobs.subtitle' | translate }}</p>
 		</div>
 		<button class="btn-refresh" type="button" (click)="loadHistory()" [disabled]="loading">
-			<span class="msym" aria-hidden="true">refresh</span><span>{{ loading ? 'Đang tải…' : 'Làm mới' }}</span>
+			<span class="msym" aria-hidden="true">refresh</span><span>{{ (loading ? 'common.loading' : 'jobs.refresh') | translate }}</span>
 		</button>
 	</div>
 
@@ -19,22 +17,22 @@
 			[disabled]="triggering === job.key"
 			(click)="runJob(job.key)"
 		>
-			<span class="msym" aria-hidden="true">play_arrow</span><span>{{ triggering === job.key ? 'Đang gửi…' : job.label }}</span>
+			<span class="msym" aria-hidden="true">play_arrow</span><span>{{ (triggering === job.key ? 'jobs.sending' : job.labelKey) | translate }}</span>
 		</button>
 	</div>
 
-	<p class="job-message" *ngIf="message">{{ message }}</p>
+	<p class="job-message" *ngIf="messageKey">{{ messageKey | translate }}</p>
 
 	<div class="jobs-table-wrapper">
 		<div class="table-scroll">
 			<table class="jobs-table">
 				<thead>
 					<tr>
-						<th>Tên tác vụ</th>
-						<th>Trạng thái</th>
-						<th>Bắt đầu</th>
-						<th>Kết thúc</th>
-						<th>Thời gian chạy</th>
+						<th>{{ 'jobs.colName' | translate }}</th>
+						<th>{{ 'jobs.colStatus' | translate }}</th>
+						<th>{{ 'jobs.colStarted' | translate }}</th>
+						<th>{{ 'jobs.colFinished' | translate }}</th>
+						<th>{{ 'jobs.colDuration' | translate }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -42,7 +40,7 @@
 						<tr
 							[class.has-error]="job.errorMessage"
 							(click)="toggleError(job)"
-							[title]="job.errorMessage ? 'Bấm để xem lý do lỗi' : ''"
+							[title]="job.errorMessage ? ('jobs.clickForError' | translate) : ''"
 						>
 							<td>{{ job.jobName }}</td>
 							<td>
@@ -63,7 +61,7 @@
 
 					<tr *ngIf="!history.length && !loading">
 						<td colspan="5" class="empty-row">
-							{{ loadFailed ? 'Không tải được lịch sử tác vụ.' : 'Chưa có lần chạy nào.' }}
+							{{ (loadFailed ? 'jobs.loadFailed' : 'jobs.empty') | translate }}
 						</td>
 					</tr>
 				</tbody>

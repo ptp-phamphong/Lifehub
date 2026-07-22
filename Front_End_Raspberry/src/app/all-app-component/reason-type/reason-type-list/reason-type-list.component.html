@@ -1,34 +1,35 @@
 <div class="expense-table-container">
 
-  <h2>Danh sách lý do</h2>
+  <h2>{{ 'reasonType.listTitle' | translate }}</h2>
 
   <!-- Toolbar -->
   <div class="toolbar">
-    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm mới</button>
+    <button class="btn-add" (click)="openEditDialog(0)">+ {{ 'reasonType.addNew' | translate }}</button>
   </div>
 
   <table class="expense-table">
     <thead>
       <tr>
-        <th>Mã</th>
-        <th>Tên lý do</th>
-        <th>Thứ tự</th>
-        <th>Trạng thái</th>
-        <th>Hành động</th>
+        <th>{{ 'reasonType.id' | translate }}</th>
+        <th>{{ 'reasonType.name' | translate }}</th>
+        <th>{{ 'reasonType.sortOrder' | translate }}</th>
+        <th>{{ 'reasonType.status' | translate }}</th>
+        <th>{{ 'common.actions' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let item of reasonTypes">
         <td>{{ item.id }}</td>
+        <!-- Tên loại do người dùng nhập: hiển thị nguyên văn, KHÔNG dịch. -->
         <td>{{ item.reasonName }}</td>
         <td>{{ item.sortOrder }}</td>
         <td>
           <span class="badge" [class.badge-active]="item.active" [class.badge-inactive]="!item.active">
-            {{ item.active ? 'Hoạt động' : 'Ẩn' }}
+            {{ (item.active ? 'reasonType.active' : 'reasonType.hidden') | translate }}
           </span>
         </td>
         <td class="col-actions">
-          <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">{{ 'common.edit' | translate }}</button>
         </td>
       </tr>
     </tbody>

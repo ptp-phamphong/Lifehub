@@ -1,52 +1,53 @@
 <div class="known-ip-wrapper">
 
-  <p class="intro">
-    IP nào đang ở đây và được bật <strong>Là tôi</strong> sẽ bị ẩn khỏi thống kê khi bộ lọc
-    "Ẩn traffic của tôi" đang bật. Mỗi lần bạn đăng nhập thành công vào trang admin,
-    IP đó sẽ <strong>tự động</strong> được thêm vào đây - nên IP nhà có đổi cũng không sao.
-  </p>
+  <p class="intro">{{ 'visitor.knownIpIntro' | translate }}</p>
 
   <div class="add-form">
-    <input type="text" [(ngModel)]="newIp" placeholder="Địa chỉ IP (ví dụ 113.161.20.10)" />
-    <input type="text" [(ngModel)]="newLabel" placeholder="Tên gọi (Nhà, 4G, Công ty...)" />
-    <button class="btn-add" (click)="add()">+ Thêm IP</button>
+    <input type="text" [(ngModel)]="newIp" [placeholder]="'visitor.newIpPlaceholder' | translate" />
+    <input type="text" [(ngModel)]="newLabel" [placeholder]="'visitor.newLabelPlaceholder' | translate" />
+    <button class="btn-add" (click)="add()">{{ 'visitor.addIp' | translate }}</button>
   </div>
 
-  <div class="message" *ngIf="message">{{ message }}</div>
+  <!-- Lưu KHOÁ chứ không lưu chuỗi đã dịch, nếu không thông báo sẽ kẹt ở ngôn ngữ cũ (§4.1). -->
+  <div class="message" *ngIf="messageKey">{{ messageKey | translate }}</div>
 
   <div class="table-scroll">
     <table class="expense-table">
       <thead>
         <tr>
-          <th>IP</th>
-          <th>Trình duyệt (VisitorId)</th>
-          <th>Tên gọi</th>
-          <th>Là tôi</th>
-          <th>Ngày thêm</th>
-          <th>Hành động</th>
+          <th>{{ 'visitor.colIp' | translate }}</th>
+          <th>{{ 'visitor.colVisitorId' | translate }}</th>
+          <th>{{ 'visitor.colLabel' | translate }}</th>
+          <th>{{ 'visitor.colIsSelf' | translate }}</th>
+          <th>{{ 'visitor.colCreatedDate' | translate }}</th>
+          <th>{{ 'visitor.colActions' | translate }}</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngIf="!knownIps.length">
-          <td class="empty-row" colspan="6">Chưa đánh dấu IP nào.</td>
+          <td class="empty-row" colspan="6">{{ 'visitor.emptyKnownIps' | translate }}</td>
         </tr>
 
         <tr *ngFor="let item of knownIps">
           <td>{{ item.ipAddress || '-' }}</td>
           <td class="col-visitor">{{ item.visitorId || '-' }}</td>
+          <!--
+            `item.label` là tên người dùng tự đặt, hoặc nhãn "auto: login ..." do
+            backend sinh — cả hai đều là dữ liệu, hiển thị nguyên văn (§4.3).
+          -->
           <td>{{ item.label || '-' }}</td>
           <td>
             <span class="badge" [class.badge-active]="item.isSelf" [class.badge-inactive]="!item.isSelf">
-              {{ item.isSelf ? 'Có' : 'Không' }}
+              {{ (item.isSelf ? 'visitor.yes' : 'visitor.no') | translate }}
             </span>
           </td>
           <td>{{ item.createdDate ? (item.createdDate | date: 'dd/MM/yyyy') : '-' }}</td>
           <td class="col-actions">
             <button class="btn-action btn-edit" (click)="toggleSelf(item)">
-              {{ item.isSelf ? 'Bỏ đánh dấu' : 'Đánh dấu là tôi' }}
+              {{ (item.isSelf ? 'visitor.unmark' : 'visitor.markSelf') | translate }}
             </button>
-            <button class="btn-action btn-delete" (click)="remove(item)">Xóa</button>
+            <button class="btn-action btn-delete" (click)="remove(item)">{{ 'visitor.delete' | translate }}</button>
           </td>
         </tr>
       </tbody>

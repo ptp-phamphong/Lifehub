@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { RankRow } from 'src/app/model/expense-analytics.model';
-import { formatCurrencyFull } from '../expense-analytics.transform';
+import { AnalyticsFormatService } from '../analytics-format.service';
 
 /**
  * Chi theo loại - thanh ngang xếp hạng.
@@ -20,7 +20,9 @@ import { formatCurrencyFull } from '../expense-analytics.transform';
 export class CategoryRankChartComponent {
   @Input() rows: RankRow[] = [];
 
-  format = formatCurrencyFull;
+  private readonly fmt = inject(AnalyticsFormatService);
+
+  format = (value: number) => this.fmt.full(value);
 
   trackByLabel(_: number, r: RankRow): string {
     return r.label;
@@ -33,7 +35,7 @@ export class CategoryRankChartComponent {
   /** Tỷ trọng trên tổng - con số người ta thực sự muốn biết khi nhìn xếp hạng. */
   share(r: RankRow): string {
     const t = this.total;
-    if (!t) return '0%';
-    return ((r.total / t) * 100).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + '%';
+    if (!t) return this.fmt.percent(0);
+    return this.fmt.percent((r.total / t) * 100);
   }
 }

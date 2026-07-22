@@ -14,7 +14,8 @@ export class SemesterMetadataFormComponent {
   codeSemester: string = '';
   year: number | null = null;
   isCurrentSemester: boolean = false;
-  message: string = '';
+  // Lưu KEY, không lưu chuỗi đã dịch (§4.1 kế hoạch i18n).
+  messageKey: string = '';
   id: number = 0;
 
   constructor(
@@ -42,29 +43,29 @@ export class SemesterMetadataFormComponent {
         },
         error: (err) => {
           console.error(err);
-          this.message = 'Gửi thất bại.';
+          this.messageKey = 'semester.loadFailed';
         }
       });
   }
 
   submitForm() {
     if (!this.semesterName) {
-      this.message = 'Vui lòng nhập tên học kỳ.';
+      this.messageKey = 'semester.missingName';
       return;
     }
 
     if (!this.codeSemester) {
-      this.message = 'Vui lòng nhập mã học kỳ.';
+      this.messageKey = 'semester.missingCode';
       return;
     }
 
     if (this.year == null || Number.isNaN(this.year)) {
-      this.message = 'Vui lòng nhập năm học kỳ.';
+      this.messageKey = 'semester.missingYear';
       return;
     }
 
     if (this.isCurrentSemester && this.hasAnotherCurrentSemester()) {
-      this.message = 'Chỉ được tồn tại một học kỳ hiện tại.';
+      this.messageKey = 'semester.onlyOneCurrent';
       return;
     }
 
@@ -83,7 +84,7 @@ export class SemesterMetadataFormComponent {
           },
           error: (err) => {
             console.error(err);
-            this.message = 'Cập nhật thất bại.';
+            this.messageKey = 'semester.updateFailed';
           }
         });
     } else {
@@ -94,7 +95,7 @@ export class SemesterMetadataFormComponent {
           },
           error: (err) => {
             console.error(err);
-            this.message = 'Tạo mới thất bại.';
+            this.messageKey = 'semester.createFailed';
           }
         });
     }

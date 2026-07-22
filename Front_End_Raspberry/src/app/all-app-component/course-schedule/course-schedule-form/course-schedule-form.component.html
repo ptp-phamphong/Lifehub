@@ -1,31 +1,35 @@
 <div class="course-form">
-  <h2>{{ id > 0 ? 'Sửa môn học' : 'Thêm môn học' }}</h2>
+  <h2>{{ (id > 0 ? 'course.formTitleEdit' : 'course.formTitleAdd') | translate }}</h2>
   <form (ngSubmit)="submitForm()">
 
     <div class="form-group">
-      <label for="courseCode">Mã môn <span class="required">*</span></label>
-      <input id="courseCode" type="text" [(ngModel)]="courseCode" name="courseCode" placeholder="VD: 26D1INF50900301" />
+      <label for="courseCode">{{ 'course.code' | translate }} <span class="required">*</span></label>
+      <input id="courseCode" type="text" [(ngModel)]="courseCode" name="courseCode"
+        [placeholder]="'course.codePlaceholder' | translate" />
     </div>
 
     <div class="form-group">
-      <label for="courseName">Tên môn <span class="required">*</span></label>
-      <input id="courseName" type="text" [(ngModel)]="courseName" name="courseName" placeholder="VD: Thống kê máy tính" />
+      <label for="courseName">{{ 'course.name' | translate }} <span class="required">*</span></label>
+      <input id="courseName" type="text" [(ngModel)]="courseName" name="courseName"
+        [placeholder]="'course.namePlaceholder' | translate" />
     </div>
 
     <div class="form-row">
       <div class="form-group">
-        <label for="startDate">Ngày bắt đầu</label>
+        <label for="startDate">{{ 'course.startDate' | translate }}</label>
         <mat-form-field appearance="outline" class="date-field">
-          <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" name="startDate" placeholder="Chọn ngày..." />
+          <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" name="startDate"
+            [placeholder]="'course.selectDate' | translate" />
           <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
           <mat-datepicker #startPicker></mat-datepicker>
         </mat-form-field>
       </div>
 
       <div class="form-group">
-        <label for="endDate">Ngày kết thúc</label>
+        <label for="endDate">{{ 'course.endDate' | translate }}</label>
         <mat-form-field appearance="outline" class="date-field">
-          <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" name="endDate" placeholder="Chọn ngày..." />
+          <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" name="endDate"
+            [placeholder]="'course.selectDate' | translate" />
           <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
           <mat-datepicker #endPicker></mat-datepicker>
         </mat-form-field>
@@ -34,30 +38,32 @@
 
     <div class="form-row">
       <div class="form-group">
-        <label for="startTime">Giờ bắt đầu</label>
+        <label for="startTime">{{ 'course.startTime' | translate }}</label>
         <input id="startTime" type="time" [(ngModel)]="startTime" name="startTime" />
       </div>
 
       <div class="form-group">
-        <label for="endTime">Giờ kết thúc</label>
+        <label for="endTime">{{ 'course.endTime' | translate }}</label>
         <input id="endTime" type="time" [(ngModel)]="endTime" name="endTime" />
       </div>
     </div>
 
     <div class="form-group">
-      <label for="room">Phòng</label>
-      <input id="room" type="text" [(ngModel)]="room" name="room" placeholder="VD: E401" />
+      <label for="room">{{ 'course.room' | translate }}</label>
+      <input id="room" type="text" [(ngModel)]="room" name="room"
+        [placeholder]="'course.roomPlaceholder' | translate" />
     </div>
 
     <div class="form-group">
-      <label for="address">Địa chỉ</label>
-      <input id="address" type="text" [(ngModel)]="address" name="address" placeholder="VD: 279 Nguyễn Tri Phương" />
+      <label for="address">{{ 'course.address' | translate }}</label>
+      <input id="address" type="text" [(ngModel)]="address" name="address"
+        [placeholder]="'course.addressPlaceholder' | translate" />
     </div>
 
     <div class="form-group">
-      <label for="semesterMetadataId">Học kỳ</label>
+      <label for="semesterMetadataId">{{ 'course.semester' | translate }}</label>
       <select id="semesterMetadataId" [(ngModel)]="semesterMetadataId" name="semesterMetadataId">
-        <option [ngValue]="null">-- Chưa chọn học kỳ --</option>
+        <option [ngValue]="null">{{ 'course.noSemesterSelected' | translate }}</option>
         <option *ngFor="let semester of semesters" [ngValue]="semester.id">
           {{ semester.codeSemester }} - {{ semester.semesterName }} ({{ semester.year }})
         </option>
@@ -65,28 +71,24 @@
     </div>
 
     <div class="form-group">
-      <label for="dayOfWeek">Thứ trong tuần <span class="required">*</span></label>
+      <label for="dayOfWeek">{{ 'course.dayOfWeekField' | translate }} <span class="required">*</span></label>
       <select id="dayOfWeek" [(ngModel)]="dayOfWeek" name="dayOfWeek">
-        <option [ngValue]="null" disabled>Chọn thứ...</option>
-        <option [ngValue]="2">Thứ 2</option>
-        <option [ngValue]="3">Thứ 3</option>
-        <option [ngValue]="4">Thứ 4</option>
-        <option [ngValue]="5">Thứ 5</option>
-        <option [ngValue]="6">Thứ 6</option>
-        <option [ngValue]="7">Thứ 7</option>
-        <option [ngValue]="8">Chủ nhật</option>
+        <option [ngValue]="null" disabled>{{ 'course.selectDayOfWeek' | translate }}</option>
+        <option *ngFor="let option of dayOfWeekOptions" [ngValue]="option.value">
+          {{ option.labelKey | translate }}
+        </option>
       </select>
     </div>
 
-    <button type="submit" class="btn-submit">Lưu</button>
+    <button type="submit" class="btn-submit">{{ 'common.save' | translate }}</button>
   </form>
 
-  <p class="message" [class.is-success]="messageType === 'success'" [class.is-error]="messageType === 'error'" [class.is-warning]="messageType === 'warning'" *ngIf="message">
+  <p class="message" [class.is-success]="messageType === 'success'" [class.is-error]="messageType === 'error'" [class.is-warning]="messageType === 'warning'" *ngIf="messageKey">
     <span class="msym" aria-hidden="true">{{ messageType === 'success' ? 'check_circle' : messageType === 'error' ? 'error' : 'warning' }}</span>
-    <span>{{ message }}</span>
+    <span>{{ messageKey | translate }}</span>
   </p>
 
   <div class="btn-cancel-wrapper">
-    <button class="btn-cancel" (click)="cancel()">Hủy</button>
+    <button class="btn-cancel" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
   </div>
 </div>

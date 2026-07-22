@@ -1,23 +1,23 @@
 <div class="expense-form">
-  <h2>{{ id > 0 ? 'Chỉnh sửa cấu hình đặc biệt' : 'Thêm cấu hình đặc biệt' }}</h2>
+  <h2>{{ (id > 0 ? 'systemConfig.editTitle' : 'systemConfig.addTitle') | translate }}</h2>
 
   <form (ngSubmit)="submitForm()">
     <div class="form-group">
-      <label for="keyConfig">Khóa cấu hình</label>
-      <input id="keyConfig" type="text" [(ngModel)]="keyConfig" name="keyConfig" placeholder="Nhập khóa cấu hình..." />
+      <label for="keyConfig">{{ 'systemConfig.key' | translate }}</label>
+      <input id="keyConfig" type="text" [(ngModel)]="keyConfig" name="keyConfig" [placeholder]="'systemConfig.keyPlaceholder' | translate" />
     </div>
 
     <div class="form-group">
-      <label for="valueConfig">Giá trị cấu hình</label>
-      <input id="valueConfig" type="text" [(ngModel)]="valueConfig" name="valueConfig" placeholder="Nhập giá trị cấu hình..." />
+      <label for="valueConfig">{{ 'systemConfig.value' | translate }}</label>
+      <input id="valueConfig" type="text" [(ngModel)]="valueConfig" name="valueConfig" [placeholder]="'systemConfig.valuePlaceholder' | translate" />
     </div>
 
-    <button type="submit">Lưu</button>
+    <button type="submit">{{ 'common.save' | translate }}</button>
   </form>
 
-  <p class="message" *ngIf="message">{{ message }}</p>
+  <p class="message" *ngIf="messageKey">{{ messageKey | translate }}</p>
 
   <div class="cancel-row">
-    <button type="button" (click)="cancel()">Hủy</button>
+    <button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
   </div>
 </div>

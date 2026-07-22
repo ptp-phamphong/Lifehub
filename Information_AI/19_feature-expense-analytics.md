@@ -288,14 +288,45 @@ Chạy lại validator sau khi chốt để chắc ramp còn monotone.
 
 ## 9. Định dạng số
 
-`formatCurrency()` đang **lặp ở 2 component** (`expense-record-list.component.ts:289`, `expense-record.component.ts:179`) → `amount.toLocaleString('vi-VN') + ' VNĐ'`. Chuỗi đó quá dài cho nhãn trục.
+Từ đợt song ngữ (2026-07-22), định dạng số **không còn nằm trong `expense-analytics.transform.ts`** mà ở `AnalyticsFormatService` (`all-app-component/expense-analytics/analytics-format.service.ts`) — chuỗi tiền phụ thuộc cả locale lẫn từ điển, mà tầng transform thì cố ý là hàm thuần không biết `TranslateService`:
 
-- `formatCurrencyFull()` — tooltip + bảng (giữ nguyên hành vi cũ để **khớp trang Chi tiêu**)
-- `formatCurrencyCompact()` — nhãn trục: `12,5 tr` / `840 N` (lưu ý `vi-VN` dùng **dấu phẩy** làm phân cách thập phân)
+- `full()` — tooltip + bảng: `1.250.000 VNĐ` / `1,250,000 VND` (khớp `formatCurrency()` của trang Chi tiêu)
+- `compact()` — nhãn trục: `12,5 tr` / `12.5M` (mẫu nằm trong từ điển vì tiếng Anh **không có dấu cách** trước đơn vị)
+- `monthShort()` / `monthInline()` / `monthTitle()` — nhãn tháng, xem mục 11
+- `percent()`, `time()`
 
 Số lớn đứng một mình (KPI) dùng **chữ số tỷ lệ**; `font-variant-numeric: tabular-nums` **chỉ** cho cột số trong bảng và nhãn trục — `tabular-nums` làm số lớn trông rời rạc.
 
-## 10. Đấu nối
+## 10. Song ngữ: vì sao trang này phải dựng lại view-model
+
+Khác mọi feature khác, phần lớn chữ ở đây nằm **bên trong SVG** (nhãn trục, `<title>` tooltip, chú giải) và được dựng trong `build()` của từng biểu đồ, nên **không có pipe `translate` nào chạy lại** khi đổi ngôn ngữ.
+
+Cách xử lý: `expense-analytics-page.component.ts` có một `effect()` đọc `LanguageService.language()` rồi gọi `rebuild()`. `@Input` của các biểu đồ nhận mảng mới → `ngOnChanges` → chuỗi sinh lại theo ngôn ngữ mới. **Không phát sinh request nào** — vẫn tính từ raw đã cache, đúng như khi đổi bộ lọc.
+
+Phân công rạch ròi:
+
+| Loại chữ | Cách làm |
+|---|---|
+| Render thẳng ra DOM (KPI, tiêu đề panel, đầu bảng) | Khoá i18n + pipe → tự đổi, không cần dựng lại |
+| Nằm trong SVG | Dựng bằng `AnalyticsFormatService` lúc `build()` → cần `effect` ở trên |
+| Nhãn tầng transform cần (`Chưa phân loại`, nhóm gộp) | Truyền vào qua `TransformLabels`, mặc định tiếng Việt |
+| Tên loại chi (`ReasonType.reasonName`) | **Nguyên văn**, không dịch |
+
+`KHONG_PHAN_LOAI = 'Chưa phân loại'` cũ đã đổi thành `UNCATEGORIZED = '__uncategorized__'`: hằng đó vừa là khoá gom nhóm vừa là sentinel so sánh `isMuted`, dịch thẳng nó sẽ làm phép so sánh trượt trong im lặng khi đổi ngôn ngữ.
+
+## 11. Nhãn tháng
+
+Ba dạng, tách ra vì lý do khác nhau chứ không phải cho vui:
+
+| Hàm | Ra chuỗi | Dùng ở |
+|---|---|---|
+| `monthShort()` | `T7/26` / `Jul 26` | nhãn trục X (hẹp) — mẫu trong từ điển, không dùng `Intl` vì `vi-VN` cho `thg 7`, dài hơn và tràn nhãn |
+| `monthInline()` | `tháng 7 năm 2026` / `July 2026` | giữa câu |
+| `monthTitle()` | `Tháng 7 năm 2026` / `July 2026` | tiêu đề panel, chú giải |
+
+Hai dạng cuối tách ra vì bản cũ viết `anchorLabel.toLowerCase()` để có dạng giữa câu — sang tiếng Anh sẽ ra `july 2026`, sai chính tả.
+
+## 12. Đấu nối
 
 1. `app.module.ts` — import + 9 component vào `declarations` (sau dòng 78 / 108). App là **NgModule, không standalone**, không lazy load.
 2. `app-routing.module.ts` — `{ path: 'expense-analytics', component: ExpenseAnalyticsPageComponent }` ngay sau dòng 27 (`expense-record-list`), là child của shell `path: ''` → **`AuthGuard` tự kế thừa**.
@@ -304,7 +335,7 @@ Số lớn đứng một mình (KPI) dùng **chữ số tỷ lệ**; `font-varia
 5. **Không cần thêm module**: `FormsModule` + `NgSelectModule` đã có trong `AppModule.imports`.
 6. **Không cần sửa `angular.json`**: không có budget nào được cấu hình → 9 component eager không thể làm vỡ build vì size.
 
-## 11. Ba điểm sẽ làm trang "trông như hỏng" ngay ngày đầu
+## 13. Ba điểm sẽ làm trang "trông như hỏng" ngay ngày đầu
 
 ### A. Trang Chi tiêu âm thầm áp bộ lọc loại mặc định — rủi ro cao nhất
 
@@ -329,13 +360,13 @@ Thu **không có** loại (`IncomeRecord` chỉ có `Id, Reason, Amount, Created
 - **Đừng inline object literal vào `@Input()` của biểu đồ** trong template → `ngOnChanges` bắn mỗi chu kỳ change detection với reference mới → **vòng lặp dựng lại**. Gán vào field trong `rebuild()`. (`visitor-log-page.component.ts:15` đã có comment về đúng chuyện này.)
 - **Không thể tách `<svg>` qua component** — xem §4. Mất cả giờ để đoán nếu gặp mà không biết trước.
 
-## 12. Ngôn ngữ & dark mode
+## 14. Ngôn ngữ & dark mode
 
-Toàn bộ chữ hiển thị là **tiếng Việt có dấu**: nhãn, nút, tiêu đề, tooltip, empty state, tên tháng, tên thứ. Viết `Xóa` không phải `Xoá`.
+**Đã song ngữ từ 22/07/2026** — nhánh `analytics.*` trong `src/app/i18n/`, cơ chế ở §10 và §11. Câu "toàn bộ chữ hiển thị là tiếng Việt" trong bản tài liệu cũ nay chỉ còn đúng với **tiếng Việt là ngôn ngữ gốc**: viết `vi.ts` trước, có dấu, `Xóa` không phải `Xoá`. Tên loại chi lấy từ DB thì giữ nguyên văn ở cả hai ngôn ngữ.
 
 Dark mode **không phải tùy chọn**: mọi màu qua `var(--color-*)`, kiểm **cả hai** chế độ trước khi coi là xong.
 
-## 13. Kiểm chứng
+## 15. Kiểm chứng
 
 **Điều kiện tiên quyết dễ gây "âm tính giả":** backend phải chạy ở `https://localhost:44391` và trình duyệt phải **đã chấp nhận cert tự ký** (vào thẳng URL đó, bấm qua một lần). Nếu không, cả 3 POST fail → mọi panel hiện "Chưa có dữ liệu" → trông như lỗi tính toán chứ không phải lỗi mạng. Phải **đăng nhập trước** vì có `AuthGuard`.
 
@@ -365,7 +396,7 @@ Như vậy khớp thẳng `environment.ts`, không đụng file nào.
 9. **Table twin:** bật "Bảng" ở cả 7 panel, số phải khớp biểu đồ. Đây **cũng là relief bắt buộc** cho WARN contrast ở §3 nên **không phải tùy chọn**.
 10. **Responsive + console:** 320px và zoom 200% — viewBox co giãn đúng, nhãn X thưa còn ~8, nav 5 tab không vỡ shell; console không có `NG0100 ExpressionChangedAfterItHasBeenChecked` (sẽ xuất hiện nếu biểu đồ tính hình học trong getter của template thay vì `ngOnChanges`).
 
-## 14. Kết quả kiểm chứng (17/07/2026)
+## 16. Kết quả kiểm chứng (17/07/2026)
 
 `npx ng build` PASS (chỉ còn cảnh báo `lunisolar` vốn có sẵn). Lái Chrome thật qua skill `chrome-playwright`, dữ liệu local dựng riêng để ép ca biên:
 
@@ -397,7 +428,7 @@ Nếu dùng `toISOString()` như `visitor-log-page.component.ts:125` thì **cả
 2. **`.chart-head` bóp tiêu đề còn mỗi dòng một chữ** ở khung hẹp, vì nút "Biểu đồ/Bảng" giành chỗ. Cần `flex-wrap: wrap` + `min-width: 0` trên `.chart-heading`.
 3. **Nhãn loại ở #3 bị cắt còn `H...`, `F...`** ở 320px — số tiền đầy đủ chiếm hết chỗ, làm **mất luôn danh tính**, chỉ còn con số không biết của ai. Dưới 560px cho `.rank-row` xuống dòng: tên loại một dòng, số liệu dòng dưới. (Hết tràn ngang **không** đồng nghĩa với đọc được — phải nhìn ảnh, không chỉ đo số.)
 
-## 15. Việc còn lại
+## 17. Việc còn lại
 
 Đã xong: đăng ký vào skill `feature-map` (`SKILL.md` + `references/features.md`), kiểm responsive, kiểm hợp đồng cache.
 

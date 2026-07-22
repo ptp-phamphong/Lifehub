@@ -12,7 +12,8 @@ import { environment } from 'src/environments/environment';
 export class SystemConfigurationFormComponent {
   keyConfig: string = '';
   valueConfig: string = '';
-  message: string = '';
+  // Lưu KEY, không lưu chuỗi đã dịch (§4.1 kế hoạch i18n).
+  messageKey: string = '';
   id: number = 0;
 
   constructor(
@@ -38,19 +39,19 @@ export class SystemConfigurationFormComponent {
         },
         error: (err) => {
           console.error(err);
-          this.message = 'Gửi thất bại.';
+          this.messageKey = 'systemConfig.loadFailed';
         }
       });
   }
 
   submitForm() {
     if (!this.keyConfig) {
-      this.message = 'Vui lòng nhập khóa cấu hình.';
+      this.messageKey = 'systemConfig.missingKey';
       return;
     }
 
     if (!this.valueConfig) {
-      this.message = 'Vui lòng nhập giá trị cấu hình.';
+      this.messageKey = 'systemConfig.missingValue';
       return;
     }
 
@@ -67,7 +68,7 @@ export class SystemConfigurationFormComponent {
           },
           error: (err) => {
             console.error(err);
-            this.message = 'Cập nhật thất bại.';
+            this.messageKey = 'systemConfig.updateFailed';
           }
         });
     } else {
@@ -78,7 +79,7 @@ export class SystemConfigurationFormComponent {
           },
           error: (err) => {
             console.error(err);
-            this.message = 'Tạo mới thất bại.';
+            this.messageKey = 'systemConfig.createFailed';
           }
         });
     }

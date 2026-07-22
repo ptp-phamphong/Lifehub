@@ -1,20 +1,43 @@
 <div class="theme-settings-container">
-  <h2>Cài đặt giao diện</h2>
+  <h2>{{ 'theme.title' | translate }}</h2>
 
-  <div *ngIf="loading" class="loading-msg">Đang tải...</div>
+  <div *ngIf="loading" class="loading-msg">{{ 'common.loading' | translate }}</div>
 
   <div *ngIf="!loading" class="theme-options">
+    <!-- Ngôn ngữ — nhà chính thức của bộ chọn. Đổi có hiệu lực ngay, không cần
+         lưu lên server: preference nằm ở localStorage (xem LanguageService). -->
+    <div class="theme-card theme-card--static">
+      <div class="theme-info">
+        <span class="theme-icon"><span class="msym" aria-hidden="true">language</span></span>
+        <div class="theme-text">
+          <span class="theme-label">{{ 'theme.language' | translate }}</span>
+          <span class="theme-desc">{{ 'theme.languageDesc' | translate }}</span>
+        </div>
+      </div>
+      <div class="language-switcher">
+        <button
+          type="button"
+          *ngFor="let lang of languages"
+          class="lang-button"
+          [class.active]="lang === currentLanguage()"
+          (click)="setLanguage(lang)"
+        >
+          {{ lang | uppercase }}
+        </button>
+      </div>
+    </div>
+
     <!-- Web Dark Mode -->
     <div class="theme-card" (click)="onToggleWebDark()">
       <div class="theme-info">
         <span class="theme-icon"><span class="msym" aria-hidden="true">computer</span></span>
         <div class="theme-text">
-          <span class="theme-label">Giao diện tối cho web</span>
-          <span class="theme-desc">Bật chế độ tối cho giao diện web</span>
+          <span class="theme-label">{{ 'theme.webDark' | translate }}</span>
+          <span class="theme-desc">{{ 'theme.webDarkDesc' | translate }}</span>
         </div>
       </div>
       <label class="toggle-switch" (click)="$event.stopPropagation()">
-        <input type="checkbox" [checked]="setting.webDarkMode" (change)="onToggleWebDark()" />
+        <input type="checkbox" [checked]="webDarkMode()" (change)="onToggleWebDark()" />
         <span class="toggle-slider"></span>
       </label>
     </div>
@@ -24,16 +47,17 @@
       <div class="theme-info">
         <span class="theme-icon"><span class="msym" aria-hidden="true">smartphone</span></span>
         <div class="theme-text">
-          <span class="theme-label">Giao diện tối cho di động</span>
-          <span class="theme-desc">Bật chế độ tối cho ứng dụng di động</span>
+          <span class="theme-label">{{ 'theme.mobileDark' | translate }}</span>
+          <span class="theme-desc">{{ 'theme.mobileDarkDesc' | translate }}</span>
         </div>
       </div>
       <label class="toggle-switch" (click)="$event.stopPropagation()">
-        <input type="checkbox" [checked]="setting.mobileDarkMode" (change)="onToggleMobileDark()" />
+        <input type="checkbox" [checked]="mobileDarkMode()" (change)="onToggleMobileDark()" />
         <span class="toggle-slider"></span>
       </label>
     </div>
 
-    <div *ngIf="saving" class="saving-indicator"><span class="msym" aria-hidden="true">progress_activity</span><span>Đang lưu…</span></div>
+    <!-- Bỏ chỉ báo "Đang lưu…": toggle giờ đổi giao diện ngay rồi mới gọi API
+         ngầm, nên chính cái toggle đã là phản hồi. -->
   </div>
 </div>

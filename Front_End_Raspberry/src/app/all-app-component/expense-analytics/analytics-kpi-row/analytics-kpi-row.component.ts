@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { KpiTile } from 'src/app/model/expense-analytics.model';
-import { formatCurrencyFull } from '../expense-analytics.transform';
+import { AnalyticsFormatService } from '../analytics-format.service';
 
 /**
  * Hàng thẻ số. Không phải biểu đồ: bốn con số đơn lẻ thì thẻ số là dạng đúng,
@@ -14,17 +14,35 @@ import { formatCurrencyFull } from '../expense-analytics.transform';
 export class AnalyticsKpiRowComponent {
   @Input() tiles: KpiTile[] = [];
 
-  format = formatCurrencyFull;
+  private readonly fmt = inject(AnalyticsFormatService);
+
+  format = (value: number) => this.fmt.full(value);
 
   trackByLabel(_: number, t: KpiTile): string {
-    return t.label;
+    return t.labelKey;
+  }
+
+  /**
+   * Chú thích dưới thẻ.
+   *
+   * `hintParams.prevMonthKey` là khóa thô ('2026-06') và được định dạng ở ĐÂY
+   * chứ không phải lúc dựng view-model: chỉ chỗ này mới biết ngôn ngữ đang
+   * chọn. Dùng dạng viết giữa câu (`monthInline`) thay vì tự hạ chữ thường —
+   * `'July 2026'.toLowerCase()` sẽ ra `'july 2026'`, sai chính tả tiếng Anh.
+   */
+  hint(t: KpiTile): string {
+    const params = { ...(t.hintParams || {}) } as Record<string, unknown>;
+    if (params['prevMonthKey']) {
+      params['month'] = this.fmt.monthInline(params['prevMonthKey'] as string);
+    }
+    return this.fmt.t(t.hintKey, params);
   }
 
   /** '+12,3%' / '-4%' - dấu luôn hiện để đọc được hướng ngay. */
   deltaText(t: KpiTile): string {
     if (t.deltaPercent === null) return '—';
     const sign = t.deltaPercent > 0 ? '+' : '';
-    return `${sign}${t.deltaPercent.toLocaleString('vi-VN', { maximumFractionDigits: 1 })}%`;
+    return sign + this.fmt.percent(t.deltaPercent);
   }
 
   /**
@@ -32,8 +50,8 @@ export class AnalyticsKpiRowComponent {
    * UI nói thẳng là không có gì để so.
    */
   deltaTitle(t: KpiTile): string {
-    if (t.deltaPercent === null) return 'Không có dữ liệu tháng trước để so sánh';
-    return t.hint;
+    if (t.deltaPercent === null) return this.fmt.t('analytics.kpiNoCompare');
+    return this.hint(t);
   }
 
   /** Màu theo hướng NHÂN với tăng-là-tốt-hay-xấu: chi tăng là xấu, thu tăng là tốt. */

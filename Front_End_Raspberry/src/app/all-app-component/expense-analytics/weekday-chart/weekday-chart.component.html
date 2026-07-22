@@ -2,7 +2,7 @@
   class="chart-svg"
   [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
   role="img"
-  aria-label="Chi theo thứ trong tuần">
+  [attr.aria-label]="'analytics.ariaWeekday' | translate">
 
   <g class="grid">
     <line

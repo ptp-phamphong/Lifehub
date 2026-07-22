@@ -77,28 +77,36 @@ export class SystemInfoTabComponent implements OnInit {
     return 'mat';
   }
 
-  get tempStateLabel(): string {
+  /**
+   * KHOÁ i18n chứ không phải chuỗi đã dịch. Là getter nên được tính lại mỗi chu
+   * kỳ change detection — nhãn đổi theo ngôn ngữ (§4.1 kế hoạch i18n).
+   */
+  get tempStateLabelKey(): string {
     switch (this.tempState) {
-      case 'nong': return 'Đang hạ xung nhịp';
-      case 'am':   return 'Ấm';
-      default:     return 'Mát';
+      case 'nong': return 'systemInfo.stateThrottling';
+      case 'am':   return 'systemInfo.stateWarm';
+      default:     return 'systemInfo.stateCool';
     }
   }
 
-  /** RAM còn trống, đã bỏ chữ tiếng Anh do `free -h` sinh ra. */
+  /** RAM còn trống, đã bỏ chữ do `free -h` sinh ra. */
   get ram(): Readout {
     return this.splitReadout(this.result?.ramAvailable);
   }
 
-  /** Dung lượng đĩa còn trống, đã bỏ chữ tiếng Anh do `df -h` sinh ra. */
+  /** Dung lượng đĩa còn trống, đã bỏ chữ do `df -h` sinh ra. */
   get disk(): Readout {
     return this.splitReadout(this.result?.memoryAvailable);
   }
 
   /**
    * Backend ghép sẵn chuỗi kiểu "2.7GiB available" / "19GB free" (xem
-   * CurrentInfoService: `awk '{print $7"B available"}'`). Giao diện là tiếng Việt
-   * nên tách lấy số + đơn vị và bỏ phần chữ tiếng Anh, thay vì đổi hợp đồng API.
+   * CurrentInfoService: `awk '{print $7"B available"}'`), tức là có lẫn chữ
+   * tiếng Anh KHÔNG dịch được (§4.3: chuỗi từ backend giữ nguyên văn). Nên tách
+   * lấy số + đơn vị rồi bỏ phần chữ, thay vì đổi hợp đồng API — nhãn bên cạnh
+   * ("RAM còn trống" / "RAM free") đã nói đủ ý và nhãn thì dịch được.
+   *
+   * Đơn vị (`GiB`, `GB`) giữ nguyên: ký hiệu quốc tế, không dịch.
    */
   private splitReadout(raw: string): Readout {
     if (!raw) return { value: '—', unit: '' };

@@ -3,6 +3,7 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
 import { SemesterMetadata } from 'src/app/model/semester-metadata.model';
+import { WEEK_DOW_KEYS } from 'src/app/utils/day-of-week';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -21,12 +22,23 @@ export class CourseScheduleFormComponent {
   address: string = '';
   semesterMetadataId: number | null = null;
   dayOfWeek: number | null = null;
-  message: string = '';
+  /**
+   * Lưu KHOÁ i18n chứ không phải chuỗi đã dịch: chuỗi đã dịch sẽ đứng yên ở
+   * ngôn ngữ cũ khi người dùng chuyển ngôn ngữ (§4.1 kế hoạch i18n). Ở đây mọi
+   * thông báo đều do client sinh nên không cần biến thô đi kèm.
+   */
+  messageKey: string = '';
   // Xem ghi chú ở expense-record.component.ts: emoji cũ là tín hiệu duy nhất
   // phân biệt thành công/lỗi, nên bỏ emoji thì phải có trường trạng thái này.
   messageType: 'success' | 'error' | 'warning' = 'success';
   id: number = 0;
   semesters: SemesterMetadata[] = [];
+
+  /** 2 = Thứ 2 … 8 = Chủ nhật, theo quy ước của backend/portal UEH. */
+  readonly dayOfWeekOptions = WEEK_DOW_KEYS.map((key, i) => ({
+    value: i + 2,
+    labelKey: `course.dowLong.${key}`,
+  }));
 
   constructor(
     private http: HttpClient,
@@ -73,7 +85,7 @@ export class CourseScheduleFormComponent {
         error: (err) => {
           console.error(err);
           this.messageType = 'error';
-          this.message = 'Tải dữ liệu thất bại!';
+          this.messageKey = 'course.loadFailed';
         }
       });
   }
@@ -81,7 +93,7 @@ export class CourseScheduleFormComponent {
   submitForm() {
     if (!this.courseName || !this.courseCode) {
       this.messageType = 'warning';
-      this.message = 'Vui lòng nhập tên môn và mã môn.';
+      this.messageKey = 'course.missingFields';
       return;
     }
 
@@ -103,13 +115,13 @@ export class CourseScheduleFormComponent {
         .subscribe({
           next: () => {
             this.messageType = 'success';
-            this.message = 'Cập nhật thành công!';
+            this.messageKey = 'course.updateSuccess';
             this.dialogRef.close('saved');
           },
           error: (err) => {
             console.error(err);
             this.messageType = 'error';
-            this.message = 'Cập nhật thất bại!';
+            this.messageKey = 'course.updateFailed';
           }
         });
     } else {
@@ -117,13 +129,13 @@ export class CourseScheduleFormComponent {
         .subscribe({
           next: () => {
             this.messageType = 'success';
-            this.message = 'Thêm thành công!';
+            this.messageKey = 'course.createSuccess';
             this.dialogRef.close('saved');
           },
           error: (err) => {
             console.error(err);
             this.messageType = 'error';
-            this.message = 'Thêm thất bại!';
+            this.messageKey = 'course.createFailed';
           }
         });
     }

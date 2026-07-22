@@ -1,5 +1,21 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { registerLocaleData } from '@angular/common';
+import localeVi from '@angular/common/locales/vi';
+import localeEn from '@angular/common/locales/en';
+import {
+    TranslatePipe,
+    TranslateDirective,
+    provideTranslateService,
+    provideTranslateLoader,
+} from '@ngx-translate/core';
+import { TypedDictLoader } from './i18n/typed-dict.loader';
+import { DEFAULT_LANGUAGE } from './i18n/types';
+
+// Dữ liệu locale cho DatePipe/CurrencyPipe. Phải đăng ký cả hai ngay từ đầu:
+// người dùng đổi ngôn ngữ lúc chạy nên không biết trước sẽ cần locale nào.
+registerLocaleData(localeVi);
+registerLocaleData(localeEn);
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -140,11 +156,19 @@ import { CumulativeMonthChartComponent } from './all-app-component/expense-analy
         MatNativeDateModule,
         MatInputModule,
         MatFormFieldModule,
-        BrowserAnimationsModule], providers: [
+        BrowserAnimationsModule,
+        // ngx-translate v18 bỏ hẳn `TranslateModule`; pipe và directive giờ là
+        // standalone nên import thẳng vào đây.
+        TranslatePipe,
+        TranslateDirective], providers: [
         { provide: DateAdapter, useClass: AppDateAdapter },
         { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
         { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
         provideHttpClient(withInterceptorsFromDi()),
+        provideTranslateService({
+            loader: provideTranslateLoader(TypedDictLoader),
+            fallbackLang: DEFAULT_LANGUAGE,
+        }),
     ] })
 export class AppModule { }

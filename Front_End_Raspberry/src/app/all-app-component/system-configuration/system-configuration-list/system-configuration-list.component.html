@@ -1,27 +1,28 @@
 <div class="expense-table-container">
-  <h2>Cấu hình đặc biệt</h2>
+  <h2>{{ 'systemConfig.listTitle' | translate }}</h2>
 
   <div class="toolbar">
-    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm mới</button>
+    <button class="btn-add" (click)="openEditDialog(0)">+ {{ 'systemConfig.addNew' | translate }}</button>
   </div>
 
   <table class="expense-table">
     <thead>
       <tr>
-        <th>Mã</th>
-        <th>Khóa cấu hình</th>
-        <th>Giá trị cấu hình</th>
-        <th>Hành động</th>
+        <th>{{ 'systemConfig.id' | translate }}</th>
+        <th>{{ 'systemConfig.key' | translate }}</th>
+        <th>{{ 'systemConfig.value' | translate }}</th>
+        <th>{{ 'common.actions' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let item of configurations">
         <td>{{ item.id }}</td>
+        <!-- Khóa/giá trị là dữ liệu DB: nguyên văn, KHÔNG dịch. -->
         <td>{{ item.keyConfig }}</td>
         <td>{{ item.valueConfig }}</td>
         <td class="col-actions">
-          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">Sửa</button>
-          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xóa</button>
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">{{ 'common.edit' | translate }}</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">{{ 'common.delete' | translate }}</button>
         </td>
       </tr>
     </tbody>

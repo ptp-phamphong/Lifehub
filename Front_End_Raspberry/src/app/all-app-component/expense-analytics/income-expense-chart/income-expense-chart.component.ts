@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { MonthlyPair } from 'src/app/model/expense-analytics.model';
-import { formatCurrencyCompact, formatCurrencyFull } from '../expense-analytics.transform';
+import { AnalyticsFormatService } from '../analytics-format.service';
 
 interface Bar {
   x: number;
@@ -36,7 +36,7 @@ export class IncomeExpenseChartComponent implements OnChanges {
   @Input() pairs: MonthlyPair[] = [];
 
   readonly viewWidth = 720;
-  readonly viewHeight = 220;
+  readonly viewHeight = 170;
   readonly paddingLeft = 54;
   readonly paddingBottom = 22;
   readonly paddingTop = 10;
@@ -44,7 +44,12 @@ export class IncomeExpenseChartComponent implements OnChanges {
   slots: Slot[] = [];
   gridLines: { y: number; label: string }[] = [];
 
-  formatFull = formatCurrencyFull;
+  /**
+   * Nhãn trục và tooltip nằm TRONG SVG nên phải dựng bằng tay, không qua pipe.
+   * Đổi ngôn ngữ được xử lý ở trang cha: nó dựng lại view-model, `@Input` nhận
+   * mảng mới → `ngOnChanges` chạy → chuỗi ở đây được sinh lại theo ngôn ngữ mới.
+   */
+  private readonly fmt = inject(AnalyticsFormatService);
 
   ngOnChanges(): void {
     this.build();
@@ -86,13 +91,14 @@ export class IncomeExpenseChartComponent implements OnChanges {
 
     this.slots = pairs.map((p, i) => {
       const center = this.paddingLeft + i * slotWidth + slotWidth / 2;
+      const month = this.fmt.monthShort(p.monthKey);
       return {
-        label: p.label,
+        label: month,
         labelX: center,
         chi: this.toBar(center - barWidth - gap / 2, p.expense, max, chartHeight, baseline, barWidth,
-          `${p.label} · Chi: ${formatCurrencyFull(p.expense)}`),
+          this.fmt.t('analytics.tooltipExpense', { month, amount: this.fmt.full(p.expense) })),
         thu: this.toBar(center + gap / 2, p.income, max, chartHeight, baseline, barWidth,
-          `${p.label} · Thu: ${formatCurrencyFull(p.income)}`)
+          this.fmt.t('analytics.tooltipIncome', { month, amount: this.fmt.full(p.income) }))
       };
     });
 
@@ -100,7 +106,7 @@ export class IncomeExpenseChartComponent implements OnChanges {
       const value = (max / 2) * i;
       this.gridLines.push({
         y: baseline - (value / max) * chartHeight,
-        label: formatCurrencyCompact(Math.round(value))
+        label: this.fmt.compact(Math.round(value))
       });
     }
   }

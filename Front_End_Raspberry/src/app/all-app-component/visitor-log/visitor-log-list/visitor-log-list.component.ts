@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { VisitorLogService } from 'src/app/services/visitor-log.service';
 import { PagedResult, VisitEvent, VisitorLogFilter } from 'src/app/model/visitor-log.model';
 
@@ -27,6 +28,8 @@ export class VisitorLogListComponent implements OnChanges {
   readonly pageSizes = [25, 50, 100];
 
   loading = false;
+
+  private readonly translate = inject(TranslateService);
 
   constructor(private visitorLogService: VisitorLogService) {}
 
@@ -91,9 +94,16 @@ export class VisitorLogListComponent implements OnChanges {
   markAsMine(row: VisitEvent): void {
     if (!row.ipAddress) return;
 
+    // `instant()` dùng-rồi-bỏ: hộp thoại của trình duyệt chặn luồng nên chuỗi
+    // không thể "kẹt" ở ngôn ngữ cũ như một field được (§4.1).
+    //
+    // Giá trị gợi ý sẵn CÓ dịch, dù nó sẽ được LƯU vào DB: dịch ở đây chỉ đổi
+    // cái được đề xuất, còn sau khi lưu thì nó thành dữ liệu người dùng và luôn
+    // hiển thị nguyên văn (§4.3). Người dùng giao diện tiếng Anh không nên bị
+    // mớm sẵn một cái tên tiếng Việt.
     const label = window.prompt(
-      `Dat ten cho IP ${row.ipAddress} (vi du: Nha, Dien thoai 4G):`,
-      row.knownLabel || 'Cua toi'
+      this.translate.instant('visitor.promptNameIp', { ip: row.ipAddress }),
+      row.knownLabel || this.translate.instant('visitor.mine')
     );
     if (label === null) return;
 
@@ -124,14 +134,16 @@ export class VisitorLogListComponent implements OnChanges {
     return pages;
   }
 
+  /** Là method nên chạy lại mỗi chu kỳ change detection -> đổi ngôn ngữ là đổi theo. */
   eventTypeLabel(row: VisitEvent): string {
     switch (row.eventType) {
-      case 2: return 'Login OK';
-      case 3: return 'Login FAIL';
-      default: return 'Xem trang';
+      case 2: return this.translate.instant('visitor.eventLoginOk');
+      case 3: return this.translate.instant('visitor.eventLoginFail');
+      default: return this.translate.instant('visitor.eventPageView');
     }
   }
 
+  /** `s` / `m` là ký hiệu đơn vị quốc tế nên giữ nguyên, không dịch. */
   formatDuration(ms?: number): string {
     if (!ms || ms <= 0) return '-';
     const seconds = Math.round(ms / 1000);

@@ -9,6 +9,7 @@
 import { ExpenseRecord } from '../../model/expense.model';
 import { ReasonType } from '../../model/reason-type.model';
 import { toDayKey, toMonthKey } from '../../utils/date-key';
+import { WEEK_DOW_KEYS } from '../../utils/day-of-week';
 import {
   AnalyticsFilter,
   AnalyticsRawData,
@@ -17,7 +18,6 @@ import {
   DatedRecord,
   HeatCell,
   HeatmapModel,
-  KHONG_PHAN_LOAI,
   KpiTile,
   MonthlyPair,
   RankRow,
@@ -25,6 +25,7 @@ import {
   StackLegendItem,
   StackModel,
   StackSegment,
+  UNCATEGORIZED,
   WeekdayRow
 } from '../../model/expense-analytics.model';
 
@@ -32,8 +33,35 @@ import {
 const SO_SLOT_MAU = 8;
 /** Số loại được giữ màu riêng ở biểu đồ cột chồng; phần đuôi gộp lại. */
 const SO_LOAI_GIU_MAU = 6;
-const NHAN_GOP_MAC_DINH = 'Khác';
-const TEN_THU = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+/**
+ * Nhãn hiển thị mà tầng này cần nhưng không tự dịch được.
+ *
+ * File này là hàm thuần, cố ý không biết `TranslateService` (giống
+ * `utils/lunar-calendar.ts`). Nên nhãn được TRUYỀN VÀO, với giá trị mặc định
+ * tiếng Việt để chỗ gọi cũ và test không phải đổi gì.
+ *
+ * `otherCandidates` là một DANH SÁCH chứ không phải một chuỗi: tên loại do
+ * người dùng đặt nên có thể trùng đúng chữ 'Khác'. Trùng thì phải lấy ứng viên
+ * kế tiếp, nếu không hai thứ khác hẳn nhau sẽ nằm chung một đoạn cột mà không
+ * ai biết.
+ */
+export interface TransformLabels {
+  uncategorized?: string;
+  otherCandidates?: string[];
+  /** Mẫu có {{index}} cho trường hợp mọi ứng viên đều trùng. */
+  otherNumbered?: (index: number) => string;
+}
+
+const NHAN_MAC_DINH: Required<TransformLabels> = {
+  uncategorized: 'Chưa phân loại',
+  otherCandidates: ['Khác', 'Các loại còn lại', 'Nhóm còn lại'],
+  otherNumbered: (i: number) => `Các loại còn lại (${i})`
+};
+
+function nhan(labels?: TransformLabels): Required<TransformLabels> {
+  return { ...NHAN_MAC_DINH, ...labels };
+}
 
 // ─── Khóa thời gian ───────────────────────────────────────────────────
 //
@@ -46,17 +74,9 @@ const TEN_THU = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 export const monthKey = toMonthKey;
 export const dayKey = toDayKey;
 
-/** 'T7/26' - đủ ngắn cho nhãn trục X. */
-export function monthLabel(key: string): string {
-  const [y, m] = key.split('-');
-  return `T${Number(m)}/${y.slice(2)}`;
-}
-
-/** 'Tháng 7/2026' - dùng cho tiêu đề, nơi có chỗ. */
-export function monthLabelDai(key: string): string {
-  const [y, m] = key.split('-');
-  return `Tháng ${Number(m)}/${y}`;
-}
+// Nhãn tháng ('T7/26', 'Tháng 7 năm 2026') KHÔNG còn ở đây: chúng phụ thuộc
+// locale nên đã chuyển sang `AnalyticsFormatService`. Tầng này chỉ trả khóa
+// 'YYYY-MM', chỗ hiển thị mới định dạng.
 
 /**
  * Sinh dãy tháng LIÊN TỤC giữa 2 mốc.
@@ -131,7 +151,8 @@ function toDatedRecords(rows: ExpenseRecord[]): { rows: DatedRecord[]; skipped: 
       monthKey: monthKey(d),
       dayKey: dayKey(d),
       reasonTypeId: r.reasonTypeId == null ? null : r.reasonTypeId,
-      reasonName: r.reasonType?.reasonName || KHONG_PHAN_LOAI
+      // Sentinel, không phải nhãn: chỉ dùng làm khóa gom nhóm.
+      reasonName: r.reasonType?.reasonName || UNCATEGORIZED
     });
   }
 
@@ -198,34 +219,42 @@ export function buildKpis(
 
   const soNgay = daysElapsed(anchor);
 
+  // Khóa i18n, không phải chuỗi: bốn thẻ này render thẳng ra DOM nên pipe
+  // `translate` tự chạy lại khi đổi ngôn ngữ.
+  //
+  // `prevMonthKey` đi kèm dưới dạng tham số THÔ ('2026-06') chứ không phải nhãn
+  // đã định dạng — chỗ hiển thị mới biết locale hiện tại.
   return [
     {
-      label: 'Tổng chi',
+      labelKey: 'analytics.kpiExpense',
       value: chiNay,
       deltaPercent: deltaPercent(chiNay, chiTruoc),
       higherIsBetter: false,
-      hint: `so với ${monthLabelDai(prev).toLowerCase()}`
+      hintKey: 'analytics.kpiHintVsPrev',
+      hintParams: { prevMonthKey: prev }
     },
     {
-      label: 'Tổng thu',
+      labelKey: 'analytics.kpiIncome',
       value: thuNay,
       deltaPercent: deltaPercent(thuNay, thuTruoc),
       higherIsBetter: true,
-      hint: `so với ${monthLabelDai(prev).toLowerCase()}`
+      hintKey: 'analytics.kpiHintVsPrev',
+      hintParams: { prevMonthKey: prev }
     },
     {
-      label: 'Số dư',
+      labelKey: 'analytics.kpiBalance',
       value: thuNay - chiNay,
       deltaPercent: null,
       higherIsBetter: true,
-      hint: 'tổng thu trừ tổng chi'
+      hintKey: 'analytics.kpiHintBalance'
     },
     {
-      label: 'Trung bình mỗi ngày',
+      labelKey: 'analytics.kpiAvgPerDay',
       value: Math.round(chiNay / Math.max(soNgay, 1)),
       deltaPercent: null,
       higherIsBetter: false,
-      hint: `chi chia cho ${soNgay} ngày`
+      hintKey: 'analytics.kpiHintAvgPerDay',
+      hintParams: { days: soNgay }
     }
   ];
 }
@@ -272,7 +301,6 @@ export function buildIncomeExpense(
   // months đã liên tục -> tháng trống tự nhận 0 chứ không biến mất.
   return months.map(m => ({
     monthKey: m,
-    label: monthLabel(m),
     expense: chi.get(m) || 0,
     income: thu.get(m) || 0
   }));
@@ -293,7 +321,8 @@ function sumByMonth(rows: DatedRecord[]): Map<string, number> {
  * (đổi thứ tự không đổi nghĩa), nên tô đậm dần theo giá trị sẽ tiêu kênh màu
  * để mã hóa lại đúng cái mà độ dài thanh đã nói rồi.
  */
-export function buildCategoryRank(expenses: DatedRecord[]): RankRow[] {
+export function buildCategoryRank(expenses: DatedRecord[], labels?: TransformLabels): RankRow[] {
+  const L = nhan(labels);
   const totals = new Map<string, { total: number; count: number }>();
 
   for (const r of expenses) {
@@ -303,8 +332,17 @@ export function buildCategoryRank(expenses: DatedRecord[]): RankRow[] {
     totals.set(r.reasonName, cur);
   }
 
+  // Thứ tự quan trọng: `isMuted` so với SENTINEL, rồi mới thay bằng nhãn hiển
+  // thị. Làm ngược lại thì đổi ngôn ngữ sẽ khiến phép so sánh trượt trong im
+  // lặng và nhóm chưa phân loại mất kiểu hiển thị mờ.
   const rows = Array.from(totals.entries())
-    .map(([label, v]) => ({ label, total: v.total, count: v.count, percent: 0, isMuted: label === KHONG_PHAN_LOAI }))
+    .map(([key, v]) => ({
+      label: key === UNCATEGORIZED ? L.uncategorized : key,
+      total: v.total,
+      count: v.count,
+      percent: 0,
+      isMuted: key === UNCATEGORIZED
+    }))
     .sort((a, b) => b.total - a.total);
 
   const max = Math.max(...rows.map(r => r.total), 1);
@@ -330,9 +368,11 @@ export function buildCategoryRank(expenses: DatedRecord[]): RankRow[] {
 export function buildCategoryStack(
   expenses: DatedRecord[],
   months: string[],
+  labels?: TransformLabels,
   topN = SO_LOAI_GIU_MAU
 ): StackModel {
-  const rank = buildCategoryRank(expenses);
+  const L = nhan(labels);
+  const rank = buildCategoryRank(expenses, labels);
   const named = rank.filter(r => !r.isMuted);
 
   const keep = named.slice(0, topN).map(r => r.label);
@@ -343,8 +383,8 @@ export function buildCategoryStack(
   const canGop = coDuoi || coChuaPhanLoai;
 
   const otherLabel = canGop
-    ? nhanGopKhongTrung(new Set(rank.map(r => r.label)))
-    : NHAN_GOP_MAC_DINH;
+    ? nhanGopKhongTrung(new Set(rank.map(r => r.label)), L)
+    : L.otherCandidates[0];
 
   const slotOf = new Map<string, number>();
   keep.forEach((label, i) => slotOf.set(label, (i % SO_SLOT_MAU) + 1));
@@ -375,7 +415,7 @@ export function buildCategoryStack(
       total += value;
     }
 
-    return { monthKey: m, label: monthLabel(m), total, segments };
+    return { monthKey: m, total, segments };
   });
 
   const legend: StackLegendItem[] = thuTuNhan
@@ -390,21 +430,20 @@ export function buildCategoryStack(
 }
 
 /** Tìm nhãn gộp không đụng tên loại nào đang có thật. */
-function nhanGopKhongTrung(daDung: Set<string>): string {
-  if (!daDung.has(NHAN_GOP_MAC_DINH)) return NHAN_GOP_MAC_DINH;
-  for (const ungVien of ['Các loại còn lại', 'Loại khác', 'Nhóm còn lại']) {
+function nhanGopKhongTrung(daDung: Set<string>, L: Required<TransformLabels>): string {
+  for (const ungVien of L.otherCandidates) {
     if (!daDung.has(ungVien)) return ungVien;
   }
   let i = 2;
-  while (daDung.has(`Các loại còn lại (${i})`)) i++;
-  return `Các loại còn lại (${i})`;
+  while (daDung.has(L.otherNumbered(i))) i++;
+  return L.otherNumbered(i);
 }
 
 // ─── #5 Chi theo thứ trong tuần ───────────────────────────────────────
 
-/** getDay() trả 0 = Chủ nhật, phải xoay về thứ tự T2..CN kiểu Việt Nam. */
+/** getDay() trả 0 = Chủ nhật, phải xoay về thứ tự Thứ 2..Chủ nhật kiểu Việt Nam. */
 export function buildWeekday(expenses: DatedRecord[]): WeekdayRow[] {
-  const rows: WeekdayRow[] = TEN_THU.map(label => ({ label, total: 0, count: 0 }));
+  const rows: WeekdayRow[] = WEEK_DOW_KEYS.map(dow => ({ dow, total: 0, count: 0 }));
 
   for (const r of expenses) {
     const idx = (r.date.getDay() + 6) % 7;
@@ -476,7 +515,7 @@ export function buildHeatmap(expenses: DatedRecord[], anchor: string): HeatmapMo
     weeks.push(cells.slice(i, i + 7));
   }
 
-  return { weeks, clampMax, hasClamped, monthLabel: monthLabelDai(anchor) };
+  return { weeks, clampMax, hasClamped, monthKey: anchor };
 }
 
 /** 0 = không chi; 1..6 = bậc ramp (--color-ramp-1..6). */
@@ -512,8 +551,8 @@ export function buildCumulative(expenses: DatedRecord[], anchor: string): Cumula
   return {
     current: cumulativeFor(expenses, anchor, denNgay),
     previous: cumulativeFor(expenses, prev, daysInMonth(prev)),
-    currentLabel: monthLabelDai(anchor),
-    previousLabel: monthLabelDai(prev),
+    currentMonthKey: anchor,
+    previousMonthKey: prev,
     daysInMonth: Math.max(daysInMonth(anchor), daysInMonth(prev)),
     isPartial
   };
@@ -535,25 +574,7 @@ function cumulativeFor(rows: DatedRecord[], mKey: string, denNgay: number): Cumu
 }
 
 // ─── Định dạng tiền ───────────────────────────────────────────────────
-
-/** Giống hệt formatCurrency() của trang Chi tiêu -> hai trang khớp nhau. */
-export function formatCurrencyFull(amount?: number): string {
-  if (!amount) return '0 VNĐ';
-  return amount.toLocaleString('vi-VN') + ' VNĐ';
-}
-
-/**
- * Bản rút gọn cho nhãn trục, nơi chuỗi đầy đủ quá dài.
- * vi-VN dùng dấu PHẨY làm phân cách thập phân: '12,5 tr'.
- */
-export function formatCurrencyCompact(amount: number): string {
-  const abs = Math.abs(amount);
-  if (abs >= 1_000_000_000) return trimZero(amount / 1_000_000_000) + ' tỷ';
-  if (abs >= 1_000_000) return trimZero(amount / 1_000_000) + ' tr';
-  if (abs >= 1_000) return trimZero(amount / 1_000) + ' N';
-  return `${amount}`;
-}
-
-function trimZero(v: number): string {
-  return v.toLocaleString('vi-VN', { maximumFractionDigits: 1 });
-}
+//
+// Đã chuyển sang `AnalyticsFormatService`: chuỗi tiền phụ thuộc cả locale (dấu
+// phân cách) lẫn từ điển (hậu tố `VNĐ`/`VND`, `tr`/`M`), mà file này thì cố ý
+// không biết gì về ngôn ngữ. Component nào cần thì inject service đó.

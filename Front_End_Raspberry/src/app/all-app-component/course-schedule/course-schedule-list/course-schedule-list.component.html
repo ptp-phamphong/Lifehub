@@ -1,49 +1,53 @@
 <div class="course-table-container">
 
-  <h2>Cài đặt thời khóa biểu & Môn học</h2>
+  <h2>{{ 'course.listTitle' | translate }}</h2>
 
   <div class="toolbar">
-    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm môn mới</button>
+    <button class="btn-add" (click)="openEditDialog(0)">+ {{ 'course.addNew' | translate }}</button>
 
     <select [(ngModel)]="selectedSemesterMetadataId" name="selectedSemesterMetadataId" class="semester-select">
-      <option [ngValue]="null">-- Chọn học kỳ cho import/xóa --</option>
+      <option [ngValue]="null">{{ 'course.selectSemesterForImport' | translate }}</option>
       <option *ngFor="let semester of semesters" [ngValue]="semester.id">
         {{ semester.codeSemester }} - {{ semester.semesterName }} ({{ semester.year }})
       </option>
     </select>
 
     <button class="btn-import" (click)="fileInput.click()">
-      <span class="msym" aria-hidden="true">upload_file</span><span>Nhập từ Excel</span>
+      <span class="msym" aria-hidden="true">upload_file</span><span>{{ 'course.importExcel' | translate }}</span>
     </button>
     <input #fileInput type="file" accept=".xlsx" hidden (change)="onFileSelected($event)">
 
     <button class="btn-import-html-reset" [disabled]="importing" (click)="resetImportFromUeh()">
-      <span class="msym" aria-hidden="true">sync</span><span>Nhập lại từ UEH</span>
+      <span class="msym" aria-hidden="true">sync</span><span>{{ 'course.reimportUeh' | translate }}</span>
     </button>
 
-    <span *ngIf="importMessage" class="import-message" [class.import-error]="importError">
-      {{ importMessage }}
+    <!--
+      Hai nguồn thông báo: khoá do client tự sinh, và chuỗi backend trả về
+      nguyên văn. Giữ riêng để đổi ngôn ngữ vẫn dịch lại được phần của client.
+    -->
+    <span *ngIf="importMessageKey || importMessageRaw" class="import-message" [class.import-error]="importError">
+      {{ importMessageKey ? (importMessageKey | translate:importMessageParams) : importMessageRaw }}
     </span>
 
 
     <button class="btn-delete" (click)="deleteAll()">
-      Xóa toàn bộ
+      {{ 'course.deleteAll' | translate }}
     </button>
   </div>
 
   <table class="course-table">
     <thead>
       <tr>
-        <th>Mã</th>
-        <th>Mã môn</th>
-        <th>Tên môn</th>
-        <th>Ngày bắt đầu</th>
-        <th>Ngày kết thúc</th>
-        <th>Giờ học</th>
-        <th>Thứ</th>
-        <th>Phòng / Địa chỉ</th>
-        <th>Học kỳ</th>
-        <th>Hành động</th>
+        <th>{{ 'course.id' | translate }}</th>
+        <th>{{ 'course.code' | translate }}</th>
+        <th>{{ 'course.name' | translate }}</th>
+        <th>{{ 'course.startDate' | translate }}</th>
+        <th>{{ 'course.endDate' | translate }}</th>
+        <th>{{ 'course.time' | translate }}</th>
+        <th>{{ 'course.dayOfWeek' | translate }}</th>
+        <th>{{ 'course.roomAddress' | translate }}</th>
+        <th>{{ 'course.semester' | translate }}</th>
+        <th>{{ 'common.actions' | translate }}</th>
       </tr>
     </thead>
     <tbody>
@@ -58,12 +62,12 @@
         <td>{{ item.room }}</td>
         <td><span class="semester-badge">{{ semesterDisplay(item) }}</span></td>
         <td class="col-actions">
-          <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">Sửa</button>
-          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xóa</button>
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id)">{{ 'common.edit' | translate }}</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">{{ 'common.delete' | translate }}</button>
         </td>
       </tr>
       <tr *ngIf="courses.length === 0">
-        <td colspan="10" class="empty-row">Chưa có môn học nào.</td>
+        <td colspan="10" class="empty-row">{{ 'course.empty' | translate }}</td>
       </tr>
     </tbody>
   </table>

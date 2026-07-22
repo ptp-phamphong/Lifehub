@@ -2,6 +2,32 @@
 
 Dark mode support for both web (Angular) and mobile (React Native) platforms. Theme preferences are persisted in the database via the existing `SystemConfiguration` key-value table.
 
+## Language is a parallel preference, not part of this feature
+
+Since 2026-07, the Angular web app also has a runtime **language** switcher (VI/EN) living right next to
+dark mode in the UI — same settings page, same header toggle group — but it is a **separate system**,
+documented in full at `Information_AI/24_feature-i18n-bilingual.md`. Worth knowing the differences before
+touching either:
+
+| | Theme (this doc) | Language |
+|---|---|---|
+| Web storage | `SystemConfiguration` (`THEME_WEB_DARK`) via API, `localStorage` as fallback cache | `localStorage['web-language']` only — **no API, no DB key**, does not sync across devices |
+| Mobile storage | `SystemConfiguration` (`THEME_MOBILE_DARK`) via API | Not implemented yet — mobile i18n is deliberately paused, see the plan doc |
+| Web service | `ThemeService` (`services/theme.service.ts`) | `LanguageService` (`services/language.service.ts`) — same shape (signal-based, one `init()` at startup), different persistence |
+| Applied via | `dark-theme` class on `<body>` | `TranslateService.use()` + `document.documentElement.lang` |
+| UI location | Theme Settings page (`theme-settings.component.html`) toggle cards; **also duplicated in the app header** (`main-tab.component.html`) for quick access without opening Settings | Same two locations — the `.language-switcher`/`.lang-button` markup in `theme-settings.component.html` is the "official home"; `main-tab.component.html` has an independent copy for the header |
+
+**Why language doesn't have a `SystemConfiguration` key yet**: nothing technical blocks it — the plan doc
+(`document/plans/i18n-bilingual-migration.md` §7.2) already spells out the fix (add `LANG_WEB`, mirror
+`THEME_WEB_DARK`, all read/write already funneled through `LanguageService` so no component would need to
+change). It just hasn't been asked for. If cross-device sync for language is ever requested, look there
+first instead of re-deriving the approach.
+
+**One thing NOT to copy from theme mode**: dark mode reacts to no browser signal by default (no
+`prefers-color-scheme` fallback is wired in `ThemeService`), whereas `LanguageService` **does** fall back
+to `navigator.language` before defaulting to Vietnamese. Don't "fix" language to match theme's behavior —
+that fallback was a deliberate choice (see `resolveInitialLanguage()` in `language.service.ts`).
+
 ## Database Design
 
 Uses the existing `systemConfiguration` table with two special keys:

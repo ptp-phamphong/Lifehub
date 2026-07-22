@@ -5,7 +5,7 @@
     <button class="btn-nav" (click)="prevWeek()"><span class="msym" aria-hidden="true">chevron_left</span></button>
     <div class="week-label" (click)="goToCurrentWeek(); $event.stopPropagation()">
       <span class="week-title">{{ weekRangeLabel }}</span>
-      <span class="swipe-hint"><span class="msym" aria-hidden="true">swipe</span><span>Vuốt để chuyển tuần</span></span>
+      <span class="swipe-hint"><span class="msym" aria-hidden="true">swipe</span><span>{{ 'course.swipeWeekHint' | translate }}</span></span>
     </div>
     <button class="btn-nav" (click)="nextWeek()"><span class="msym" aria-hidden="true">chevron_right</span></button>
   </div>
@@ -22,7 +22,7 @@
           class="day-col-header"
           [class.today]="isToday(day)"
         >
-          <span class="day-name">{{ day.label }}</span>
+          <span class="day-name">{{ day.labelKey | translate }}</span>
           <span class="day-date">{{ day.dateLabel }}</span>
           <span class="day-lunar">{{ formatLunarDateVN(toLunarDate(day.date)) }}</span>
         </div>
@@ -92,34 +92,34 @@
       <h3>{{ selectedCourse.courseName }}</h3>
       <table class="detail-table">
         <tr>
-          <td class="label">Mã môn:</td>
+          <td class="label">{{ 'course.code' | translate }}:</td>
           <td>{{ selectedCourse.courseCode }}</td>
         </tr>
         <tr>
-          <td class="label">Thứ:</td>
+          <td class="label">{{ 'course.dayOfWeek' | translate }}:</td>
           <td>{{ dayOfWeekLabel(selectedCourse.dayOfWeek) }}</td>
         </tr>
         <tr>
-          <td class="label">Giờ học:</td>
+          <td class="label">{{ 'course.time' | translate }}:</td>
           <td>{{ selectedCourse.startTime }} - {{ selectedCourse.endTime }}</td>
         </tr>
         <!-- Buổi học từ UEH có ngày cụ thể; bản ghi cũ chỉ có khoảng ngày lặp. -->
         <tr *ngIf="selectedCourse.sessionDate">
-          <td class="label">Ngày học:</td>
+          <td class="label">{{ 'course.sessionDate' | translate }}:</td>
           <td>{{ selectedCourse.sessionDate | date:'dd/MM/yyyy' }}</td>
         </tr>
         <ng-container *ngIf="!selectedCourse.sessionDate">
           <tr>
-            <td class="label">Ngày bắt đầu:</td>
+            <td class="label">{{ 'course.startDate' | translate }}:</td>
             <td>{{ selectedCourse.startDate | date:'dd/MM/yyyy' }}</td>
           </tr>
           <tr>
-            <td class="label">Ngày kết thúc:</td>
+            <td class="label">{{ 'course.endDate' | translate }}:</td>
             <td>{{ selectedCourse.endDate | date:'dd/MM/yyyy' }}</td>
           </tr>
         </ng-container>
         <tr *ngIf="selectedCourse.startPeriod">
-          <td class="label">Tiết:</td>
+          <td class="label">{{ 'course.period' | translate }}:</td>
           <td>
             {{ selectedCourse.startPeriod
             }}<ng-container *ngIf="selectedCourse.endPeriod && selectedCourse.endPeriod !== selectedCourse.startPeriod">
@@ -127,24 +127,24 @@
           </td>
         </tr>
         <tr *ngIf="selectedCourse.room">
-          <td class="label">Phòng:</td>
+          <td class="label">{{ 'course.room' | translate }}:</td>
           <td>{{ selectedCourse.room }}</td>
         </tr>
         <tr *ngIf="selectedCourse.learningMode">
-          <td class="label">Hình thức học:</td>
+          <td class="label">{{ 'course.learningMode' | translate }}:</td>
           <td>{{ selectedCourse.learningMode }}</td>
         </tr>
         <tr *ngIf="selectedCourse.lecturer">
-          <td class="label">Giảng viên:</td>
+          <td class="label">{{ 'course.lecturer' | translate }}:</td>
           <td>{{ selectedCourse.lecturer }}</td>
         </tr>
         <tr *ngIf="selectedCourse.classCode">
-          <td class="label">Lớp học phần:</td>
+          <td class="label">{{ 'course.classCode' | translate }}:</td>
           <td>{{ selectedCourse.classCode }}</td>
         </tr>
         <tr>
-          <td class="label">Học kỳ:</td>
-          <td>{{ selectedCourse.semesterName || 'Chưa gán học kỳ' }}</td>
+          <td class="label">{{ 'course.semester' | translate }}:</td>
+          <td>{{ selectedCourse.semesterName || ('course.noSemester' | translate) }}</td>
         </tr>
       </table>
     </div>

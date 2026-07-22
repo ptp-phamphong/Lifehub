@@ -1,10 +1,13 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Input, OnChanges, OnInit, HostListener, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, HostListener, SimpleChanges, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { environment } from 'src/environments/environment';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
 import { ExpenseRecord } from 'src/app/model/expense.model';
+import { LanguageService } from 'src/app/services/language.service';
 import { toLunarDate, formatLunarDateShort } from 'src/app/utils/lunar-calendar';
 import { isCancelledSession, learningModeLabel } from 'src/app/utils/learning-mode';
+import { WEEK_DOW_KEYS, dowTranslationKey } from 'src/app/utils/day-of-week';
 
 const COURSE_COLORS = [
   { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
@@ -38,7 +41,8 @@ export class CourseMonthCalendarComponent implements OnChanges {
   currentMonth: number = new Date().getMonth() + 1;
     currentYear: number = new Date().getFullYear();
     weeks: CalendarDay[][] = [];
-    weekDays: string[] = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    /** Khoá i18n của 7 cột, không phải chuỗi đã dịch — xem §4.1 kế hoạch i18n. */
+    readonly weekDayKeys: string[] = WEEK_DOW_KEYS.map(k => `course.dowShort.${k}`);
     courses: CourseSchedule[] = [];
     selectedCourse: CourseSchedule | null = null;
     selectedDay: CalendarDay | null = null;
@@ -54,7 +58,11 @@ export class CourseMonthCalendarComponent implements OnChanges {
     private touchStartX: number = 0;
     private touchStartY: number = 0;
     private minSwipeDistance: number = 50;
-  
+
+    private readonly translate = inject(TranslateService);
+    /** `LOCALE_ID` cố định lúc bootstrap nên phải truyền locale vào từng pipe. */
+    readonly locale = inject(LanguageService).locale;
+
     constructor(private http: HttpClient) {}
   
     ngOnInit() {
@@ -93,12 +101,20 @@ export class CourseMonthCalendarComponent implements OnChanges {
       }
     }
   
+    /**
+     * Tiêu đề tháng, vd. "Tháng 7 năm 2026" / "July 2026".
+     *
+     * Dùng `Intl` thay vì từ điển: tên tháng là dữ liệu locale sẵn có, chép 12
+     * tên cho mỗi ngôn ngữ vào từ điển chỉ để dịch lại thứ trình duyệt đã biết.
+     * Ngược lại với tiêu đề CỘT lịch — chỗ đó chật nên vẫn giữ trong từ điển.
+     *
+     * `vi-VN` trả về chữ thường ("tháng 7 năm 2026") nên viết hoa chữ đầu cho
+     * hợp với vai trò tiêu đề; tiếng Anh vốn đã hoa sẵn nên không đổi gì.
+     */
     get monthYearLabel(): string {
-      const monthNames = [
-        'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-        'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
-      ];
-      return `${monthNames[this.currentMonth - 1]} ${this.currentYear}`;
+      const label = new Date(this.currentYear, this.currentMonth - 1, 1)
+        .toLocaleDateString(this.locale(), { month: 'long', year: 'numeric' });
+      return label.charAt(0).toUpperCase() + label.slice(1);
     }
   
     prevMonth() {
@@ -279,11 +295,8 @@ export class CourseMonthCalendarComponent implements OnChanges {
     }
   
     dayOfWeekLabel(dow?: number): string {
-      const labels: { [key: number]: string } = {
-        2: 'Thứ 2', 3: 'Thứ 3', 4: 'Thứ 4', 5: 'Thứ 5',
-        6: 'Thứ 6', 7: 'Thứ 7', 8: 'Chủ nhật'
-      };
-      return dow ? labels[dow] || '' : '';
+      const key = dowTranslationKey(dow, 'dowLong');
+      return key ? this.translate.instant(key) : '';
     }
   
     truncate(text: string | undefined, maxLen: number): string {
@@ -357,7 +370,8 @@ export class CourseMonthCalendarComponent implements OnChanges {
     return toLunarDate(date);
   }
   
+  /** Ngày/tháng âm là số nên không dịch; chỉ tiền tố tháng nhuận cần dịch. */
   formatLunarDateShort(lunarDate: any): string {
-    return formatLunarDateShort(lunarDate);
+    return formatLunarDateShort(lunarDate, this.translate.instant('course.lunarLeapShort'));
   }
 }

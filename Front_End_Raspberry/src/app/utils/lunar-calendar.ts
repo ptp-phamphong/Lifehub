@@ -29,23 +29,25 @@ export function toLunarDate(date: Date): LunarDate {
 }
 
 /**
- * Format lunar date in Vietnamese style
- * @param lunarDate - LunarDate object
- * @returns Formatted string like "15/8 ÂM" or "Nhuận 6/2025"
+ * Format lunar date, e.g. "15/8" or "Nhuận 6/2025".
+ *
+ * Ngày/tháng là số nên không cần dịch; chỉ tiền tố tháng nhuận là chữ, vì vậy
+ * nó được TRUYỀN VÀO thay vì viết cứng — util này là hàm thuần, không đụng tới
+ * `TranslateService`. Mặc định là tiếng Việt để chỗ gọi cũ không đổi hành vi.
+ * @param leapLabel - nhãn tháng nhuận, lấy từ khoá `course.lunarLeap`.
  */
-export function formatLunarDateVN(lunarDate: LunarDate): string {
+export function formatLunarDateVN(lunarDate: LunarDate, leapLabel: string = 'Nhuận'): string {
   if (lunarDate.day === 0) return '';
-  const leap = lunarDate.isLeapMonth ? 'Nhuận ' : '';
+  const leap = lunarDate.isLeapMonth ? `${leapLabel} ` : '';
   return `${leap}${lunarDate.day}/${lunarDate.month}`;
 }
 
 /**
- * Format short lunar date for calendar cell
- * @param lunarDate - LunarDate object
- * @returns Short format like "(15/8)" or "(N6)"
+ * Format short lunar date for calendar cell, e.g. "(15/8)" or "(N6)".
+ * @param leapLabel - nhãn tháng nhuận rút gọn, khoá `course.lunarLeapShort`.
  */
-export function formatLunarDateShort(lunarDate: LunarDate): string {
+export function formatLunarDateShort(lunarDate: LunarDate, leapLabel: string = 'N'): string {
   if (lunarDate.day === 0) return '';
-  const leap = lunarDate.isLeapMonth ? 'N' : '';
+  const leap = lunarDate.isLeapMonth ? leapLabel : '';
   return `(${leap}${lunarDate.day}/${lunarDate.month})`;
 }

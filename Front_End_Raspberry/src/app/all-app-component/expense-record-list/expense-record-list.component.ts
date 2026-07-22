@@ -1,4 +1,6 @@
-import { Component, OnInit, ViewContainerRef } from '@angular/core';
+import { Component, OnInit, ViewContainerRef, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from 'src/app/services/language.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { MatDialog } from '@angular/material/dialog';
@@ -30,6 +32,11 @@ export class ExpenseRecordListComponent implements OnInit {
   sortDirection: string = 'desc';
   activeTab: 'expense' | 'income' = 'expense';
   groupByDay: boolean = false;
+
+  private readonly translate = inject(TranslateService);
+  // Locale cho định dạng số/ngày — `LOCALE_ID` cố định lúc bootstrap nên không
+  // dùng được, phải lấy từ đây (§4.2 kế hoạch i18n).
+  private readonly locale = inject(LanguageService).locale;
   
   constructor(private http: HttpClient,
     private dialog: MatDialog,
@@ -45,32 +52,34 @@ export class ExpenseRecordListComponent implements OnInit {
     return this.activeTab === 'expense';
   }
 
-  get pageTitle(): string {
-    return this.isExpenseTab ? 'Danh sách chi tiêu' : 'Danh sách thu vào';
+  // Các getter nhãn trả KEY, template mới dịch — đổi ngôn ngữ là đổi theo ngay.
+  // Dấu '+' của nút Thêm nằm ở template vì nó là ký hiệu, không phải chữ.
+  get pageTitleKey(): string {
+    return this.isExpenseTab ? 'expense.listTitleExpense' : 'expense.listTitleIncome';
   }
 
-  get sumThisMonthLabel(): string {
-    return this.isExpenseTab ? 'Tổng chi tháng' : 'Tổng thu tháng';
+  get sumThisMonthLabelKey(): string {
+    return this.isExpenseTab ? 'expense.sumMonthExpense' : 'expense.sumMonthIncome';
   }
 
-  get sumAllLabel(): string {
-    return this.isExpenseTab ? 'Tổng chi toàn bộ' : 'Tổng thu toàn bộ';
+  get sumAllLabelKey(): string {
+    return this.isExpenseTab ? 'expense.sumAllExpense' : 'expense.sumAllIncome';
   }
 
-  get sumAllFilteredLabel(): string {
-    return this.isExpenseTab ? 'Lịch sử chi theo filter' : 'Lịch sử thu theo filter';
+  get sumAllFilteredLabelKey(): string {
+    return this.isExpenseTab ? 'expense.sumFilteredExpense' : 'expense.sumFilteredIncome';
   }
 
-  get sumThisWeekLabel(): string {
-    return this.isExpenseTab ? 'Tổng chi tuần hiện tại' : 'Tổng thu tuần hiện tại';
+  get sumThisWeekLabelKey(): string {
+    return this.isExpenseTab ? 'expense.sumWeekExpense' : 'expense.sumWeekIncome';
   }
 
-  get dateLabel(): string {
-    return this.isExpenseTab ? 'Ngày chi tiêu' : 'Ngày thu vào';
+  get dateLabelKey(): string {
+    return this.isExpenseTab ? 'expense.dateExpense' : 'expense.dateIncome';
   }
 
-  get addButtonLabel(): string {
-    return this.isExpenseTab ? '+ Thêm mới chi tiêu' : '+ Thêm mới thu vào';
+  get addButtonLabelKey(): string {
+    return this.isExpenseTab ? 'expense.addExpense' : 'expense.addIncome';
   }
 
   toggleGroupByDay() {
@@ -82,8 +91,8 @@ export class ExpenseRecordListComponent implements OnInit {
     const groups: { [key: string]: ExpenseRecord[] } = {};
     for (const record of this.expenseRecords) {
       const dateKey = record.createdDate
-        ? new Date(record.createdDate).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        : 'Không rõ ngày';
+        ? new Date(record.createdDate).toLocaleDateString(this.locale(), { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : this.translate.instant('expense.unknownDate');
       if (!groups[dateKey]) {
         groups[dateKey] = [];
       }
@@ -112,9 +121,10 @@ export class ExpenseRecordListComponent implements OnInit {
       return '—';
     }
 
+    // Tên loại là dữ liệu DB (giữ nguyên văn); riêng hậu tố là nhãn nên dịch.
     return this.isReasonTypeActive(reasonType)
       ? reasonType.reasonName
-      : `${reasonType.reasonName} (inactive)`;
+      : `${reasonType.reasonName} (${this.translate.instant('expense.inactiveSuffix')})`;
   }
 
   onTabChange(tab: 'expense' | 'income') {
@@ -286,11 +296,15 @@ export class ExpenseRecordListComponent implements OnInit {
     }
   }
 
+  /**
+   * Dấu phân cách hàng nghìn KHÁC nhau giữa hai ngôn ngữ (1.000.000 vs
+   * 1,000,000) nên phải lấy locale từ `LanguageService`, không cứng 'vi-VN'.
+   * Hàm được gọi từ template nên chạy lại mỗi chu kỳ change detection — đổi
+   * ngôn ngữ là số tự định dạng lại.
+   */
   formatCurrency(amount?: number): string {
-    if(!amount){
-      return '0 VNĐ';
-    }
-    return amount.toLocaleString('vi-VN') + ' VNĐ';
+    const suffix = this.translate.instant('common.currencySuffix');
+    return `${(amount || 0).toLocaleString(this.locale())} ${suffix}`;
   }
 
   openEditDialog(id: number): void {
@@ -309,8 +323,13 @@ export class ExpenseRecordListComponent implements OnInit {
   }
 
   deleteRecord(record: ExpenseRecord) {
-    const itemLabel = this.isExpenseTab ? 'chi tiêu' : 'thu vào';
-    const confirmed = window.confirm(`Bạn có chắc chắn muốn xóa ghi chú ${itemLabel} "${record.reason}" không?`);
+    // Nội dung ghi chú chèn nguyên văn từ DB — chỉ câu chữ quanh nó mới dịch.
+    const confirmed = window.confirm(
+      this.translate.instant(
+        this.isExpenseTab ? 'expense.confirmDeleteExpense' : 'expense.confirmDeleteIncome',
+        { name: record.reason }
+      )
+    );
     if (!confirmed) {
       return; 
     }

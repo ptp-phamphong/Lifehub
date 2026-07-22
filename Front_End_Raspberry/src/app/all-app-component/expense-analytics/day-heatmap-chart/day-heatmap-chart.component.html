@@ -1,6 +1,7 @@
 <div class="heatmap">
   <div class="heat-head">
-    <span class="heat-dow" *ngFor="let t of thu">{{ t }}</span>
+    <!-- Cùng bộ khoá với lịch Thời khóa biểu: cột hẹp nên dùng dạng viết tắt. -->
+    <span class="heat-dow" *ngFor="let d of dowKeys">{{ 'course.dowShort.' + d | translate }}</span>
   </div>
 
   <div class="heat-week" *ngFor="let w of model.weeks; trackBy: trackByWeek">
@@ -18,7 +19,7 @@
 
   <!-- Thang mau: bat buoc voi ma hoa lien tuc, neu khong thi mau khong doc duoc -->
   <div class="heat-scale">
-    <span class="scale-text">Chi ít</span>
+    <span class="scale-text">{{ 'analytics.heatLow' | translate }}</span>
     <i class="scale-step empty"></i>
     <i class="scale-step" *ngFor="let b of bacRamp" [ngClass]="'level-' + b"></i>
     <span class="scale-text">{{ nhanCao }}</span>

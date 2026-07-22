@@ -2,7 +2,7 @@
   class="chart-svg"
   [attr.viewBox]="'0 0 ' + viewWidth + ' ' + viewHeight"
   role="img"
-  aria-label="Thu và chi theo tháng">
+  [attr.aria-label]="'analytics.ariaIncomeExpense' | translate">
 
   <!-- Luoi ngang + nhan truc Y -->
   <g class="grid">
@@ -55,6 +55,6 @@
 </svg>
 
 <div class="chart-legend">
-  <span class="legend-item"><i class="legend-swatch swatch-chi"></i>Chi</span>
-  <span class="legend-item"><i class="legend-swatch swatch-thu"></i>Thu</span>
+  <span class="legend-item"><i class="legend-swatch swatch-chi"></i>{{ 'analytics.legendExpense' | translate }}</span>
+  <span class="legend-item"><i class="legend-swatch swatch-thu"></i>{{ 'analytics.legendIncome' | translate }}</span>
 </div>

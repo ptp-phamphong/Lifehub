@@ -10,18 +10,22 @@
         type="button"
         class="view-btn"
         [class.active]="view === 'chart'"
-        (click)="view = 'chart'">Biểu đồ</button>
+        (click)="view = 'chart'">{{ 'analytics.viewChart' | translate }}</button>
       <button
         type="button"
         class="view-btn"
         [class.active]="view === 'table'"
-        (click)="view = 'table'">Bảng</button>
+        (click)="view = 'table'">{{ 'analytics.viewTable' | translate }}</button>
     </div>
   </figcaption>
 
   <p class="chart-note" *ngIf="note">{{ note }}</p>
 
-  <div class="chart-empty" *ngIf="!hasData">{{ emptyText }}</div>
+  <!--
+    `emptyTextKey` là KHOÁ i18n chứ không phải chuỗi đã dịch: pipe dịch tại chỗ
+    nên đổi ngôn ngữ lúc đang ở trạng thái rỗng vẫn đổi chữ ngay.
+  -->
+  <div class="chart-empty" *ngIf="!hasData">{{ emptyTextKey | translate }}</div>
 
   <!-- [hidden] chứ không phải *ngIf: nội dung chiếu vào chỉ khởi tạo một lần,
        nên chuyển qua lại Biểu đồ/Bảng không phải dựng lại SVG. -->

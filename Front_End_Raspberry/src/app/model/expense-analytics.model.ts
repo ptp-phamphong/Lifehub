@@ -1,10 +1,22 @@
 // Kiểu dữ liệu cho trang Phân tích chi tiêu.
 // Xem Information_AI/19_feature-expense-analytics.md để biết vì sao thiết kế như vậy.
 
+import { DowKey } from '../utils/day-of-week';
 import { ReasonType } from './reason-type.model';
 
-/** Nhãn cho khoản chi không gắn loại (reasonTypeId nullable trong schema). */
-export const KHONG_PHAN_LOAI = 'Chưa phân loại';
+/**
+ * Khoá NỘI BỘ cho khoản chi không gắn loại (reasonTypeId nullable trong schema).
+ *
+ * Cố ý KHÔNG phải chuỗi hiển thị. Trước đây hằng này là `'Chưa phân loại'` và
+ * đóng hai vai cùng lúc: khoá gom nhóm ở `normalizeRaw` và sentinel so sánh ở
+ * `buildCategoryRank`. Nếu dịch thẳng hằng đó thì nhóm đã gom bằng chuỗi tiếng
+ * Việt còn phép so sánh lại dùng chuỗi tiếng Anh → `isMuted` im lặng thành
+ * `false` và nhóm chưa phân loại mất kiểu hiển thị mờ.
+ *
+ * Nay khoá là chuỗi trung tính, còn nhãn hiển thị (`analytics.uncategorized`)
+ * được truyền vào tầng transform lúc dựng — xem `buildCategoryRank`.
+ */
+export const UNCATEGORIZED = '__uncategorized__';
 
 /**
  * Bản ghi đã chuẩn hóa: chắc chắn CÓ ngày hợp lệ và CÓ tên loại.
@@ -18,7 +30,7 @@ export interface DatedRecord {
   monthKey: string;   // 'YYYY-MM'
   dayKey: string;     // 'YYYY-MM-DD'
   reasonTypeId: number | null;
-  reasonName: string; // KHONG_PHAN_LOAI khi không có loại
+  reasonName: string; // UNCATEGORIZED khi không có loại
 }
 
 export interface AnalyticsRawData {
@@ -50,21 +62,30 @@ export interface AnalyticsFilter {
 
 // ─── #1 KPI ───────────────────────────────────────────────────────────
 
+/**
+ * Thẻ KPI mang KHOÁ i18n chứ không mang chuỗi đã dịch: bốn thẻ này render thẳng
+ * ra DOM nên `| translate` tự chạy lại khi đổi ngôn ngữ, không cần dựng lại
+ * view-model. (Nhãn nằm trong SVG thì không có cửa đó — xem `MonthlyPair`.)
+ */
 export interface KpiTile {
-  label: string;
+  labelKey: string;
   value: number;
   /** null = không so sánh được (tháng trước bằng 0 -> không chia được). */
   deltaPercent: number | null;
   /** Tăng là tốt hay xấu: chi tăng = xấu, thu tăng = tốt. */
   higherIsBetter: boolean;
-  hint: string;
+  hintKey: string;
+  hintParams?: Record<string, unknown>;
 }
 
 // ─── #2 Thu vs Chi theo tháng ─────────────────────────────────────────
 
+/**
+ * Chỉ mang `monthKey`; nhãn trục do biểu đồ tự định dạng qua
+ * `AnalyticsFormatService`. Tầng transform không sinh chuỗi hiển thị nào.
+ */
 export interface MonthlyPair {
   monthKey: string;
-  label: string;
   expense: number;
   income: number;
 }
@@ -72,11 +93,16 @@ export interface MonthlyPair {
 // ─── #3 Chi theo loại ─────────────────────────────────────────────────
 
 export interface RankRow {
+  /**
+   * Tên loại lấy từ DB nên hiển thị NGUYÊN VĂN, trừ nhóm chưa phân loại: chỗ đó
+   * transform thay sentinel bằng nhãn đã dịch mà chỗ gọi truyền vào.
+   */
   label: string;
   total: number;
   count: number;
   /** 0..100 - bề rộng thanh so với mục cao nhất. */
   percent: number;
+  /** Nhóm chưa phân loại. Tính từ sentinel TRƯỚC khi đổi sang nhãn hiển thị. */
   isMuted: boolean;
 }
 
@@ -91,7 +117,6 @@ export interface StackSegment {
 
 export interface StackColumn {
   monthKey: string;
-  label: string;
   total: number;
   segments: StackSegment[];
 }
@@ -111,8 +136,13 @@ export interface StackModel {
 
 // ─── #5 Chi theo thứ trong tuần ───────────────────────────────────────
 
+/**
+ * Mang KHOÁ thứ (`mon`..`sun`) chứ không mang nhãn: nhãn 'T2'/'Mon' lấy từ
+ * `course.dowShort.*` — cùng bộ khoá mà Thời khóa biểu đang dùng, để hai chỗ
+ * không bao giờ viết tắt khác nhau.
+ */
 export interface WeekdayRow {
-  label: string;   // 'T2'..'CN'
+  dow: DowKey;
   total: number;
   count: number;
 }
@@ -141,7 +171,8 @@ export interface HeatmapModel {
   /** Ngưỡng kẹp (p95). Giá trị trên mức này đều nhận bậc đậm nhất. */
   clampMax: number;
   hasClamped: boolean;
-  monthLabel: string;
+  /** 'YYYY-MM' của tháng neo; tiêu đề do trang tự định dạng. */
+  monthKey: string;
 }
 
 // ─── #7 Chi lũy kế trong tháng ────────────────────────────────────────
@@ -154,8 +185,9 @@ export interface CumulativePoint {
 export interface CumulativeSeries {
   current: CumulativePoint[];
   previous: CumulativePoint[];
-  currentLabel: string;
-  previousLabel: string;
+  /** 'YYYY-MM'; chú giải do biểu đồ tự định dạng theo ngôn ngữ đang chọn. */
+  currentMonthKey: string;
+  previousMonthKey: string;
   daysInMonth: number;
   /** Tháng neo là tháng đang diễn ra -> đường current dừng ở hôm nay. */
   isPartial: boolean;

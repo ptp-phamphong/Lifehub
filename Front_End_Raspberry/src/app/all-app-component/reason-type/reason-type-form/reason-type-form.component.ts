@@ -14,7 +14,9 @@ export class ReasonTypeFormComponent {
   sortOrder?: number = 0;
   active: boolean = true;
   defaultFilterType: number = 1;
-  message: string = '';
+  // Lưu KEY chứ không lưu chuỗi đã dịch: nếu lưu chuỗi, đổi ngôn ngữ lúc thông
+  // báo đang hiện sẽ để nó kẹt ở ngôn ngữ cũ. Xem §4.1 kế hoạch i18n.
+  messageKey: string = '';
   // Xem ghi chú ở expense-record.component.ts: emoji cũ là tín hiệu duy nhất
   // phân biệt thành công/lỗi, nên bỏ emoji thì phải có trường trạng thái này.
   messageType: 'success' | 'error' | 'warning' = 'success';
@@ -47,7 +49,7 @@ export class ReasonTypeFormComponent {
         error: (err) => {
           console.error(err);
           this.messageType = 'error';
-          this.message = 'Gửi thất bại!';
+          this.messageKey = 'reasonType.saveFailed';
         }
       });
   }
@@ -56,13 +58,13 @@ export class ReasonTypeFormComponent {
   submitForm() {
     if (!this.reasonName) {
       this.messageType = 'warning';
-      this.message = 'Vui lòng nhập đầy đủ thông tin.';
+      this.messageKey = 'reasonType.missingName';
       return;
     }
 
     if (!this.defaultFilterType) {
       this.messageType = 'warning';
-      this.message = 'Vui lòng chọn loại lọc mặc định.';
+      this.messageKey = 'reasonType.missingFilter';
       return;
     }
 
@@ -79,7 +81,7 @@ export class ReasonTypeFormComponent {
         .subscribe({
           next: (res) => {
             this.messageType = 'success';
-            this.message = 'Gửi thành công!';
+            this.messageKey = 'reasonType.saveSuccess';
             this.reasonName = '';
             this.active = null;
             this.dialogRef.close('saved');
@@ -95,7 +97,7 @@ export class ReasonTypeFormComponent {
         .subscribe({
           next: (res) => {
             this.messageType = 'success';
-            this.message = 'Gửi thành công!';
+            this.messageKey = 'reasonType.saveSuccess';
             this.reasonName = '';
             this.sortOrder = null;
             this.active = null;

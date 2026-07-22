@@ -5,7 +5,7 @@
     <button class="btn-nav" (click)="prevMonth()"><span class="msym" aria-hidden="true">chevron_left</span></button>
     <div class="header-center" (click)="goToToday()">
       <h2 class="month-label">{{ monthYearLabel }}</h2>
-      <p class="swipe-hint"><span class="msym" aria-hidden="true">swipe</span><span>Vuốt để chuyển tháng</span></p>
+      <p class="swipe-hint"><span class="msym" aria-hidden="true">swipe</span><span>{{ 'course.swipeMonthHint' | translate }}</span></p>
     </div>
     <button class="btn-nav" (click)="nextMonth()"><span class="msym" aria-hidden="true">chevron_right</span></button>
   </div>
@@ -13,7 +13,7 @@
   <!-- Calendar Grid -->
   <div class="calendar-grid">
     <!-- Weekday headers -->
-    <div class="weekday-header" *ngFor="let wd of weekDays">{{ wd }}</div>
+    <div class="weekday-header" *ngFor="let wd of weekDayKeys">{{ wd | translate }}</div>
 
     <!-- Day cells -->
     <ng-container *ngFor="let week of weeks">
@@ -36,7 +36,7 @@
             *ngIf="day.isCurrentMonth && getDailyTotal(day.date) > 0"
             (click)="openExpenseDetail(day.date, $event)"
           >
-            {{ getDailyTotal(day.date) | number:'1.0-0' }}đ
+            {{ getDailyTotal(day.date) | number:'1.0-0':locale() }}{{ 'common.currencyShort' | translate }}
           </div>
         </ng-container>
 
@@ -60,7 +60,7 @@
             *ngIf="day.courses.length > maxVisibleCourses"
             (click)="openDayDetail(day, $event)"
           >
-            +{{ day.courses.length - maxVisibleCourses }} khác
+            {{ 'course.moreCount' | translate:{ count: day.courses.length - maxVisibleCourses } }}
           </div>
         </div>
         </ng-container>
@@ -72,15 +72,15 @@
   <div class="detail-panel" *ngIf="selectedDayExpenses" (click)="closeExpenseDetail()">
     <div class="detail-card expense-detail-card" (click)="$event.stopPropagation()">
       <button class="btn-close-detail" (click)="closeExpenseDetail()"><span class="msym" aria-hidden="true">close</span></button>
-      <h3>Chi tiêu ngày {{ selectedDayExpenses.date | date:'dd/MM/yyyy' }}</h3>
+      <h3>{{ 'course.expenseOnDate' | translate:{ date: (selectedDayExpenses.date | date:'dd/MM/yyyy') } }}</h3>
       <div class="expense-detail-list">
         <div class="expense-detail-item" *ngFor="let e of selectedDayExpenses.items">
           <span class="expense-reason">{{ e.reason }}</span>
-          <span class="expense-amount">{{ e.amount | number:'1.0-0' }}đ</span>
+          <span class="expense-amount">{{ e.amount | number:'1.0-0':locale() }}{{ 'common.currencyShort' | translate }}</span>
         </div>
       </div>
       <div class="expense-detail-total">
-        Tổng: {{ selectedDayTotal | number:'1.0-0' }}đ
+        {{ 'course.total' | translate }}: {{ selectedDayTotal | number:'1.0-0':locale() }}{{ 'common.currencyShort' | translate }}
       </div>
     </div>
   </div>
@@ -89,7 +89,9 @@
   <div class="detail-panel" *ngIf="selectedDay" (click)="closeDayDetail()">
     <div class="detail-card day-detail-card" (click)="$event.stopPropagation()">
       <button class="btn-close-detail" (click)="closeDayDetail()"><span class="msym" aria-hidden="true">close</span></button>
-      <h3>{{ selectedDay.date | date:'EEEE, dd/MM/yyyy' }}</h3>
+      <!-- `EEEE` là TÊN thứ nên phải truyền locale; các chỗ 'dd/MM/yyyy' thuần
+           số thì không cần (xem quyết định giữ nguyên định dạng ngày ở kế hoạch). -->
+      <h3>{{ selectedDay.date | date:'EEEE, dd/MM/yyyy':undefined:locale() }}</h3>
       <div class="day-detail-list">
         <div
           class="day-detail-item"
@@ -113,32 +115,32 @@
       <h3>{{ selectedCourse.courseName }}</h3>
       <table class="detail-table">
         <tr>
-          <td class="label">Mã môn:</td>
+          <td class="label">{{ 'course.code' | translate }}:</td>
           <td>{{ selectedCourse.courseCode }}</td>
         </tr>
         <tr>
-          <td class="label">Thứ:</td>
+          <td class="label">{{ 'course.dayOfWeek' | translate }}:</td>
           <td>{{ dayOfWeekLabel(selectedCourse.dayOfWeek) }}</td>
         </tr>
         <tr>
-          <td class="label">Giờ học:</td>
+          <td class="label">{{ 'course.time' | translate }}:</td>
           <td>{{ selectedCourse.startTime }} - {{ selectedCourse.endTime }}</td>
         </tr>
         <tr>
-          <td class="label">Ngày bắt đầu:</td>
+          <td class="label">{{ 'course.startDate' | translate }}:</td>
           <td>{{ selectedCourse.startDate | date:'dd/MM/yyyy' }}</td>
         </tr>
         <tr>
-          <td class="label">Ngày kết thúc:</td>
+          <td class="label">{{ 'course.endDate' | translate }}:</td>
           <td>{{ selectedCourse.endDate | date:'dd/MM/yyyy' }}</td>
         </tr>
         <tr>
-          <td class="label">Phòng:</td>
+          <td class="label">{{ 'course.room' | translate }}:</td>
           <td>{{ selectedCourse.room }}</td>
         </tr>
         <tr>
-          <td class="label">Học kỳ:</td>
-          <td>{{ selectedCourse.semesterName || 'Chưa gán học kỳ' }}</td>
+          <td class="label">{{ 'course.semester' | translate }}:</td>
+          <td>{{ selectedCourse.semesterName || ('course.noSemester' | translate) }}</td>
         </tr>
       </table>
     </div>

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ViewContainerRef } from '@angular/core';
+import { Component, ViewContainerRef, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { TranslateService } from '@ngx-translate/core';
 import { SemesterMetadata } from 'src/app/model/semester-metadata.model';
 import { environment } from 'src/environments/environment';
 import { SemesterMetadataFormComponent } from '../semester-metadata-form/semester-metadata-form.component';
@@ -12,6 +13,10 @@ import { SemesterMetadataFormComponent } from '../semester-metadata-form/semeste
 })
 export class SemesterMetadataListComponent {
   semesters: SemesterMetadata[] = [];
+
+  // `window.confirm` cần chuỗi ngay tại chỗ gọi nên đây là một trong số ít nơi
+  // được dùng `instant()`. Không lưu kết quả vào field — dùng xong là xong.
+  private readonly translate = inject(TranslateService);
 
   constructor(
     private http: HttpClient,
@@ -50,7 +55,10 @@ export class SemesterMetadataListComponent {
   }
 
   deleteRecord(item: SemesterMetadata) {
-    const confirmed = window.confirm(`Ban co chac chan muon xoa hoc ky "${item.semesterName}" khong?`);
+    // Tên học kỳ chèn nguyên văn từ DB — không dịch, chỉ nhãn quanh nó mới dịch.
+    const confirmed = window.confirm(
+      this.translate.instant('semester.confirmDelete', { name: item.semesterName })
+    );
     if (!confirmed) {
       return;
     }

@@ -18,11 +18,19 @@ import { Component, Input } from '@angular/core';
   styleUrls: ['./chart-panel.component.scss']
 })
 export class ChartPanelComponent {
+  /**
+   * `title`/`subtitle`/`note` nhận CHUỖI ĐÃ DỊCH, dịch ở chỗ gọi.
+   *
+   * Cùng lựa chọn đã làm với `visit-trend-chart`: khung thẻ này không cần biết
+   * `TranslateService` là gì chỉ vì mấy dòng tiêu đề, mà pipe ở template cha
+   * vẫn tự chạy lại khi đổi ngôn ngữ.
+   */
   @Input() title = '';
   @Input() subtitle = '';
   @Input() note = '';
   @Input() hasData = false;
-  @Input() emptyText = 'Chưa có dữ liệu trong khoảng thời gian này';
+  /** Ngược lại, chỗ này nhận KHOÁ: câu mặc định nằm sẵn trong từ điển. */
+  @Input() emptyTextKey = 'analytics.emptyRange';
 
   view: 'chart' | 'table' = 'chart';
 }

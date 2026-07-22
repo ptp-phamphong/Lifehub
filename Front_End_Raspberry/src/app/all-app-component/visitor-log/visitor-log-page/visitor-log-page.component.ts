@@ -19,21 +19,22 @@ export class VisitorLogPageComponent implements OnInit {
   summary: VisitorSummary | null = null;
 
   /**
-   * Lịch sử dài hạn lấy từ bảng tổng hợp theo ngày. Chỉ hiện khi chọn "Tat ca",
+   * Lịch sử dài hạn lấy từ bảng tổng hợp theo ngày. Chỉ hiện khi chọn "Tất cả",
    * vì đây là số liệu duy nhất còn sót lại sau khi dữ liệu thô bị xóa theo hạn lưu trữ.
    */
   history: VisitorDailyPoint[] = [];
 
-  // Các lựa chọn nhanh cho khoảng thời gian.
+  // Các lựa chọn nhanh cho khoảng thời gian. Giữ KHOÁ i18n chứ không giữ chuỗi
+  // đã dịch, nếu không mấy cái nút này sẽ kẹt ở ngôn ngữ lúc component khởi tạo.
   readonly rangeOptions = [
-    { label: '7 ngày', days: 7 },
-    { label: '30 ngày', days: 30 },
-    { label: '90 ngày', days: 90 },
-    { label: 'Tất cả', days: 0 }
+    { labelKey: 'visitor.range7', days: 7 },
+    { labelKey: 'visitor.range30', days: 30 },
+    { labelKey: 'visitor.range90', days: 90 },
+    { labelKey: 'visitor.rangeAll', days: 0 }
   ];
   selectedRange = 30;
 
-  // 1 = Portfolio, 2 = Trang login. null = ca hai.
+  // 1 = Portfolio, 2 = Trang login. null = cả hai.
   selectedArea: number | null = null;
 
   excludeSelf = true;

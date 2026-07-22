@@ -17,7 +17,8 @@ export class UserFormComponent {
   active: boolean = true;
   password: string = '';
   confirmPassword: string = '';
-  message: string = '';
+  // Lưu KEY, không lưu chuỗi đã dịch (§4.1 kế hoạch i18n).
+  messageKey: string = '';
 
   constructor(
     private http: HttpClient,
@@ -45,29 +46,31 @@ export class UserFormComponent {
         },
         error: (err) => {
           console.error(err);
-          this.message = 'Không thể tải thông tin người dùng.';
+          this.messageKey = 'user.loadFailed';
         }
       });
   }
 
-  get dialogTitle(): string {
+  // Getter nên được tính lại mỗi chu kỳ change detection — trả KEY để template
+  // dịch, đổi ngôn ngữ là tiêu đề đổi theo ngay.
+  get dialogTitleKey(): string {
     switch (this.mode) {
-      case 'create': return 'Thêm người dùng mới';
-      case 'edit': return 'Chỉnh sửa người dùng';
-      case 'password': return 'Đổi mật khẩu';
+      case 'create': return 'user.createTitle';
+      case 'edit': return 'user.editTitle';
+      case 'password': return 'user.passwordTitle';
     }
   }
 
   submitForm() {
-    this.message = '';
+    this.messageKey = '';
 
     if (this.mode === 'create') {
       if (!this.username || !this.name || !this.password) {
-        this.message = 'Vui lòng nhập đầy đủ thông tin.';
+        this.messageKey = 'user.missingFields';
         return;
       }
       if (this.password !== this.confirmPassword) {
-        this.message = 'Mật khẩu xác nhận không khớp.';
+        this.messageKey = 'user.passwordMismatch';
         return;
       }
 
@@ -83,13 +86,13 @@ export class UserFormComponent {
           next: () => this.dialogRef.close('saved'),
           error: (err) => {
             console.error(err);
-            this.message = 'Tạo người dùng thất bại.';
+            this.messageKey = 'user.createFailed';
           }
         });
 
     } else if (this.mode === 'edit') {
       if (!this.name) {
-        this.message = 'Vui lòng nhập tên.';
+        this.messageKey = 'user.missingName';
         return;
       }
 
@@ -104,17 +107,17 @@ export class UserFormComponent {
           next: () => this.dialogRef.close('saved'),
           error: (err) => {
             console.error(err);
-            this.message = 'Cập nhật thất bại.';
+            this.messageKey = 'user.updateFailed';
           }
         });
 
     } else if (this.mode === 'password') {
       if (!this.password) {
-        this.message = 'Vui lòng nhập mật khẩu mới.';
+        this.messageKey = 'user.missingNewPassword';
         return;
       }
       if (this.password !== this.confirmPassword) {
-        this.message = 'Mật khẩu xác nhận không khớp.';
+        this.messageKey = 'user.passwordMismatch';
         return;
       }
 
@@ -127,7 +130,7 @@ export class UserFormComponent {
           next: () => this.dialogRef.close('saved'),
           error: (err) => {
             console.error(err);
-            this.message = 'Đổi mật khẩu thất bại.';
+            this.messageKey = 'user.changePasswordFailed';
           }
         });
     }

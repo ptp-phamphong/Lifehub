@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { ThemeService, ThemeSetting } from 'src/app/services/theme.service';
+import { Component, OnInit, inject } from '@angular/core';
+import { ThemeService } from 'src/app/services/theme.service';
+import { LanguageService } from 'src/app/services/language.service';
+import { Language } from 'src/app/i18n/types';
 
 @Component({
   selector: 'app-theme-settings',
@@ -7,17 +9,27 @@ import { ThemeService, ThemeSetting } from 'src/app/services/theme.service';
   styleUrls: ['./theme-settings.component.scss']
 })
 export class ThemeSettingsComponent implements OnInit {
-  setting: ThemeSetting = { webDarkMode: false, mobileDarkMode: false };
   loading = false;
-  saving = false;
 
-  constructor(private themeService: ThemeService) {}
+  private readonly themeService = inject(ThemeService);
+  private readonly languageService = inject(LanguageService);
+
+  // Trang này chỉ là một khung nhìn của state trong service — không giữ bản sao.
+  // Nút đổi theme/ngôn ngữ trên thanh tiêu đề đọc cùng signal, nên hai nơi luôn
+  // khớp nhau mà không cần đồng bộ thủ công.
+  readonly webDarkMode = this.themeService.webDarkMode;
+  readonly mobileDarkMode = this.themeService.mobileDarkMode;
+  readonly currentLanguage = this.languageService.language;
+  readonly languages = this.languageService.available;
 
   ngOnInit(): void {
+    // Đọc lại từ server để lấy `mobileDarkMode` mới nhất. Dark mode của web đã
+    // được áp từ lúc khởi động app nên không nháy giao diện ở đây.
     this.loading = true;
     this.themeService.getThemeSetting().subscribe({
-      next: (data) => {
-        this.setting = data;
+      next: (setting) => {
+        this.themeService.applyWebDarkMode(setting.webDarkMode);
+        this.themeService.primeSetting(setting);
         this.loading = false;
       },
       error: (err) => {
@@ -28,26 +40,14 @@ export class ThemeSettingsComponent implements OnInit {
   }
 
   onToggleWebDark(): void {
-    this.setting.webDarkMode = !this.setting.webDarkMode;
-    this.save();
-    this.themeService.applyWebDarkMode(this.setting.webDarkMode);
+    this.themeService.setWebDarkMode(!this.webDarkMode());
   }
 
   onToggleMobileDark(): void {
-    this.setting.mobileDarkMode = !this.setting.mobileDarkMode;
-    this.save();
+    this.themeService.setMobileDarkMode(!this.mobileDarkMode());
   }
 
-  private save(): void {
-    this.saving = true;
-    this.themeService.updateThemeSetting(this.setting).subscribe({
-      next: () => {
-        this.saving = false;
-      },
-      error: (err) => {
-        console.error('Lỗi khi lưu cài đặt giao diện:', err);
-        this.saving = false;
-      }
-    });
+  setLanguage(lang: Language): void {
+    this.languageService.setLanguage(lang);
   }
 }

@@ -1,5 +1,5 @@
 <div class="expense-form">
-  <h2>{{ formTitle }}</h2>
+  <h2>{{ formTitleKey | translate }}</h2>
 
   <!-- Toggle AI / Manual - only show for add mode -->
   <!-- <div class="ai-toggle" *ngIf="!isEditMode">
@@ -30,42 +30,42 @@
   <!-- Manual Input Mode -->
   <form (ngSubmit)="submitForm()" *ngIf="!aiMode || isEditMode">
     <div class="form-group">
-      <label for="reason">Lý do</label>
-      <input id="reason" type="text" [(ngModel)]="reason" name="reason" placeholder="Nhập lý do..." />
+      <label for="reason">{{ 'expense.reason' | translate }}</label>
+      <input id="reason" type="text" [(ngModel)]="reason" name="reason" [placeholder]="'expense.reasonPlaceholder' | translate" />
     </div>
 
     <div class="form-group">
-      <label for="amount">Số tiền (VND)</label>
+      <label for="amount">{{ 'expense.amount' | translate }} ({{ 'common.currencySuffix' | translate }})</label>
       <input id="amount" type="text" [value]="formatCurrency(amount)" (input)="onAmountInput($event)" name="amount"
-        placeholder="Nhập số tiền..." />
+        [placeholder]="'expense.amountPlaceholder' | translate" />
     </div>
 
     <div class="form-group" *ngIf="isExpenseMode">
-      <label for="reasonType">Loại lý do</label>
+      <label for="reasonType">{{ 'expense.reasonType' | translate }}</label>
       <ng-select [(ngModel)]="reasonTypeId" name="reasonTypeId" [items]="reasonTypes" bindLabel="displayName"
-        bindValue="id" placeholder="Chọn loại lý do" [searchable]="true" [clearable]="true">
+        bindValue="id" [placeholder]="'expense.selectReasonType' | translate" [searchable]="true" [clearable]="true">
       </ng-select>
     </div>
 
     <div class="form-group">
-      <label for="expenseDate">{{ dateLabel }}</label>
+      <label for="expenseDate">{{ dateLabelKey | translate }}</label>
       <mat-form-field appearance="outline" class="date-field">
         <input matInput [matDatepicker]="picker" [(ngModel)]="expenseDate" name="expenseDate"
-          placeholder="Chọn ngày..." />
+          [placeholder]="'expense.selectDate' | translate" />
         <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
       </mat-form-field>
     </div>
 
-    <button type="submit">Lưu</button>
+    <button type="submit">{{ 'common.save' | translate }}</button>
   </form>
 
-  <p class="message" [class.is-success]="messageType === 'success'" [class.is-error]="messageType === 'error'" [class.is-warning]="messageType === 'warning'" *ngIf="message">
+  <p class="message" [class.is-success]="messageType === 'success'" [class.is-error]="messageType === 'error'" [class.is-warning]="messageType === 'warning'" *ngIf="messageKey || messageRaw">
     <span class="msym" aria-hidden="true">{{ messageType === 'success' ? 'check_circle' : messageType === 'error' ? 'error' : 'warning' }}</span>
-    <span>{{ message }}</span>
+    <span>{{ messageKey ? (messageKey | translate) : messageRaw }}</span>
   </p>
 
   <div class="cancel-row">
-    <button type="button" (click)="cancel()">Hủy</button>
+    <button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
   </div>
 </div>

@@ -2,12 +2,12 @@
 
   <div class="table-toolbar">
     <div class="result-count" *ngIf="result">
-      <strong>{{ result.totalCount }}</strong> lượt truy cập
-      <span *ngIf="result.totalPages > 1"> - trang {{ result.page }}/{{ result.totalPages }}</span>
+      <strong>{{ result.totalCount }}</strong> {{ 'visitor.visitCountLabel' | translate }}
+      <span *ngIf="result.totalPages > 1"> - {{ 'visitor.pageIndicator' | translate:{ page: result.page, total: result.totalPages } }}</span>
     </div>
 
     <div class="page-size">
-      <label for="pageSize">Mỗi trang</label>
+      <label for="pageSize">{{ 'visitor.perPage' | translate }}</label>
       <select id="pageSize" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
         <option *ngFor="let size of pageSizes" [ngValue]="size">{{ size }}</option>
       </select>
@@ -19,37 +19,37 @@
       <thead>
         <tr>
           <th class="sortable" (click)="onSort('visitedAt')">
-            Thời gian <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('visitedAt') }}</span>
+            {{ 'visitor.colTime' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('visitedAt') }}</span>
           </th>
           <th class="sortable" (click)="onSort('path')">
-            Trang <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('path') }}</span>
+            {{ 'visitor.colPath' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('path') }}</span>
           </th>
           <th class="sortable" (click)="onSort('ipAddress')">
-            IP <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('ipAddress') }}</span>
+            {{ 'visitor.colIp' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('ipAddress') }}</span>
           </th>
           <th class="sortable" (click)="onSort('countryCode')">
-            Vị trí <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('countryCode') }}</span>
+            {{ 'visitor.colLocation' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('countryCode') }}</span>
           </th>
           <th class="sortable" (click)="onSort('referrerDomain')">
-            Nguồn <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('referrerDomain') }}</span>
+            {{ 'visitor.colReferrer' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('referrerDomain') }}</span>
           </th>
           <th class="sortable" (click)="onSort('browser')">
-            Trình duyệt <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('browser') }}</span>
+            {{ 'visitor.colBrowser' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('browser') }}</span>
           </th>
           <th class="sortable" (click)="onSort('deviceType')">
-            Thiết bị <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('deviceType') }}</span>
+            {{ 'visitor.colDevice' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('deviceType') }}</span>
           </th>
           <th class="sortable" (click)="onSort('durationMs')">
-            Thời gian đọc <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('durationMs') }}</span>
+            {{ 'visitor.colReadTime' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('durationMs') }}</span>
           </th>
-          <th>Hành động</th>
+          <th>{{ 'visitor.colActions' | translate }}</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngIf="result && !result.items.length">
           <td class="empty-row" colspan="9">
-            Không có dữ liệu. Nếu vừa bật tracking thì hãy thử truy cập portfolio một lần.
+            {{ 'visitor.emptyVisits' | translate }}
           </td>
         </tr>
 
@@ -57,6 +57,7 @@
           <td class="col-time">{{ row.visitedAt | date: 'dd/MM/yyyy HH:mm' }}</td>
 
           <td class="col-path">
+            <!-- `path`, `pageTitle`, `detail` đến từ DB — nguyên văn (§4.3). -->
             <span [title]="row.pageTitle || row.path">{{ row.path }}</span>
             <span class="badge badge-login" *ngIf="row.eventType !== 1">{{ eventTypeLabel(row) }}</span>
             <span class="badge badge-detail" *ngIf="row.detail">{{ row.detail }}</span>
@@ -64,7 +65,11 @@
 
           <td class="col-ip">
             {{ row.ipAddress || '-' }}
-            <span class="badge badge-self" *ngIf="row.isSelf">{{ row.knownLabel || 'Của tôi' }}</span>
+            <!--
+              `knownLabel` là tên người dùng tự đặt (lưu trong DB) nên giữ nguyên văn;
+              chỉ chuỗi dự phòng khi chưa đặt tên mới là nhãn của client, phải dịch.
+            -->
+            <span class="badge badge-self" *ngIf="row.isSelf">{{ row.knownLabel || ('visitor.mine' | translate) }}</span>
             <span class="badge badge-bot" *ngIf="row.isBot">bot</span>
           </td>
 
@@ -79,13 +84,13 @@
               class="btn-action btn-edit"
               *ngIf="row.visitorId"
               (click)="showVisitor.emit(row.visitorId!)"
-              title="Xem tất cả lượt truy cập của khách này">Khách</button>
+              [title]="'visitor.viewVisitorTitle' | translate">{{ 'visitor.viewVisitorButton' | translate }}</button>
 
             <button
               class="btn-action btn-delete"
               *ngIf="row.ipAddress && !row.isSelf"
               (click)="markAsMine(row)"
-              title="Đánh dấu IP này là của tôi (ẩn khỏi thống kê)">Là tôi</button>
+              [title]="'visitor.markMineTitle' | translate">{{ 'visitor.markMineButton' | translate }}</button>
           </td>
         </tr>
       </tbody>
@@ -95,7 +100,7 @@
   <!-- Phân trang: xử lý ở server nên bảng bao nhiêu dòng cũng không chậm -->
   <div class="pager" *ngIf="result && result.totalPages > 1">
     <button class="btn-page" [disabled]="result.page <= 1" (click)="goToPage(1)">&laquo;</button>
-    <button class="btn-page" [disabled]="result.page <= 1" (click)="goToPage(result.page - 1)">Trước</button>
+    <button class="btn-page" [disabled]="result.page <= 1" (click)="goToPage(result.page - 1)">{{ 'visitor.pagePrev' | translate }}</button>
 
     <button
       class="btn-page"
@@ -103,7 +108,7 @@
       [class.active]="p === result.page"
       (click)="goToPage(p)">{{ p }}</button>
 
-    <button class="btn-page" [disabled]="result.page >= result.totalPages" (click)="goToPage(result.page + 1)">Sau</button>
+    <button class="btn-page" [disabled]="result.page >= result.totalPages" (click)="goToPage(result.page + 1)">{{ 'visitor.pageNext' | translate }}</button>
     <button class="btn-page" [disabled]="result.page >= result.totalPages" (click)="goToPage(result.totalPages)">&raquo;</button>
   </div>
 </div>

@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { LanguageService } from '../../services/language.service';
+import { Language } from '../../i18n/types';
 import { environment } from 'src/environments/environment';
 
 @Component({
@@ -12,9 +14,18 @@ import { environment } from 'src/environments/environment';
 export class LoginComponent implements OnInit {
   username = '';
   password = '';
-  errorMessage = '';
   isLoading = false;
   showPassword = false;
+
+  // ── Thông báo ──
+  // Lỗi phát sinh ở client lưu dưới dạng KEY rồi để template dịch, nhờ vậy đổi
+  // ngôn ngữ khi đang hiện lỗi thì lỗi cũng đổi theo. Message do backend trả về
+  // thì lưu nguyên văn vì nó là câu chữ sẵn, không phải key.
+  errorKey = '';
+  errorRaw = '';
+  forgotErrorKey = '';
+  forgotErrorRaw = '';
+  forgotInfoRaw = '';
 
   // ── Luồng quên mật khẩu ──
   // 'login' = form đăng nhập; 'forgot-request' = nhập username để lấy OTP;
@@ -25,8 +36,10 @@ export class LoginComponent implements OnInit {
   newPassword = '';
   showNewPassword = false;
   maskedEmail = '';
-  forgotError = '';
-  forgotInfo = '';
+
+  private readonly languageService = inject(LanguageService);
+  readonly currentLanguage = this.languageService.language;
+  readonly languages = this.languageService.available;
 
   constructor(
     private authService: AuthService,
@@ -40,6 +53,10 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.trackVisit();
+  }
+
+  setLanguage(lang: Language): void {
+    this.languageService.setLanguage(lang);
   }
 
   /**
@@ -76,14 +93,23 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  private clearMessages(): void {
+    this.errorKey = '';
+    this.errorRaw = '';
+    this.forgotErrorKey = '';
+    this.forgotErrorRaw = '';
+    this.forgotInfoRaw = '';
+  }
+
   login(): void {
     if (!this.username || !this.password) {
-      this.errorMessage = 'Vui lòng nhập username và password';
+      this.clearMessages();
+      this.errorKey = 'login.missingCredentials';
       return;
     }
 
     this.isLoading = true;
-    this.errorMessage = '';
+    this.clearMessages();
 
     this.authService.login(this.username, this.password).subscribe({
       next: () => {
@@ -91,11 +117,8 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        if (err.status === 401) {
-          this.errorMessage = 'Username hoặc password không đúng';
-        } else {
-          this.errorMessage = 'Lỗi kết nối server';
-        }
+        this.errorKey =
+          err.status === 401 ? 'login.invalidCredentials' : 'common.connectionError';
       }
     });
   }
@@ -109,47 +132,50 @@ export class LoginComponent implements OnInit {
     this.newPassword = '';
     this.showNewPassword = false;
     this.maskedEmail = '';
-    this.forgotError = '';
-    this.forgotInfo = '';
+    this.clearMessages();
   }
 
   backToLogin(): void {
     this.mode = 'login';
-    this.forgotError = '';
-    this.forgotInfo = '';
+    this.clearMessages();
   }
 
   requestOtp(): void {
     if (!this.forgotUsername) {
-      this.forgotError = 'Vui lòng nhập username';
+      this.clearMessages();
+      this.forgotErrorKey = 'login.forgot.missingUsername';
       return;
     }
     this.isLoading = true;
-    this.forgotError = '';
-    this.forgotInfo = '';
+    this.clearMessages();
 
     this.authService.requestPasswordReset(this.forgotUsername).subscribe({
       next: (res) => {
         this.isLoading = false;
         this.maskedEmail = res.maskedEmail || '';
-        this.forgotInfo = res.message || 'Đã gửi mã OTP.';
+        // Backend trả câu tiếng Việt sẵn; chỉ dùng key làm phương án dự phòng.
+        this.forgotInfoRaw = res.message || '';
         this.mode = 'forgot-reset';
       },
       error: (err) => {
         this.isLoading = false;
-        this.forgotError = err?.error?.message || 'Không gửi được mã OTP';
+        if (err?.error?.message) {
+          this.forgotErrorRaw = err.error.message;
+        } else {
+          this.forgotErrorKey = 'login.forgot.sendOtpFailed';
+        }
       }
     });
   }
 
   resetPassword(): void {
     if (!this.otp || !this.newPassword) {
-      this.forgotError = 'Vui lòng nhập mã OTP và mật khẩu mới';
+      this.clearMessages();
+      this.forgotErrorKey = 'login.reset.missingFields';
       return;
     }
     this.isLoading = true;
-    this.forgotError = '';
-    this.forgotInfo = '';
+    this.clearMessages();
 
     this.authService.resetPassword(this.forgotUsername, this.otp, this.newPassword).subscribe({
       next: (res) => {
@@ -157,11 +183,17 @@ export class LoginComponent implements OnInit {
         this.mode = 'login';
         this.username = this.forgotUsername;
         this.password = '';
-        this.errorMessage = (res?.message || 'Đặt lại mật khẩu thành công.') + ' Hãy đăng nhập bằng mật khẩu mới.';
+        this.errorRaw = res?.message || '';
+        // Phần nhắc đăng nhập lại thì dịch được, nên để template ghép vào sau.
+        this.errorKey = 'login.reset.loginWithNewPassword';
       },
       error: (err) => {
         this.isLoading = false;
-        this.forgotError = err?.error?.message || 'Đặt lại mật khẩu thất bại';
+        if (err?.error?.message) {
+          this.forgotErrorRaw = err.error.message;
+        } else {
+          this.forgotErrorKey = 'login.reset.failed';
+        }
       }
     });
   }

@@ -43,6 +43,17 @@ $radius-sm: 8px;
   }
 }
 
+// Thẻ ngôn ngữ: chỉ hai nút bên trong bấm được, cả thẻ thì không —
+// nên bỏ cursor: pointer để con trỏ không hứa nhầm.
+.theme-card--static {
+  cursor: default;
+}
+
+// Không cho bộ chọn co lại khi nhãn dài (tiếng Anh dài hơn tiếng Việt ở vài chỗ).
+.theme-card .language-switcher {
+  flex-shrink: 0;
+}
+
 .theme-info {
   display: flex;
   align-items: center;
@@ -117,27 +128,4 @@ input:checked + .toggle-slider::before {
   transform: translateX(24px);
 }
 
-.saving-indicator {
-  font-size: 0.85rem;
-  color: var(--color-text-sec);
-  text-align: center;
-  padding: 8px;
-}
-
 .theme-icon .msym { font-size: 1.5rem; color: var(--color-text-sec); }
-
-.saving-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  // Icon quay tròn trong lúc lưu; @media reduced-motion ở styles.scss sẽ tắt.
-  .msym {
-    font-size: 1.1rem;
-    animation: savingSpin 1s linear infinite;
-  }
-}
-
-@keyframes savingSpin {
-  to { transform: rotate(360deg); }
-}

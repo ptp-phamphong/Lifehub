@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { StackModel } from 'src/app/model/expense-analytics.model';
-import { formatCurrencyCompact, formatCurrencyFull } from '../expense-analytics.transform';
+import { AnalyticsFormatService } from '../analytics-format.service';
 
 interface Piece {
   x: number;
@@ -33,10 +33,15 @@ interface Column {
   styleUrls: ['./category-stack-chart.component.scss']
 })
 export class CategoryStackChartComponent implements OnChanges {
-  @Input() model: StackModel = { columns: [], legend: [], otherLabel: 'Khác' };
+  /**
+   * `otherLabel` mặc định để rỗng: nhãn thật do tầng transform chọn (có thể
+   * khác 'Khác' nếu người dùng đã có một loại tên đúng như vậy), và biểu đồ
+   * chỉ hiển thị lại chứ không tự đặt tên.
+   */
+  @Input() model: StackModel = { columns: [], legend: [], otherLabel: '' };
 
   readonly viewWidth = 720;
-  readonly viewHeight = 240;
+  readonly viewHeight = 190;
   readonly paddingLeft = 54;
   readonly paddingBottom = 22;
   readonly paddingTop = 10;
@@ -44,7 +49,8 @@ export class CategoryStackChartComponent implements OnChanges {
   columns: Column[] = [];
   gridLines: { y: number; label: string }[] = [];
 
-  formatFull = formatCurrencyFull;
+  /** Nhãn/tooltip nằm trong SVG — xem chú thích ở `income-expense-chart`. */
+  private readonly fmt = inject(AnalyticsFormatService);
 
   ngOnChanges(): void {
     this.build();
@@ -87,6 +93,7 @@ export class CategoryStackChartComponent implements OnChanges {
 
     this.columns = cols.map((c, i) => {
       const x = this.paddingLeft + i * slotWidth + (slotWidth - barWidth) / 2;
+      const month = this.fmt.monthShort(c.monthKey);
       const pieces: Piece[] = [];
 
       let cursor = baseline;
@@ -102,20 +109,26 @@ export class CategoryStackChartComponent implements OnChanges {
           width: barWidth,
           height,
           slot: seg.slot,
-          tooltip: `${c.label} · ${seg.label}: ${formatCurrencyFull(seg.value)}`
+          // `seg.label` là tên loại từ DB (hoặc nhãn nhóm gộp đã dịch sẵn ở
+          // tầng transform) — chèn nguyên văn.
+          tooltip: this.fmt.t('analytics.tooltipStack', {
+            month,
+            category: seg.label,
+            amount: this.fmt.full(seg.value)
+          })
         });
 
         cursor -= raw;
       }
 
-      return { label: c.label, labelX: x + barWidth / 2, pieces };
+      return { label: month, labelX: x + barWidth / 2, pieces };
     });
 
     for (let i = 0; i <= 2; i++) {
       const value = (max / 2) * i;
       this.gridLines.push({
         y: baseline - (value / max) * chartHeight,
-        label: formatCurrencyCompact(Math.round(value))
+        label: this.fmt.compact(Math.round(value))
       });
     }
   }

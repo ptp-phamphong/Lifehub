@@ -1,35 +1,36 @@
 <div class="expense-table-container">
-  <h2>Danh sách học kỳ</h2>
+  <h2>{{ 'semester.listTitle' | translate }}</h2>
 
   <div class="toolbar">
-    <button class="btn-add" (click)="openEditDialog(0)">+ Thêm mới</button>
+    <button class="btn-add" (click)="openEditDialog(0)">+ {{ 'semester.addNew' | translate }}</button>
   </div>
 
   <table class="expense-table">
     <thead>
       <tr>
-        <th>Mã</th>
-        <th>Mã học kỳ</th>
-        <th>Tên học kỳ</th>
-        <th>Năm</th>
-        <th>Học kỳ hiện tại</th>
-        <th>Hành động</th>
+        <th>{{ 'semester.id' | translate }}</th>
+        <th>{{ 'semester.code' | translate }}</th>
+        <th>{{ 'semester.name' | translate }}</th>
+        <th>{{ 'semester.year' | translate }}</th>
+        <th>{{ 'semester.isCurrent' | translate }}</th>
+        <th>{{ 'common.actions' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let item of semesters">
         <td>{{ item.id }}</td>
         <td>{{ item.codeSemester }}</td>
+        <!-- Tên/mã học kỳ là dữ liệu DB: hiển thị nguyên văn, KHÔNG dịch. -->
         <td>{{ item.semesterName }}</td>
         <td>{{ item.year }}</td>
         <td>
           <span class="badge" [class.badge-active]="item.isCurrentSemester" [class.badge-inactive]="!item.isCurrentSemester">
-            {{ item.isCurrentSemester ? 'Hiện tại' : 'Không' }}
+            {{ (item.isCurrentSemester ? 'semester.current' : 'semester.notCurrent') | translate }}
           </span>
         </td>
         <td class="col-actions">
-          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">Sửa</button>
-          <button class="btn-action btn-delete" (click)="deleteRecord(item)">Xóa</button>
+          <button class="btn-action btn-edit" (click)="openEditDialog(item.id || 0)">{{ 'common.edit' | translate }}</button>
+          <button class="btn-action btn-delete" (click)="deleteRecord(item)">{{ 'common.delete' | translate }}</button>
         </td>
       </tr>
     </tbody>

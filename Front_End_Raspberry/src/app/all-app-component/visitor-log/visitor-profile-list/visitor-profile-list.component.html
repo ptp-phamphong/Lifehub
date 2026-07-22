@@ -1,8 +1,8 @@
 <div class="log-table-wrapper">
   <div class="table-toolbar">
     <div class="result-count">
-      <strong>{{ visitors.length }}</strong> khách
-      <span class="hint">- mỗi dòng là một người (theo trình duyệt), không phải một lượt xem</span>
+      <strong>{{ visitors.length }}</strong> {{ 'visitor.visitorCountLabel' | translate }}
+      <span class="hint">- {{ 'visitor.visitorCountHint' | translate }}</span>
     </div>
   </div>
 
@@ -11,34 +11,34 @@
       <thead>
         <tr>
           <th class="sortable" (click)="onSort('views')">
-            Lượt xem <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('views') }}</span>
+            {{ 'visitor.colViews' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('views') }}</span>
           </th>
           <th class="sortable" (click)="onSort('sessions')">
-            Số lần ghé <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('sessions') }}</span>
+            {{ 'visitor.colSessions' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('sessions') }}</span>
           </th>
           <th class="sortable" (click)="onSort('distinctPages')">
-            Số trang <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('distinctPages') }}</span>
+            {{ 'visitor.colPages' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('distinctPages') }}</span>
           </th>
           <th class="sortable" (click)="onSort('ipAddress')">
-            IP <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('ipAddress') }}</span>
+            {{ 'visitor.colIp' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('ipAddress') }}</span>
           </th>
           <th class="sortable" (click)="onSort('countryName')">
-            Vị trí <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('countryName') }}</span>
+            {{ 'visitor.colLocation' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('countryName') }}</span>
           </th>
-          <th>Thiết bị</th>
+          <th>{{ 'visitor.colDevice' | translate }}</th>
           <th class="sortable" (click)="onSort('firstSeen')">
-            Lần đầu <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('firstSeen') }}</span>
+            {{ 'visitor.colFirstSeen' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('firstSeen') }}</span>
           </th>
           <th class="sortable" (click)="onSort('lastSeen')">
-            Gần nhất <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('lastSeen') }}</span>
+            {{ 'visitor.colLastSeen' | translate }} <span class="sort-icon msym" aria-hidden="true">{{ getSortIcon('lastSeen') }}</span>
           </th>
-          <th>Hành động</th>
+          <th>{{ 'visitor.colActions' | translate }}</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngIf="!visitors.length">
-          <td class="empty-row" colspan="9">Chưa có khách nào trong khoảng thời gian này.</td>
+          <td class="empty-row" colspan="9">{{ 'visitor.emptyVisitors' | translate }}</td>
         </tr>
 
         <tr *ngFor="let v of visitors" [class.row-self]="v.isSelf" [class.row-bot]="v.isBot">
@@ -47,14 +47,15 @@
           <td>
             {{ v.sessions }}
             <!-- Từ 2 lần ghé trở lên = khách quay lại, đây là thứ đáng quan tâm nhất -->
-            <span class="badge badge-returning" *ngIf="v.sessions > 1">quay lại</span>
+            <span class="badge badge-returning" *ngIf="v.sessions > 1">{{ 'visitor.badgeReturning' | translate }}</span>
           </td>
 
           <td>{{ v.distinctPages }}</td>
 
           <td>
             {{ v.ipAddress || '-' }}
-            <span class="badge badge-self" *ngIf="v.isSelf">{{ v.knownLabel || 'Của tôi' }}</span>
+            <!-- `knownLabel` là tên do người dùng đặt (DB) — nguyên văn; chỉ chuỗi dự phòng mới dịch. -->
+            <span class="badge badge-self" *ngIf="v.isSelf">{{ v.knownLabel || ('visitor.mine' | translate) }}</span>
             <span class="badge badge-bot" *ngIf="v.isBot">bot</span>
           </td>
 
@@ -68,13 +69,13 @@
               class="btn-action btn-edit"
               *ngIf="v.visitorId"
               (click)="showVisitor.emit(v.visitorId!)"
-              title="Xem từng lượt truy cập của khách này">Chi tiết</button>
+              [title]="'visitor.visitorDetailTitle' | translate">{{ 'visitor.visitorDetailButton' | translate }}</button>
 
             <button
               class="btn-action btn-delete"
               *ngIf="!v.isSelf"
               (click)="markAsMine(v)"
-              title="Đánh dấu là traffic của tôi">Là tôi</button>
+              [title]="'visitor.markMineVisitorTitle' | translate">{{ 'visitor.markMineButton' | translate }}</button>
           </td>
         </tr>
       </tbody>

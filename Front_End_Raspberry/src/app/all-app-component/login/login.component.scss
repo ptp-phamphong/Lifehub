@@ -190,3 +190,11 @@
     cursor: not-allowed;
   }
 }
+
+// Bộ chọn ngôn ngữ — góc trên của thẻ đăng nhập.
+// Hình dáng nút (.lang-button) nằm ở global `styles.scss` vì trang Cài đặt giao
+// diện cũng dùng; ở đây chỉ canh vị trí cho riêng thẻ đăng nhập.
+.language-switcher {
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}

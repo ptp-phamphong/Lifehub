@@ -3,37 +3,41 @@
   <!-- KPI -->
   <div class="summary-section">
     <div class="summary-card">
-      <div class="summary-label">Lượt xem</div>
+      <div class="summary-label">{{ 'visitor.kpiViews' | translate }}</div>
       <div class="summary-value">{{ summary.totalViews }}</div>
     </div>
     <div class="summary-card">
-      <div class="summary-label">Khách</div>
+      <div class="summary-label">{{ 'visitor.kpiVisitors' | translate }}</div>
       <div class="summary-value">{{ summary.uniqueVisitors }}</div>
     </div>
     <div class="summary-card">
-      <div class="summary-label">Khách quay lại</div>
+      <div class="summary-label">{{ 'visitor.kpiReturning' | translate }}</div>
       <div class="summary-value">{{ summary.returningVisitors }}</div>
-      <div class="summary-hint">từ 2 phiên trở lên</div>
+      <div class="summary-hint">{{ 'visitor.kpiReturningHint' | translate }}</div>
     </div>
     <div class="summary-card">
-      <div class="summary-label">Phiên</div>
+      <div class="summary-label">{{ 'visitor.kpiSessions' | translate }}</div>
       <div class="summary-value">{{ summary.sessions }}</div>
     </div>
     <div class="summary-card">
-      <div class="summary-label">Thời gian đọc TB</div>
+      <div class="summary-label">{{ 'visitor.kpiAvgDuration' | translate }}</div>
       <div class="summary-value">{{ formatDuration(summary.avgDurationSeconds) }}</div>
     </div>
     <div class="summary-card" [class.alert]="summary.failedLogins > 0">
-      <div class="summary-label">Đăng nhập thất bại</div>
+      <div class="summary-label">{{ 'visitor.kpiFailedLogins' | translate }}</div>
       <div class="summary-value">{{ summary.failedLogins }}</div>
-      <div class="summary-hint">trên tổng {{ summary.loginAttempts }} lần thử</div>
+      <div class="summary-hint">{{ 'visitor.kpiLoginAttempts' | translate:{ count: summary.loginAttempts } }}</div>
     </div>
   </div>
 
-  <!-- Biểu đồ theo ngày (tính từ dữ liệu thô) -->
+  <!--
+    `title` là @Input nhận chuỗi, nên phải dịch NGAY TẠI ĐÂY bằng pipe. Truyền khoá
+    xuống rồi để con tự dịch cũng được, nhưng như vậy con phải biết TranslateService
+    chỉ vì một cái tiêu đề — trong khi pipe ở chỗ gọi vẫn tự chạy lại khi đổi ngôn ngữ.
+  -->
   <app-visit-trend-chart
     [points]="summary.dailySeries"
-    title="Lượt xem theo ngày">
+    [title]="'visitor.chartViewsByDay' | translate">
   </app-visit-trend-chart>
 
   <!-- Chỉ hiện khi chọn "Tất cả": dữ liệu từ bảng tổng hợp nên vẫn còn
@@ -41,14 +45,17 @@
   <app-visit-trend-chart
     *ngIf="history?.length"
     [points]="history"
-    title="Lịch sử dài hạn (từ bảng tổng hợp theo ngày - không tính bot và traffic của tôi)">
+    [title]="'visitor.chartLongTerm' | translate">
   </app-visit-trend-chart>
 
-  <!-- Bảng xếp hạng -->
+  <!--
+    Bảng xếp hạng. `item.label` là dữ liệu tổng hợp từ DB (đường dẫn trang, tên miền
+    nguồn, tên quốc gia, loại thiết bị, trình duyệt) nên hiển thị NGUYÊN VĂN (§4.3).
+  -->
   <div class="rank-grid">
     <div class="rank-card">
-      <h3>Trang được xem nhiều nhất</h3>
-      <div class="rank-empty" *ngIf="!summary.topPages.length">Chưa có dữ liệu</div>
+      <h3>{{ 'visitor.rankTopPages' | translate }}</h3>
+      <div class="rank-empty" *ngIf="!summary.topPages.length">{{ 'visitor.noData' | translate }}</div>
       <div class="rank-row" *ngFor="let item of summary.topPages">
         <div class="rank-bar" [style.width]="barWidth(item.count, summary.topPages)"></div>
         <span class="rank-label" [title]="item.label">{{ item.label }}</span>
@@ -57,8 +64,8 @@
     </div>
 
     <div class="rank-card">
-      <h3>Nguồn truy cập</h3>
-      <div class="rank-empty" *ngIf="!summary.topReferrers.length">Chưa có dữ liệu</div>
+      <h3>{{ 'visitor.rankReferrers' | translate }}</h3>
+      <div class="rank-empty" *ngIf="!summary.topReferrers.length">{{ 'visitor.noData' | translate }}</div>
       <div class="rank-row" *ngFor="let item of summary.topReferrers">
         <div class="rank-bar" [style.width]="barWidth(item.count, summary.topReferrers)"></div>
         <span class="rank-label" [title]="item.label">{{ item.label }}</span>
@@ -67,8 +74,8 @@
     </div>
 
     <div class="rank-card">
-      <h3>Quốc gia</h3>
-      <div class="rank-empty" *ngIf="!summary.topCountries.length">Chưa có dữ liệu</div>
+      <h3>{{ 'visitor.rankCountries' | translate }}</h3>
+      <div class="rank-empty" *ngIf="!summary.topCountries.length">{{ 'visitor.noData' | translate }}</div>
       <div class="rank-row" *ngFor="let item of summary.topCountries">
         <div class="rank-bar" [style.width]="barWidth(item.count, summary.topCountries)"></div>
         <span class="rank-label" [title]="item.label">{{ item.label }}</span>
@@ -77,8 +84,8 @@
     </div>
 
     <div class="rank-card">
-      <h3>Thiết bị</h3>
-      <div class="rank-empty" *ngIf="!summary.topDevices.length">Chưa có dữ liệu</div>
+      <h3>{{ 'visitor.rankDevices' | translate }}</h3>
+      <div class="rank-empty" *ngIf="!summary.topDevices.length">{{ 'visitor.noData' | translate }}</div>
       <div class="rank-row" *ngFor="let item of summary.topDevices">
         <div class="rank-bar" [style.width]="barWidth(item.count, summary.topDevices)"></div>
         <span class="rank-label">{{ item.label }}</span>
@@ -87,8 +94,8 @@
     </div>
 
     <div class="rank-card">
-      <h3>Trình duyệt</h3>
-      <div class="rank-empty" *ngIf="!summary.topBrowsers.length">Chưa có dữ liệu</div>
+      <h3>{{ 'visitor.rankBrowsers' | translate }}</h3>
+      <div class="rank-empty" *ngIf="!summary.topBrowsers.length">{{ 'visitor.noData' | translate }}</div>
       <div class="rank-row" *ngFor="let item of summary.topBrowsers">
         <div class="rank-bar" [style.width]="barWidth(item.count, summary.topBrowsers)"></div>
         <span class="rank-label">{{ item.label }}</span>

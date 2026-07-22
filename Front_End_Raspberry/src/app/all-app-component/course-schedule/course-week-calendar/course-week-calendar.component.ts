@@ -1,13 +1,16 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit, HostListener, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { environment } from 'src/environments/environment';
 import { CourseSchedule } from 'src/app/model/course-schedule.model';
 import { toLunarDate, formatLunarDateVN } from 'src/app/utils/lunar-calendar';
 import { isCancelledSession, learningModeLabel } from 'src/app/utils/learning-mode';
+import { WEEK_DOW_KEYS, dowTranslationKey } from 'src/app/utils/day-of-week';
 
 export interface WeekDay {
   date: Date;
-  label: string;      // "T2", "T3", ... "CN"
+  labelKey: string;    // khoá i18n, vd. "course.dowShort.mon" — KHÔNG lưu chuỗi
+                       // đã dịch, nếu không tiêu đề cột sẽ kẹt ở ngôn ngữ cũ.
   dateLabel: string;   // "03/03"
   dow: number;         // 2-8
 }
@@ -63,6 +66,8 @@ export class CourseWeekCalendarComponent implements OnInit {
   private touchStartX: number = 0;
   private touchStartY: number = 0;
   private minSwipeDistance: number = 50;
+
+  private readonly translate = inject(TranslateService);
 
   constructor(private http: HttpClient) {}
   
@@ -146,7 +151,6 @@ export class CourseWeekCalendarComponent implements OnInit {
   }
 
   buildWeek() {
-    const labels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
     this.weekDays = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(this.currentWeekMonday);
@@ -155,7 +159,7 @@ export class CourseWeekCalendarComponent implements OnInit {
       const monthNum = (date.getMonth() + 1).toString().padStart(2, '0');
       this.weekDays.push({
         date,
-        label: labels[i],
+        labelKey: `course.dowShort.${WEEK_DOW_KEYS[i]}`,
         dateLabel: `${dayNum}/${monthNum}`,
         dow: i + 2 > 8 ? 8 : i + 2  // Mon=2 ... Sun=8
       });
@@ -310,12 +314,11 @@ export class CourseWeekCalendarComponent implements OnInit {
     this.selectedCourse = null;
   }
 
+  /** Method chứ không phải trường: được tính lại mỗi chu kỳ change detection
+   *  nên đổi ngôn ngữ là nhãn đổi theo. */
   dayOfWeekLabel(dow?: number): string {
-    const labels: { [key: number]: string } = {
-      2: 'Thứ 2', 3: 'Thứ 3', 4: 'Thứ 4', 5: 'Thứ 5',
-      6: 'Thứ 6', 7: 'Thứ 7', 8: 'Chủ nhật'
-    };
-    return dow ? labels[dow] || '' : '';
+    const key = dowTranslationKey(dow, 'dowLong');
+    return key ? this.translate.instant(key) : '';
   }
   
   // Lunar calendar support
@@ -323,7 +326,8 @@ export class CourseWeekCalendarComponent implements OnInit {
     return toLunarDate(date);
   }
   
+  /** Ngày/tháng âm là số nên không dịch; chỉ tiền tố tháng nhuận cần dịch. */
   formatLunarDateVN(lunarDate: any): string {
-    return formatLunarDateVN(lunarDate);
+    return formatLunarDateVN(lunarDate, this.translate.instant('course.lunarLeap'));
   }
 }

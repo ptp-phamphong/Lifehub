@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { VisitorLogService } from 'src/app/services/visitor-log.service';
 import { VisitorLogFilter, VisitorProfile } from 'src/app/model/visitor-log.model';
 
@@ -21,6 +22,8 @@ export class VisitorProfileListComponent implements OnChanges {
   sortColumn = 'views';
   sortDirection = 'desc';
   loading = false;
+
+  private readonly translate = inject(TranslateService);
 
   constructor(private visitorLogService: VisitorLogService) {}
 
@@ -66,12 +69,12 @@ export class VisitorProfileListComponent implements OnChanges {
 
   markAsMine(visitor: VisitorProfile): void {
     const label = window.prompt(
-      `Dat ten cho khach nay (IP ${visitor.ipAddress}):`,
-      visitor.knownLabel || 'Cua toi'
+      this.translate.instant('visitor.promptNameVisitor', { ip: visitor.ipAddress }),
+      visitor.knownLabel || this.translate.instant('visitor.mine')
     );
     if (label === null) return;
 
-    // Danh dau ca IP lan VisitorId: IP nha co the doi, nhung trinh duyet thi khong.
+    // Đánh dấu cả IP lẫn VisitorId: IP nhà có thể đổi, nhưng trình duyệt thì không.
     this.visitorLogService.markAsMine(visitor.ipAddress, visitor.visitorId, label).subscribe({
       next: () => {
         this.dataChanged.emit();

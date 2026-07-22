@@ -1,6 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, inject } from '@angular/core';
 import { CumulativePoint, CumulativeSeries } from 'src/app/model/expense-analytics.model';
-import { formatCurrencyCompact, formatCurrencyFull } from '../expense-analytics.transform';
+import { AnalyticsFormatService } from '../analytics-format.service';
 
 interface Diem {
   x: number;
@@ -26,11 +26,11 @@ interface Diem {
 })
 export class CumulativeMonthChartComponent implements OnChanges {
   @Input() series: CumulativeSeries = {
-    current: [], previous: [], currentLabel: '', previousLabel: '', daysInMonth: 31, isPartial: false
+    current: [], previous: [], currentMonthKey: '', previousMonthKey: '', daysInMonth: 31, isPartial: false
   };
 
   readonly viewWidth = 720;
-  readonly viewHeight = 220;
+  readonly viewHeight = 170;
   readonly paddingLeft = 54;
   readonly paddingRight = 8;
   readonly paddingBottom = 22;
@@ -42,7 +42,19 @@ export class CumulativeMonthChartComponent implements OnChanges {
   gridLines: { y: number; label: string }[] = [];
   moc: { x: number; label: string }[] = [];
 
-  formatFull = formatCurrencyFull;
+  private readonly fmt = inject(AnalyticsFormatService);
+
+  /** Nhãn giá trị ở chấm cuối đường - dùng trong template. */
+  formatFull = (value: number) => this.fmt.full(value);
+
+  /** Chú giải nằm ngoài SVG nên để getter, tính lại mỗi chu kỳ change detection. */
+  get currentLabel(): string {
+    return this.series.currentMonthKey ? this.fmt.monthTitle(this.series.currentMonthKey) : '';
+  }
+
+  get previousLabel(): string {
+    return this.series.previousMonthKey ? this.fmt.monthTitle(this.series.previousMonthKey) : '';
+  }
 
   ngOnChanges(): void {
     this.build();
@@ -88,7 +100,7 @@ export class CumulativeMonthChartComponent implements OnChanges {
 
     for (let i = 0; i <= 2; i++) {
       const value = (max / 2) * i;
-      this.gridLines.push({ y: toY(value), label: formatCurrencyCompact(Math.round(value)) });
+      this.gridLines.push({ y: toY(value), label: this.fmt.compact(Math.round(value)) });
     }
 
     for (const d of [1, 5, 10, 15, 20, 25, days]) {

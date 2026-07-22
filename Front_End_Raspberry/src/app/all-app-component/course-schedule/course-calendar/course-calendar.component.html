@@ -1,20 +1,20 @@
 
 <div class="view-toggle-bar">
-  <span class="toggle-label" [class.active]="!showMonth">Tuần</span>
+  <span class="toggle-label" [class.active]="!showMonth">{{ 'course.viewWeek' | translate }}</span>
   <label class="toggle-switch">
     <input type="checkbox" [(ngModel)]="showMonth" name="showMonth" />
     <span class="toggle-slider"></span>
   </label>
-  <span class="toggle-label" [class.active]="showMonth">Tháng</span>
+  <span class="toggle-label" [class.active]="showMonth">{{ 'course.viewMonth' | translate }}</span>
 </div>
 
 <div class="view-toggle-bar" *ngIf="showMonth">
-  <span class="toggle-label" [class.active]="!showExpense">Thời khóa biểu</span>
+  <span class="toggle-label" [class.active]="!showExpense">{{ 'course.viewSchedule' | translate }}</span>
   <label class="toggle-switch">
     <input type="checkbox" [(ngModel)]="showExpense" name="showExpense" />
     <span class="toggle-slider"></span>
   </label>
-  <span class="toggle-label" [class.active]="showExpense">Chi tiêu</span>
+  <span class="toggle-label" [class.active]="showExpense">{{ 'course.viewExpense' | translate }}</span>
 </div>
 
 <ng-container *ngIf="showMonth">

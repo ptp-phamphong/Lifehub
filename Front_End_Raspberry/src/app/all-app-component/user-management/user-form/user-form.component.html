@@ -1,55 +1,55 @@
 <div class="expense-form">
-  <h2>{{ dialogTitle }}</h2>
+  <h2>{{ dialogTitleKey | translate }}</h2>
 
   <form (ngSubmit)="submitForm()">
     <!-- Chế độ tạo mới: tên đăng nhập + tên hiển thị + mật khẩu -->
     <div class="form-group" *ngIf="mode === 'create'">
-      <label for="username">Tên đăng nhập</label>
-      <input id="username" type="text" [(ngModel)]="username" name="username" placeholder="Nhập tên đăng nhập..." />
+      <label for="username">{{ 'user.username' | translate }}</label>
+      <input id="username" type="text" [(ngModel)]="username" name="username" [placeholder]="'user.usernamePlaceholder' | translate" />
     </div>
 
     <div class="form-group" *ngIf="mode === 'create' || mode === 'edit'">
-      <label for="name">Tên hiển thị</label>
-      <input id="name" type="text" [(ngModel)]="name" name="name" placeholder="Nhập tên hiển thị..." />
+      <label for="name">{{ 'user.name' | translate }}</label>
+      <input id="name" type="text" [(ngModel)]="name" name="name" [placeholder]="'user.namePlaceholder' | translate" />
     </div>
 
     <!-- Email nhận OTP khi quên mật khẩu -->
     <div class="form-group" *ngIf="mode === 'create' || mode === 'edit'">
-      <label for="email">Email (nhận OTP quên mật khẩu)</label>
-      <input id="email" type="email" [(ngModel)]="email" name="email" placeholder="vd: ptp.phamphong@gmail.com" />
+      <label for="email">{{ 'user.email' | translate }}</label>
+      <input id="email" type="email" [(ngModel)]="email" name="email" [placeholder]="'user.emailPlaceholder' | translate" />
     </div>
 
     <div class="form-group" *ngIf="mode === 'edit'">
-      <label>Trạng thái</label>
+      <label>{{ 'user.status' | translate }}</label>
       <select [(ngModel)]="active" name="active">
-        <option [ngValue]="true">Đang hoạt động</option>
-        <option [ngValue]="false">Ngừng hoạt động</option>
+        <option [ngValue]="true">{{ 'user.active' | translate }}</option>
+        <option [ngValue]="false">{{ 'user.inactive' | translate }}</option>
       </select>
     </div>
 
     <!-- Chế độ tạo mới hoặc đổi mật khẩu: các ô mật khẩu -->
     <div class="form-group" *ngIf="mode === 'create' || mode === 'password'">
-      <label for="password">{{ mode === 'password' ? 'Mật khẩu mới' : 'Mật khẩu' }}</label>
-      <input id="password" type="password" [(ngModel)]="password" name="password" placeholder="Nhập mật khẩu..." />
+      <label for="password">{{ (mode === 'password' ? 'user.newPassword' : 'user.password') | translate }}</label>
+      <input id="password" type="password" [(ngModel)]="password" name="password" [placeholder]="'user.passwordPlaceholder' | translate" />
     </div>
 
     <div class="form-group" *ngIf="mode === 'create' || mode === 'password'">
-      <label for="confirmPassword">Xác nhận mật khẩu</label>
-      <input id="confirmPassword" type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu..." />
+      <label for="confirmPassword">{{ 'user.confirmPassword' | translate }}</label>
+      <input id="confirmPassword" type="password" [(ngModel)]="confirmPassword" name="confirmPassword" [placeholder]="'user.confirmPasswordPlaceholder' | translate" />
     </div>
 
     <!-- Chế độ sửa: hiển thị tên đăng nhập (chỉ đọc) -->
     <div class="form-group" *ngIf="mode === 'edit'">
-      <label>Tên đăng nhập</label>
+      <label>{{ 'user.username' | translate }}</label>
       <input type="text" [value]="username" disabled />
     </div>
 
-    <button type="submit">Lưu</button>
+    <button type="submit">{{ 'common.save' | translate }}</button>
   </form>
 
-  <p class="message" *ngIf="message">{{ message }}</p>
+  <p class="message" *ngIf="messageKey">{{ messageKey | translate }}</p>
 
   <div class="cancel-row">
-    <button type="button" (click)="cancel()">Hủy</button>
+    <button type="button" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
   </div>
 </div>

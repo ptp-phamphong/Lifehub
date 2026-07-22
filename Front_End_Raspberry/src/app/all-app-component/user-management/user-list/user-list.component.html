@@ -1,36 +1,37 @@
 <div class="expense-table-container">
-  <h2>Quản lý người dùng</h2>
+  <h2>{{ 'user.listTitle' | translate }}</h2>
 
   <div class="toolbar">
-    <button class="btn-add" (click)="openCreateDialog()">+ Thêm người dùng</button>
+    <button class="btn-add" (click)="openCreateDialog()">+ {{ 'user.addNew' | translate }}</button>
   </div>
 
   <table class="expense-table">
     <thead>
       <tr>
-        <th>Mã</th>
-        <th>Tên đăng nhập</th>
-        <th>Tên hiển thị</th>
+        <th>{{ 'user.id' | translate }}</th>
+        <th>{{ 'user.username' | translate }}</th>
+        <th>{{ 'user.name' | translate }}</th>
         <th>Email</th>
-        <th>Trạng thái</th>
-        <th>Hành động</th>
+        <th>{{ 'user.status' | translate }}</th>
+        <th>{{ 'common.actions' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let user of users">
         <td>{{ user.id }}</td>
+        <!-- username/name/email là dữ liệu DB: nguyên văn, KHÔNG dịch. -->
         <td>{{ user.username }}</td>
         <td>{{ user.name }}</td>
         <td>{{ user.email || '—' }}</td>
         <td>
           <span class="badge" [class.badge-active]="user.active" [class.badge-inactive]="!user.active">
-            {{ user.active ? 'Đang hoạt động' : 'Ngừng hoạt động' }}
+            {{ (user.active ? 'user.active' : 'user.inactive') | translate }}
           </span>
         </td>
         <td class="col-actions">
-          <button class="btn-action btn-edit" (click)="openEditDialog(user)">Sửa</button>
-          <button class="btn-action btn-password" (click)="openChangePasswordDialog(user)">Đổi mật khẩu</button>
-          <button class="btn-action btn-delete" (click)="deleteUser(user)">Xóa</button>
+          <button class="btn-action btn-edit" (click)="openEditDialog(user)">{{ 'common.edit' | translate }}</button>
+          <button class="btn-action btn-password" (click)="openChangePasswordDialog(user)">{{ 'user.changePassword' | translate }}</button>
+          <button class="btn-action btn-delete" (click)="deleteUser(user)">{{ 'common.delete' | translate }}</button>
         </td>
       </tr>
     </tbody>

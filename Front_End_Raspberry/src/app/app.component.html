@@ -2,7 +2,7 @@
 <div class="loading-overlay" *ngIf="loadingService.loading$ | async">
   <div class="spinner-container">
     <div class="spinner-ring"></div>
-    <p class="spinner-text">Đang tải...</p>
+    <p class="spinner-text">{{ 'common.loading' | translate }}</p>
   </div>
 </div>
 

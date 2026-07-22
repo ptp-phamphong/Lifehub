@@ -9,9 +9,13 @@ import { VisitorDailyPoint, VisitorSummary } from 'src/app/model/visitor-log.mod
 export class VisitorOverviewComponent {
   @Input() summary: VisitorSummary | null = null;
 
-  /** Chỉ có dữ liệu khi đang chọn khoảng "Tat ca" - xem visitor-log-page.component.ts */
+  /** Chỉ có dữ liệu khi đang chọn khoảng "Tất cả" - xem visitor-log-page.component.ts */
   @Input() history: VisitorDailyPoint[] = [];
 
+  /**
+   * `s` / `m` là ký hiệu đơn vị quốc tế nên không dịch — cùng cách xử lý với
+   * `ms`, `GiB`, `°C` ở các feature khác.
+   */
   formatDuration(seconds: number): string {
     if (!seconds || seconds <= 0) return '-';
     if (seconds < 60) return `${seconds}s`;

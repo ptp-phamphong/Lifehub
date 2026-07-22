@@ -1,62 +1,67 @@
 <div class="zalo-page">
 	<div class="zalo-header">
 		<div>
-			<h5 class="zalo-title">Gửi tin nhắn Zalo</h5>
-			<p class="zalo-subtitle">
-				Đăng nhập Zalo một lần bằng mã QR, sau đó chọn người nhận và gửi tin nhắn.
-			</p>
+			<h5 class="zalo-title">{{ 'zalo.title' | translate }}</h5>
+			<p class="zalo-subtitle">{{ 'zalo.subtitle' | translate }}</p>
 		</div>
-		<button class="btn-refresh" type="button" (click)="refreshStatus()"><span class="msym" aria-hidden="true">refresh</span><span>Kiểm tra trạng thái</span></button>
+		<button class="btn-refresh" type="button" (click)="refreshStatus()"><span class="msym" aria-hidden="true">refresh</span><span>{{ 'zalo.checkStatus' | translate }}</span></button>
 	</div>
 
 	<p class="zalo-disabled" *ngIf="statusChecked && !enabled">
-		<span class="msym" aria-hidden="true">warning</span><span>Tính năng chỉ chạy trên Raspberry Pi (không hoạt động khi chạy máy cục bộ).</span>
+		<span class="msym" aria-hidden="true">warning</span><span>{{ 'zalo.disabledNotice' | translate }}</span>
 	</p>
 
 	<ng-container *ngIf="enabled">
 		<!-- Khu đăng nhập -->
 		<div class="zalo-card" *ngIf="!loggedIn">
-			<h6 class="card-title">Đăng nhập Zalo</h6>
+			<h6 class="card-title">{{ 'zalo.loginCardTitle' | translate }}</h6>
 			<button class="btn-run" type="button" (click)="startLogin()" [disabled]="loginPolling">
-				<span class="msym" aria-hidden="true">play_arrow</span><span>{{ loginPolling ? 'Đang chờ quét…' : 'Đăng nhập Zalo' }}</span>
+				<span class="msym" aria-hidden="true">play_arrow</span><span>{{ (loginPolling ? 'zalo.waitingScan' : 'zalo.loginButton') | translate }}</span>
 			</button>
-			<p class="zalo-hint" *ngIf="loginMessage">{{ loginMessage }}</p>
+			<!--
+				Backend gửi message thì hiện nguyên văn, không thì dùng chuỗi của
+				client (đã dịch). Giữ riêng hai nguồn — xem §4.1 kế hoạch i18n.
+			-->
+			<p class="zalo-hint" *ngIf="loginMessageKey || loginMessageRaw">
+				{{ loginMessageKey ? (loginMessageKey | translate) : loginMessageRaw }}
+			</p>
 			<div class="qr-box" *ngIf="qrImage">
-				<img [src]="qrImage" alt="Mã QR đăng nhập Zalo" />
+				<img [src]="qrImage" [alt]="'zalo.qrAlt' | translate" />
 			</div>
 		</div>
 
 		<!-- Khu gửi tin -->
 		<div class="zalo-card" *ngIf="loggedIn">
-			<h6 class="card-title">Soạn tin nhắn</h6>
+			<h6 class="card-title">{{ 'zalo.composeTitle' | translate }}</h6>
 
-			<label class="field-label" for="zalo-contact">Người nhận</label>
+			<label class="field-label" for="zalo-contact">{{ 'zalo.recipient' | translate }}</label>
 			<select id="zalo-contact" class="zalo-select" [(ngModel)]="selectedContactId">
+				<!-- `c.label` là cấu hình phía server — hiển thị nguyên văn (§4.3). -->
 				<option *ngFor="let c of contacts" [value]="c.id">{{ c.label }}</option>
-				<option *ngIf="!contacts.length" [ngValue]="null" disabled>Chưa cấu hình người nhận</option>
+				<option *ngIf="!contacts.length" [ngValue]="null" disabled>{{ 'zalo.noContacts' | translate }}</option>
 			</select>
 
-			<label class="field-label" for="zalo-message">Nội dung</label>
+			<label class="field-label" for="zalo-message">{{ 'zalo.content' | translate }}</label>
 			<textarea
 				id="zalo-message"
 				class="zalo-textarea"
 				rows="4"
 				[(ngModel)]="message"
-				placeholder="Nhập nội dung tin nhắn..."
+				[placeholder]="'zalo.contentPlaceholder' | translate"
 			></textarea>
 
 			<button class="btn-run" type="button" (click)="send()" [disabled]="sending">
-				<span class="msym" aria-hidden="true">send</span><span>{{ sending ? 'Đang gửi…' : 'Gửi tin nhắn' }}</span>
+				<span class="msym" aria-hidden="true">send</span><span>{{ (sending ? 'zalo.sending' : 'zalo.sendButton') | translate }}</span>
 			</button>
 
-			<p class="send-message" [class.ok]="sendOk" [class.err]="!sendOk" *ngIf="sendMessage">
-				{{ sendMessage }}
+			<p class="send-message" [class.ok]="sendOk" [class.err]="!sendOk" *ngIf="sendMessageKey || sendMessageRaw">
+				{{ sendMessageKey ? (sendMessageKey | translate) : sendMessageRaw }}
 			</p>
 
 			<div class="send-screenshot" *ngIf="sendScreenshot">
-				<p class="screenshot-hint">Ảnh chụp sau khi gửi — kiểm tra xem đã gửi đúng người chưa:</p>
-				<a [href]="sendScreenshot" target="_blank" rel="noopener" title="Bấm để xem ảnh lớn">
-					<img [src]="sendScreenshot" alt="Ảnh chụp hội thoại sau khi gửi" />
+				<p class="screenshot-hint">{{ 'zalo.screenshotHint' | translate }}</p>
+				<a [href]="sendScreenshot" target="_blank" rel="noopener" [title]="'zalo.screenshotZoomTitle' | translate">
+					<img [src]="sendScreenshot" [alt]="'zalo.screenshotAlt' | translate" />
 				</a>
 			</div>
 		</div>

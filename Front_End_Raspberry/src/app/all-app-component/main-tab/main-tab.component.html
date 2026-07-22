@@ -3,18 +3,46 @@
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"></span>
       <span class="brand-text">
+        <!-- "Raspberry" là tên riêng — không dịch. -->
         <span class="brand-name">Raspberry</span>
-        <span class="brand-sub">Bảng điều khiển</span>
+        <span class="brand-sub">{{ 'nav.brandSub' | translate }}</span>
       </span>
     </div>
 
-    <button (click)="logout()" class="btn-logout" type="button">
-      <span class="msym" aria-hidden="true">logout</span>
-      <span>Đăng xuất</span>
-    </button>
+    <div class="app-bar-actions">
+      <!-- Đổi theme: một nút, icon cho biết sẽ chuyển SANG chế độ nào. -->
+      <button
+        type="button"
+        class="btn-icon"
+        (click)="toggleDarkMode()"
+        [title]="(isDarkMode() ? 'theme.switchToLight' : 'theme.switchToDark') | translate"
+        [attr.aria-label]="(isDarkMode() ? 'theme.switchToLight' : 'theme.switchToDark') | translate"
+        [attr.aria-pressed]="isDarkMode()"
+      >
+        <span class="msym" aria-hidden="true">{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</span>
+      </button>
+
+      <div class="language-switcher">
+        <button
+          type="button"
+          *ngFor="let lang of languages"
+          class="lang-button"
+          [class.active]="lang === currentLanguage()"
+          [attr.aria-pressed]="lang === currentLanguage()"
+          (click)="setLanguage(lang)"
+        >
+          {{ lang | uppercase }}
+        </button>
+      </div>
+
+      <button (click)="logout()" class="btn-logout" type="button">
+        <span class="msym" aria-hidden="true">logout</span>
+        <span>{{ 'nav.logout' | translate }}</span>
+      </button>
+    </div>
   </header>
 
-  <nav class="app-nav" aria-label="Điều hướng chính">
+  <nav class="app-nav" [attr.aria-label]="'nav.mainNavigation' | translate">
     <a
       [routerLink]="['/system-info']"
       routerLinkActive="active"
@@ -22,23 +50,23 @@
       class="nav-item"
     >
       <span class="msym" aria-hidden="true">developer_board</span>
-      <span>Thông tin hệ thống</span>
+      <span>{{ 'nav.systemInfo' | translate }}</span>
     </a>
     <a [routerLink]="['/expense-record-list']" routerLinkActive="active" class="nav-item">
       <span class="msym" aria-hidden="true">receipt_long</span>
-      <span>Chi tiêu</span>
+      <span>{{ 'nav.expenses' | translate }}</span>
     </a>
     <a [routerLink]="['/expense-analytics']" routerLinkActive="active" class="nav-item">
       <span class="msym" aria-hidden="true">insights</span>
-      <span>Phân tích</span>
+      <span>{{ 'nav.analytics' | translate }}</span>
     </a>
     <a [routerLink]="['/course-calendar']" routerLinkActive="active" class="nav-item">
       <span class="msym" aria-hidden="true">calendar_month</span>
-      <span>Thời khóa biểu</span>
+      <span>{{ 'nav.courseSchedule' | translate }}</span>
     </a>
     <a [routerLink]="['/settings']" routerLinkActive="active" class="nav-item">
       <span class="msym" aria-hidden="true">settings</span>
-      <span>Cài đặt</span>
+      <span>{{ 'nav.settings' | translate }}</span>
     </a>
   </nav>
 

@@ -19,11 +19,18 @@ export class ZaloPageComponent implements OnInit, OnDestroy {
   // Đăng nhập QR
   qrImage: string | null = null;
   loginPolling = false;
-  loginMessage: string | null = null;
+  /**
+   * Thông báo tách làm hai nguồn: KHOÁ i18n do client sinh, và chuỗi backend
+   * trả nguyên văn (§4.1 + §4.3). Feature này gần như chỗ nào cũng có dạng
+   * `r.message || 'dự phòng'` nên cặp này xuất hiện hai lần.
+   */
+  loginMessageKey: string | null = null;
+  loginMessageRaw: string | null = null;
 
   // Gửi tin
   sending = false;
-  sendMessage: string | null = null;
+  sendMessageKey: string | null = null;
+  sendMessageRaw: string | null = null;
   sendOk = false;
   /** Ảnh chụp hội thoại sau khi gửi để xác nhận đúng người. */
   sendScreenshot: string | null = null;
@@ -65,11 +72,11 @@ export class ZaloPageComponent implements OnInit, OnDestroy {
   }
 
   startLogin(): void {
-    this.loginMessage = 'Đang mở Zalo, vui lòng đợi...';
+    this.setLoginMessage('zalo.opening');
     this.qrImage = null;
     this.zalo.startLogin().subscribe({
       next: r => this.applyLoginResult(r),
-      error: () => { this.loginMessage = 'Không mở được Zalo. Thử lại sau.'; }
+      error: () => { this.setLoginMessage('zalo.openFailed'); }
     });
   }
 
@@ -77,29 +84,53 @@ export class ZaloPageComponent implements OnInit, OnDestroy {
     switch (r.status) {
       case 'awaiting_qr':
         this.qrImage = r.qrImageBase64 || null;
-        this.loginMessage = r.message || 'Quét mã QR bằng ứng dụng Zalo trên điện thoại.';
+        this.setLoginMessage('zalo.scanQr', r.message);
         this.scheduleLoginPoll();
         break;
       case 'logged_in':
       case 'already_logged_in':
         this.qrImage = null;
         this.loggedIn = true;
-        this.loginMessage = 'Đã đăng nhập Zalo.';
+        this.setLoginMessage('zalo.loggedIn');
         this.clearLoginTimer();
         break;
       case 'expired':
         this.qrImage = null;
-        this.loginMessage = 'Mã QR đã hết hạn. Bấm đăng nhập lại.';
+        this.setLoginMessage('zalo.qrExpired');
         this.clearLoginTimer();
         break;
       case 'disabled':
         this.enabled = false;
-        this.loginMessage = r.message || 'Tính năng chỉ chạy trên Pi.';
+        this.setLoginMessage('zalo.piOnly', r.message);
         this.clearLoginTimer();
         break;
       default:
-        this.loginMessage = r.message || 'Có lỗi xảy ra.';
+        this.setLoginMessage('zalo.genericError', r.message);
         this.clearLoginTimer();
+    }
+  }
+
+  /**
+   * Backend gửi gì thì hiện nguyên văn; không có thì mới dùng khoá của client.
+   * Luôn xoá nguồn còn lại để hai chuỗi không bao giờ cùng tồn tại.
+   */
+  private setLoginMessage(key: string, raw?: string | null): void {
+    if (raw) {
+      this.loginMessageRaw = raw;
+      this.loginMessageKey = null;
+    } else {
+      this.loginMessageKey = key;
+      this.loginMessageRaw = null;
+    }
+  }
+
+  private setSendMessage(key: string, raw?: string | null): void {
+    if (raw) {
+      this.sendMessageRaw = raw;
+      this.sendMessageKey = null;
+    } else {
+      this.sendMessageKey = key;
+      this.sendMessageRaw = null;
     }
   }
 
@@ -110,7 +141,7 @@ export class ZaloPageComponent implements OnInit, OnDestroy {
       this.zalo.loginStatus().subscribe({
         next: r => this.applyLoginResult(r),
         error: () => {
-          this.loginMessage = 'Mất kết nối khi chờ đăng nhập.';
+          this.setLoginMessage('zalo.lostConnection');
           this.clearLoginTimer();
         }
       });
@@ -128,17 +159,18 @@ export class ZaloPageComponent implements OnInit, OnDestroy {
   send(): void {
     if (!this.selectedContactId || !this.message.trim()) {
       this.sendOk = false;
-      this.sendMessage = 'Chọn người nhận và nhập nội dung.';
+      this.setSendMessage('zalo.missingFields');
       return;
     }
     this.sending = true;
-    this.sendMessage = null;
+    this.sendMessageKey = null;
+    this.sendMessageRaw = null;
     this.sendScreenshot = null;
     this.zalo.send(this.selectedContactId, this.message.trim()).subscribe({
       next: r => {
         this.sending = false;
         this.sendOk = r.status === 'sent';
-        this.sendMessage = this.sendResultText(r);
+        this.applySendResult(r);
         this.sendScreenshot = r.screenshotBase64 || null;
         if (r.status === 'sent') this.message = '';
         if (r.status === 'need_login') this.loggedIn = false;
@@ -146,19 +178,19 @@ export class ZaloPageComponent implements OnInit, OnDestroy {
       error: () => {
         this.sending = false;
         this.sendOk = false;
-        this.sendMessage = 'Không gửi được. Thử lại sau.';
+        this.setSendMessage('zalo.sendFailed');
       }
     });
   }
 
-  private sendResultText(r: ZaloSendResult): string {
+  private applySendResult(r: ZaloSendResult): void {
     switch (r.status) {
-      case 'sent': return 'Đã gửi tin nhắn.';
-      case 'need_login': return 'Chưa đăng nhập Zalo. Hãy đăng nhập trước.';
-      case 'rate_limited': return 'Gửi quá nhanh, thử lại sau vài giây.';
-      case 'contact_not_found': return 'Không tìm thấy người nhận.';
-      case 'disabled': return r.message || 'Tính năng chỉ chạy trên Pi.';
-      default: return r.message || 'Có lỗi xảy ra khi gửi.';
+      case 'sent': this.setSendMessage('zalo.sent'); break;
+      case 'need_login': this.setSendMessage('zalo.needLogin'); break;
+      case 'rate_limited': this.setSendMessage('zalo.rateLimited'); break;
+      case 'contact_not_found': this.setSendMessage('zalo.contactNotFound'); break;
+      case 'disabled': this.setSendMessage('zalo.piOnly', r.message); break;
+      default: this.setSendMessage('zalo.sendError', r.message);
     }
   }
 }

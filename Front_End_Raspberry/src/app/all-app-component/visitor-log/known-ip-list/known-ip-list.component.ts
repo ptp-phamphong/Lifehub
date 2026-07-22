@@ -1,4 +1,5 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 import { VisitorLogService } from 'src/app/services/visitor-log.service';
 import { VisitorKnownIp } from 'src/app/model/visitor-log.model';
 
@@ -19,7 +20,11 @@ export class KnownIpListComponent implements OnInit {
 
   newIp = '';
   newLabel = '';
-  message = '';
+
+  /** KHOÁ i18n, không phải chuỗi đã dịch — xem §4.1 của kế hoạch i18n. */
+  messageKey = '';
+
+  private readonly translate = inject(TranslateService);
 
   constructor(private visitorLogService: VisitorLogService) {}
 
@@ -37,21 +42,26 @@ export class KnownIpListComponent implements OnInit {
   add(): void {
     const ip = this.newIp.trim();
     if (!ip) {
-      this.message = 'Nhập địa chỉ IP trước đã.';
+      this.messageKey = 'visitor.missingIp';
       return;
     }
 
-    this.visitorLogService.markAsMine(ip, undefined, this.newLabel.trim() || 'Cua toi').subscribe({
+    // Nhãn mặc định khi người dùng bỏ trống: dịch ở đây là đúng, vì nó chỉ quyết
+    // định chuỗi được LƯU lần đầu. Đọc lại về sau thì đó là dữ liệu DB, hiện
+    // nguyên văn bất kể ngôn ngữ đang chọn (§4.3).
+    const label = this.newLabel.trim() || this.translate.instant('visitor.mine');
+
+    this.visitorLogService.markAsMine(ip, undefined, label).subscribe({
       next: () => {
         this.newIp = '';
         this.newLabel = '';
-        this.message = '';
+        this.messageKey = '';
         this.load();
         this.dataChanged.emit();
       },
       error: err => {
         console.error('Lỗi khi thêm IP:', err);
-        this.message = 'Không thêm được IP.';
+        this.messageKey = 'visitor.addIpFailed';
       }
     });
   }
@@ -69,7 +79,9 @@ export class KnownIpListComponent implements OnInit {
 
   remove(item: VisitorKnownIp): void {
     const confirmed = window.confirm(
-      `Xoa danh dau cho ${item.ipAddress || item.visitorId}? Cac luot truy cap cua no se hien lai trong thong ke.`
+      this.translate.instant('visitor.confirmDeleteKnownIp', {
+        target: item.ipAddress || item.visitorId
+      })
     );
     if (!confirmed) return;
 

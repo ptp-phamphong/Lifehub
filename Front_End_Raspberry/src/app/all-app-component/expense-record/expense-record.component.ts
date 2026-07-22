@@ -1,5 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, inject } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { LanguageService } from 'src/app/services/language.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ExpenseRecord } from 'src/app/model/expense.model';
 import { ReasonType } from 'src/app/model/reason-type.model';
@@ -20,7 +22,10 @@ interface AiExpenseResponse {
 export class ExpenseRecordComponent {
   reason: string = '';
   amount: number = 0;
-  message: string = '';
+  // Lỗi sinh ở client lưu KEY; message do backend (AI) trả về lưu NGUYÊN VĂN.
+  // Hai trường tách nhau vì chỉ cái đầu mới dịch được (§4.1 kế hoạch i18n).
+  messageKey: string = '';
+  messageRaw: string = '';
   // Trước đây trạng thái thành công/thất bại chỉ nằm ở emoji đầu chuỗi (✅/❌/⚠️),
   // còn khung thông báo thì luôn một màu xám. Bỏ emoji thì phải có trường này,
   // nếu không người dùng không phân biệt được báo thành công với báo lỗi.
@@ -28,6 +33,10 @@ export class ExpenseRecordComponent {
   id: number = 0;
   flowType: 'expense' | 'income' = 'expense';
   reasonTypes: ReasonType[] = [];
+
+  private readonly translate = inject(TranslateService);
+  // Locale cho định dạng số — xem §4.2 kế hoạch i18n.
+  private readonly locale = inject(LanguageService).locale;
   reasonTypeId?: number = null;
   expenseDate: Date = new Date();
 
@@ -62,16 +71,16 @@ export class ExpenseRecordComponent {
     return this.flowType === 'expense';
   }
 
-  get formTitle(): string {
+  get formTitleKey(): string {
     if (this.isExpenseMode) {
-      return this.isEditMode ? 'Chỉnh sửa chi tiêu' : 'Thêm ghi chú chi tiêu';
+      return this.isEditMode ? 'expense.formTitleEditExpense' : 'expense.formTitleAddExpense';
     }
 
-    return this.isEditMode ? 'Chỉnh sửa thu vào' : 'Thêm ghi chú thu vào';
+    return this.isEditMode ? 'expense.formTitleEditIncome' : 'expense.formTitleAddIncome';
   }
 
-  get dateLabel(): string {
-    return this.isExpenseMode ? 'Ngày chi tiêu' : 'Ngày thu vào';
+  get dateLabelKey(): string {
+    return this.isExpenseMode ? 'expense.dateExpense' : 'expense.dateIncome';
   }
 
   private getRoute(routeType: 'getById' | 'add' | 'update'): string {
@@ -126,7 +135,7 @@ export class ExpenseRecordComponent {
         error: (err) => {
           console.error(err);
           this.messageType = 'error';
-          this.message = 'Gửi thất bại!';
+          this.messageKey = 'expense.saveFailed';
         }
       });
   }
@@ -135,7 +144,7 @@ export class ExpenseRecordComponent {
   submitForm() {
     if (!this.reason || this.amount === null) {
       this.messageType = 'warning';
-      this.message = 'Vui lòng nhập đầy đủ thông tin.';
+      this.messageKey = 'expense.missingFields';
       return;
     }
 
@@ -156,7 +165,7 @@ export class ExpenseRecordComponent {
         .subscribe({
           next: (res) => {
             this.messageType = 'success';
-            this.message = 'Gửi thành công!';
+            this.messageKey = 'expense.saveSuccess';
             this.reason = '';
             this.amount = 0;
             this.dialogRef.close('saved');
@@ -172,7 +181,7 @@ export class ExpenseRecordComponent {
         .subscribe({
           next: (res) => {
             this.messageType = 'success';
-            this.message = 'Gửi thành công!';
+            this.messageKey = 'expense.saveSuccess';
             this.reason = '';
             this.amount = 0;
             this.dialogRef.close('saved');
@@ -186,13 +195,18 @@ export class ExpenseRecordComponent {
 
   formatCurrency(amount: number): string {
     if (!amount && amount !== 0) return '';
-    return amount.toLocaleString('vi-VN');
+    return amount.toLocaleString(this.locale());
   }
 
   onAmountInput(event: any) {
     const rawValue = event.target.value.replace(/[^0-9]/g, ''); // chỉ giữ số
     this.amount = Number(rawValue);
     event.target.value = this.formatCurrency(this.amount);
+  }
+
+  private clearMessage(): void {
+    this.messageKey = '';
+    this.messageRaw = '';
   }
 
   cancel() {
@@ -213,12 +227,12 @@ export class ExpenseRecordComponent {
 
     if (!this.aiPrompt.trim()) {
       this.messageType = 'warning';
-      this.message = 'Vui lòng nhập mô tả chi tiêu.';
+      this.messageKey = 'expense.missingFields';
       return;
     }
 
     this.aiLoading = true;
-    this.message = '';
+    this.clearMessage();
 
     this.http.post<AiExpenseResponse>(`${environment.apiBaseUrl}/AiExpense`, { prompt: this.aiPrompt })
       .subscribe({
@@ -226,7 +240,7 @@ export class ExpenseRecordComponent {
           this.aiLoading = false;
           if (res.success && res.expenseId) {
             this.messageType = 'success';
-            this.message = res.message;
+            this.messageRaw = res.message;
             this.aiPrompt = '';
             this.aiMode = false;
             // Switch to edit mode with new ID
@@ -234,14 +248,18 @@ export class ExpenseRecordComponent {
             this.loadExpense();
           } else {
             this.messageType = 'error';
-            this.message = (res.message || 'AI không thể xử lý.');
+            if (res.message) {
+            this.messageRaw = res.message;
+          } else {
+            this.messageKey = 'expense.aiFailed';
+          }
           }
         },
         error: (err) => {
           this.aiLoading = false;
           console.error(err);
           this.messageType = 'error';
-          this.message = 'Lỗi khi gọi AI.';
+          this.messageKey = 'expense.aiError';
         }
       });
   }
