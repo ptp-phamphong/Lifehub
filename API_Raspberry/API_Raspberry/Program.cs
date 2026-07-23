@@ -142,7 +142,32 @@ builder.Services.AddScoped<IVisitorAnalyticsService, VisitorAnalyticsService>();
 // Job chạy nền (Hangfire tự resolve trong scope riêng mỗi lần chạy)
 builder.Services.AddScoped<IScheduleImportJob, ScheduleImportJob>();
 builder.Services.AddScoped<IVisitorLogMaintenanceJob, VisitorLogMaintenanceJob>();
+builder.Services.AddScoped<IDemoReseedJob, DemoReseedJob>();
 builder.Services.AddScoped<IJobsService, JobsService>();
+
+// Instance demo (xem appsettings.Demo.json/DemoMode): dùng để tắt mọi thứ có tác dụng phụ thật
+// (sync UEH thật, gửi Zalo thật, GPIO thật) và bật job seed data giả thay vào đó.
+var isDemo = builder.Configuration.GetValue<bool>("DemoMode");
+
+// Cầu nối để /app điều khiển job demo-reseed như hai job kia: instance thật mở thêm một kho
+// Hangfire trỏ vào raspberry_demo (chỉ đẩy việc + đọc lịch sử, không chạy). Bật khi có
+// DemoControl:ConnectionString; instance demo đặt chuỗi này rỗng nên Storage = null (không tự nối
+// vào chính nó). Xem DemoJobStorageAccessor.
+var demoControlConn = builder.Configuration["DemoControl:ConnectionString"];
+builder.Services.AddSingleton(_ =>
+{
+    if (string.IsNullOrEmpty(demoControlConn))
+        return new DemoJobStorageAccessor(null);
+
+    var demoStorage = new MySqlStorage(demoControlConn, new MySqlStorageOptions
+    {
+        TablesPrefix = "Hangfire_",
+        // Instance demo tự tạo schema Hangfire trong raspberry_demo; ở đây chỉ đọc/đẩy việc.
+        PrepareSchemaIfNecessary = false,
+        QueuePollInterval = TimeSpan.FromSeconds(5)
+    });
+    return new DemoJobStorageAccessor(demoStorage);
+});
 
 // GeoIp là Singleton: file .mmdb chỉ mở một lần, DatabaseReader vốn thread-safe.
 builder.Services.AddSingleton<IGeoIpService, GeoIpService>();
@@ -242,17 +267,34 @@ try
     using var jobScope = app.Services.CreateScope();
     var recurringJobManager = jobScope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-    var scheduleImportCron = builder.Configuration["HangfireJobs:ScheduleImportCron"] ?? Cron.Hourly();
-    recurringJobManager.AddOrUpdate<IScheduleImportJob>(
-        JobDefinitions.ScheduleImportRecurringId,
-        job => job.RunAsync(),
-        scheduleImportCron);
+    // Sync UEH thật và dọn visitor log thật: không đăng ký trên instance demo, vì nó dùng
+    // UehLogin thật (kéo lịch học thật vào raspberry_demo) và không có gì để dọn cả.
+    if (!isDemo)
+    {
+        var scheduleImportCron = builder.Configuration["HangfireJobs:ScheduleImportCron"] ?? Cron.Hourly();
+        recurringJobManager.AddOrUpdate<IScheduleImportJob>(
+            JobDefinitions.ScheduleImportRecurringId,
+            job => job.RunAsync(),
+            scheduleImportCron);
 
-    var visitorLogMaintenanceCron = builder.Configuration["HangfireJobs:VisitorLogMaintenanceCron"] ?? "0 */6 * * *";
-    recurringJobManager.AddOrUpdate<IVisitorLogMaintenanceJob>(
-        JobDefinitions.VisitorLogMaintenanceRecurringId,
-        job => job.RunAsync(),
-        visitorLogMaintenanceCron);
+        var visitorLogMaintenanceCron = builder.Configuration["HangfireJobs:VisitorLogMaintenanceCron"] ?? "0 */6 * * *";
+        recurringJobManager.AddOrUpdate<IVisitorLogMaintenanceJob>(
+            JobDefinitions.VisitorLogMaintenanceRecurringId,
+            job => job.RunAsync(),
+            visitorLogMaintenanceCron);
+    }
+
+    // Ngược lại: job seed data giả chỉ đăng ký trên instance demo. Đây cũng là chốt an toàn thứ
+    // hai (ngoài guard DemoMode trong chính job) chống việc nó lỡ chạy xóa data thật.
+    if (isDemo)
+    {
+        var demoReseedCron = builder.Configuration["HangfireJobs:DemoReseedCron"] ?? "0 3 * * *";
+        recurringJobManager.AddOrUpdate<IDemoReseedJob>(
+            JobDefinitions.DemoReseedRecurringId,
+            job => job.RunAsync(),
+            demoReseedCron,
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time") });
+    }
 }
 catch (Exception ex)
 {

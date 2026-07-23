@@ -16,6 +16,7 @@ import { JobsPageComponent } from './all-app-component/jobs/jobs-page/jobs-page.
 import { ZaloPageComponent } from './all-app-component/zalo/zalo-page/zalo-page.component';
 import { ExpenseAnalyticsPageComponent } from './all-app-component/expense-analytics/expense-analytics-page/expense-analytics-page.component';
 import { AuthGuard } from './guards/auth.guard';
+import { DemoFeatureGuard } from './guards/demo-feature.guard';
 import { LoginComponent } from './all-app-component/login/login.component';
 
 const routes: Routes = [
@@ -37,13 +38,13 @@ const routes: Routes = [
           { path: '', pathMatch: 'full', redirectTo: 'reason-type-settings' },
           { path: 'reason-type-settings', component: ReasonTypeListComponent },
           { path: 'course-schedule-settings', component: CourseScheduleListComponent },
-          { path: 'semester-settings', component: SemesterMetadataListComponent },
+          { path: 'semester-settings', component: SemesterMetadataListComponent, canActivate: [DemoFeatureGuard] },
           { path: 'system-configuration-settings', component: SystemConfigurationListComponent },
           { path: 'theme-settings', component: ThemeSettingsComponent },
           { path: 'user-settings', component: UserListComponent },
-          { path: 'visitor-log-settings', component: VisitorLogPageComponent },
-          { path: 'jobs-settings', component: JobsPageComponent },
-          { path: 'zalo-settings', component: ZaloPageComponent }
+          { path: 'visitor-log-settings', component: VisitorLogPageComponent, canActivate: [DemoFeatureGuard] },
+          { path: 'jobs-settings', component: JobsPageComponent, canActivate: [DemoFeatureGuard] },
+          { path: 'zalo-settings', component: ZaloPageComponent, canActivate: [DemoFeatureGuard] }
         ]
       },
       { path: 'reason-type-settings', redirectTo: 'settings/reason-type-settings', pathMatch: 'full' },

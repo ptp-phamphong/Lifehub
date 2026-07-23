@@ -50,16 +50,30 @@ namespace API_Raspberry.Controllers
         [Route("User/ChangePassword/{id}")]
         public ActionResult ChangePassword(int id, [FromBody] UserChangePasswordDto dto)
         {
-            _userService.ChangePassword(id, dto);
-            return Ok();
+            try
+            {
+                _userService.ChangePassword(id, dto);
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete]
         [Route("User/Delete/{id}")]
         public ActionResult Delete(int id)
         {
-            _userService.Delete(id);
-            return Ok();
+            try
+            {
+                _userService.Delete(id);
+                return Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

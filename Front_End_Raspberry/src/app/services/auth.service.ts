@@ -17,8 +17,10 @@ export interface ForgotPasswordResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly TOKEN_KEY = 'auth_token';
-  private readonly EXPIRATION_KEY = 'auth_expiration';
+  // Prefixed with environment.storagePrefix vì /app và /demo-app cùng origin nên chia sẻ
+  // localStorage - không prefix thì đăng nhập demo ở tab này sẽ đá văng phiên thật ở tab kia.
+  private readonly TOKEN_KEY = `${environment.storagePrefix}auth_token`;
+  private readonly EXPIRATION_KEY = `${environment.storagePrefix}auth_expiration`;
 
   constructor(private http: HttpClient) {}
 

@@ -12,32 +12,51 @@ namespace API_Raspberry.Controllers
     public class ZaloController : ControllerBase
     {
         private readonly IZaloSessionManager _zalo;
+        private readonly IConfiguration _configuration;
 
-        public ZaloController(IZaloSessionManager zalo)
+        public ZaloController(IZaloSessionManager zalo, IConfiguration configuration)
         {
             _zalo = zalo;
+            _configuration = configuration;
+        }
+
+        /// <summary>
+        /// Zalo gửi tin nhắn thật qua phiên đăng nhập thật của người vận hành. Trên instance demo,
+        /// tài khoản đăng nhập là credential công khai chia sẻ để demo - phải chặn cứng ở đây chứ
+        /// không chỉ ẩn nav ở Angular, vì ai cũng gọi thẳng API được bằng token demo.
+        /// </summary>
+        private ActionResult BlockIfDemo()
+        {
+            if (_configuration.GetValue<bool>("DemoMode"))
+            {
+                return StatusCode(403, new { message = "Tính năng Zalo không khả dụng trên bản demo." });
+            }
+            return null;
         }
 
         [HttpGet]
         [Route("Zalo/Status")]
-        public ZaloStatusDto Status() => _zalo.GetStatus();
+        public ActionResult<ZaloStatusDto> Status() => BlockIfDemo() ?? Ok(_zalo.GetStatus());
 
         [HttpGet]
         [Route("Zalo/Contacts")]
-        public IReadOnlyList<ZaloContactDto> Contacts() => _zalo.GetContacts();
+        public ActionResult<IReadOnlyList<ZaloContactDto>> Contacts() => BlockIfDemo() ?? Ok(_zalo.GetContacts());
 
         [HttpPost]
         [Route("Zalo/Login/Start")]
-        public Task<ZaloLoginResultDto> LoginStart() => _zalo.StartLoginAsync();
+        public async Task<ActionResult<ZaloLoginResultDto>> LoginStart() => BlockIfDemo() ?? Ok(await _zalo.StartLoginAsync());
 
         [HttpGet]
         [Route("Zalo/Login/Status")]
-        public Task<ZaloLoginResultDto> LoginStatus() => _zalo.GetLoginStatusAsync();
+        public async Task<ActionResult<ZaloLoginResultDto>> LoginStatus() => BlockIfDemo() ?? Ok(await _zalo.GetLoginStatusAsync());
 
         [HttpPost]
         [Route("Zalo/Send")]
         public async Task<IActionResult> Send([FromBody] ZaloSendRequest request)
         {
+            var blocked = BlockIfDemo();
+            if (blocked != null) return blocked;
+
             if (request == null || string.IsNullOrWhiteSpace(request.Message))
                 return BadRequest(new { message = "Thiếu nội dung tin nhắn." });
 

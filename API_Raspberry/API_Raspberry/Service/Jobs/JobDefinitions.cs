@@ -10,10 +10,12 @@ namespace API_Raspberry.Service.Jobs
         /// <summary>Khóa dùng ở URL POST Jobs/Trigger/{jobKey} - Angular gửi đúng chuỗi này.</summary>
         public const string ScheduleImportKey = "schedule-import";
         public const string VisitorLogMaintenanceKey = "visitor-log-maintenance";
+        public const string DemoReseedKey = "demo-reseed";
 
         /// <summary>Id recurring job trong Hangfire (hiện trên dashboard).</summary>
         public const string ScheduleImportRecurringId = "schedule-import-job";
         public const string VisitorLogMaintenanceRecurringId = "visitor-log-maintenance-job";
+        public const string DemoReseedRecurringId = "demo-reseed-job";
 
         /// <summary>
         /// Tên hiển thị suy từ tên type mà Hangfire lưu lại. Vì job được enqueue qua interface nên
@@ -27,6 +29,8 @@ namespace API_Raspberry.Service.Jobs
                     return "Đồng bộ lịch học UEH";
                 case nameof(IVisitorLogMaintenanceJob):
                     return "Bảo trì nhật ký truy cập";
+                case nameof(IDemoReseedJob):
+                    return "Sinh lại dữ liệu demo";
                 default:
                     // Job lạ (vd job cũ còn sót trong DB): hiện tên type thô còn hơn hiện rỗng.
                     return string.IsNullOrEmpty(typeName) ? "Không rõ" : typeName;

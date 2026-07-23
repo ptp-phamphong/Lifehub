@@ -470,9 +470,10 @@ export type Dictionary = {
     refresh: string;
     /** Hiện trên nút trong lúc chờ backend nhận yêu cầu. */
     sending: string;
-    /** Nhãn hai nút "Chạy ngay"; khoá job khớp `JobDefinitions.cs` ở backend. */
+    /** Nhãn các nút "Chạy ngay"; khoá job khớp `JobDefinitions.cs` ở backend. */
     runScheduleImport: string;
     runVisitorLogMaintenance: string;
+    runDemoReseed: string;
     colName: string;
     colStatus: string;
     colStarted: string;

@@ -22,7 +22,7 @@
 					<span>{{ 'settings.courseSchedule' | translate }}</span>
 				</a>
 			</li>
-			<li class="nav-item">
+			<li class="nav-item" *ngIf="!isDemoMode">
 				<a
 					class="nav-link"
 					[routerLink]="['/settings/semester-settings']"
@@ -62,7 +62,7 @@
 					<span>{{ 'settings.userManagement' | translate }}</span>
 				</a>
 			</li>
-			<li class="nav-item">
+			<li class="nav-item" *ngIf="!isDemoMode">
 				<a
 					class="nav-link"
 					[routerLink]="['/settings/visitor-log-settings']"
@@ -72,7 +72,7 @@
 					<span>{{ 'settings.visitorLog' | translate }}</span>
 				</a>
 			</li>
-			<li class="nav-item">
+			<li class="nav-item" *ngIf="!isDemoMode">
 				<a
 					class="nav-link"
 					[routerLink]="['/settings/jobs-settings']"
@@ -82,7 +82,7 @@
 					<span>{{ 'settings.jobs' | translate }}</span>
 				</a>
 			</li>
-			<li class="nav-item">
+			<li class="nav-item" *ngIf="!isDemoMode">
 				<a
 					class="nav-link"
 					[routerLink]="['/settings/zalo-settings']"

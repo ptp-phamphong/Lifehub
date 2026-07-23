@@ -358,6 +358,7 @@ export const en: Dictionary = {
     sending: 'Sending…',
     runScheduleImport: 'Sync the UEH class schedule',
     runVisitorLogMaintenance: 'Clean up the visitor log',
+    runDemoReseed: 'Regenerate demo data',
     colName: 'Job',
     colStatus: 'Status',
     colStarted: 'Started',

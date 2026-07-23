@@ -20,3 +20,4 @@ export type JobStatus = 'Succeeded' | 'Failed' | 'Processing' | 'Enqueued' | 'Sc
 /** Khóa gửi lên POST Jobs/Trigger/{jobKey} — phải khớp JobDefinitions.cs ở backend. */
 export const JOB_KEY_SCHEDULE_IMPORT = 'schedule-import';
 export const JOB_KEY_VISITOR_LOG_MAINTENANCE = 'visitor-log-maintenance';
+export const JOB_KEY_DEMO_RESEED = 'demo-reseed';

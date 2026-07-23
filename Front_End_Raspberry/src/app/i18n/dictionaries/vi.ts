@@ -355,6 +355,7 @@ export const vi: Dictionary = {
     sending: 'Đang gửi…',
     runScheduleImport: 'Đồng bộ lịch học UEH',
     runVisitorLogMaintenance: 'Bảo trì nhật ký truy cập',
+    runDemoReseed: 'Sinh lại dữ liệu demo',
     colName: 'Tên tác vụ',
     colStatus: 'Trạng thái',
     colStarted: 'Bắt đầu',

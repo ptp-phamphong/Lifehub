@@ -10,9 +10,11 @@ namespace API_Raspberry.Service
 
     public class CurrentInfoService : ICurrentInfoService
     {
+        private readonly IConfiguration _configuration;
 
-        public CurrentInfoService()
+        public CurrentInfoService(IConfiguration configuration)
         {
+            _configuration = configuration;
         }
 
 
@@ -20,13 +22,15 @@ namespace API_Raspberry.Service
         {
             // vcgencmd/free/df chạy qua /usr/bin/bash nên chỉ có trên Pi.
             // Khi dev trên Windows, trả số liệu giả để UI vẫn render được thay vì lỗi 500.
-            if (!OperatingSystem.IsLinux())
+            // Trên instance demo cũng trả số liệu giả (dù chạy trên chính con Pi thật), vì bản demo
+            // dùng data giả nên số liệu phần cứng thật trộn vào sẽ không nhất quán.
+            if (!OperatingSystem.IsLinux() || _configuration.GetValue<bool>("DemoMode"))
             {
                 return new SystemInfo
                 {
                     CpuTemperature = "42.0",
-                    RamAvailable = "1.5GiB available (dev stub)",
-                    MemoryAvailable = "12GB free (dev stub)"
+                    RamAvailable = "1.5GiB available (demo)",
+                    MemoryAvailable = "12GB free (demo)"
                 };
             }
 

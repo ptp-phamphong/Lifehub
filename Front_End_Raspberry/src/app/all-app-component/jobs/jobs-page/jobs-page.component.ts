@@ -5,6 +5,7 @@ import { LanguageService } from 'src/app/services/language.service';
 import {
   JOB_KEY_SCHEDULE_IMPORT,
   JOB_KEY_VISITOR_LOG_MAINTENANCE,
+  JOB_KEY_DEMO_RESEED,
   JobRun,
   JobStatus
 } from 'src/app/model/job.model';
@@ -18,7 +19,9 @@ export class JobsPageComponent implements OnInit, OnDestroy {
   /** Các tác vụ có nút "Chạy ngay". Khóa phải khớp JobDefinitions.cs ở backend. */
   readonly jobs = [
     { key: JOB_KEY_SCHEDULE_IMPORT, labelKey: 'jobs.runScheduleImport' },
-    { key: JOB_KEY_VISITOR_LOG_MAINTENANCE, labelKey: 'jobs.runVisitorLogMaintenance' }
+    { key: JOB_KEY_VISITOR_LOG_MAINTENANCE, labelKey: 'jobs.runVisitorLogMaintenance' },
+    // Chạy trên instance demo (raspberry_demo) qua cầu nối kho Hangfire ở JobsService.
+    { key: JOB_KEY_DEMO_RESEED, labelKey: 'jobs.runDemoReseed' }
   ];
 
   history: JobRun[] = [];

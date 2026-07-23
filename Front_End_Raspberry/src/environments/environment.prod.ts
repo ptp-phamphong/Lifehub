@@ -1,4 +1,6 @@
 export const environment = {
   production: true,
-  apiBaseUrl: '/api'
+  apiBaseUrl: '/api',
+  storagePrefix: '',
+  demoMode: false
 };
