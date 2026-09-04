@@ -46,7 +46,11 @@ builder.Services.AddCors(options =>
     {
         policy
             .WithOrigins(
-                "https://ptp-phamphong-pi.duckdns.org",  // Web production
+                "https://ptp-phamphong.com",                     // Portfolio production
+                "https://www.ptp-phamphong.com",                 // www (redirected to apex)
+                "https://app.ptp-phamphong.com",                 // Angular expense app
+                "https://demo.ptp-phamphong.com",                // Angular demo build
+                "https://ptp-phamphong-pi.duckdns.org",          // LEGACY - remove after 2026-09-13
                 "http://localhost:4200",                          // Angular dev
                 "http://localhost:8081",                         //  Mobile dev
                 "http://localhost:3000"                          // Portfolio (Next.js) dev

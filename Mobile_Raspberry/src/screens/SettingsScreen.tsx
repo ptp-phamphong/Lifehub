@@ -102,7 +102,7 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>URL nhanh</Text>
         {[
           { label: 'Local Windows', url: 'http://localhost:5293' },
-          { label: 'Raspberry Pi (DuckDNS)', url: 'http://ptp-phamphong-pi.duckdns.org:3036/api' },
+          { label: 'Raspberry Pi', url: 'https://app.ptp-phamphong.com/api' },
           { label: 'Raspberry Pi (Tailscale)', url: 'http://PI_TAILSCALE_HOST:5000' },
         ].map((item) => (
           <TouchableOpacity
