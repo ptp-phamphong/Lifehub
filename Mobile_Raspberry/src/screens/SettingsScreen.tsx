@@ -103,7 +103,6 @@ export default function SettingsScreen() {
         {[
           { label: 'Local Windows', url: 'http://localhost:5293' },
           { label: 'Raspberry Pi', url: 'https://app.ptp-phamphong.com/api' },
-          { label: 'Raspberry Pi (Tailscale)', url: 'http://PI_TAILSCALE_HOST:5000' },
         ].map((item) => (
           <TouchableOpacity
             key={item.label}

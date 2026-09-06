@@ -197,7 +197,7 @@ Dùng **DB-IP City Lite** (`.mmdb`, miễn phí, **không cần tạo tài kho�
 
 `chart.js` vẽ lên `<canvas>` → **không đọc được biến CSS** (`var(--color-*)`) → trong dark mode
 sẽ thành một mảng trắng chói. SVG viết tay dùng thẳng `fill="var(--color-primary)"` nên **tự đổi màu
-theo theme, không tốn dòng code nào**. Đúng yêu cầu bắt buộc về dark mode trong `AGENTS.md`.
+theo theme, không tốn dòng code nào**. Đúng yêu cầu bắt buộc về dark mode trong `CLAUDE.md`.
 
 Nếu sau này cần biểu đồ tương tác thật sự → dùng `ngx-charts` (cũng dựa trên SVG), **đừng dùng chart.js**.
 
