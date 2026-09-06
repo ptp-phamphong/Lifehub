@@ -1,0 +1,53 @@
+# Angular and Expo each carry their own .gitignore; this file covers the
+# .NET backend plus anything that applies across all three projects.
+
+# --- .NET ---
+[Bb]in/
+[Oo]bj/
+publish/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+project.lock.json
+artifacts/
+
+# --- Local configuration that must never be committed ---
+# appsettings*.json in this repo hold placeholders only; real values come from
+# environment variables. Anything named *.Local.json is yours alone.
+appsettings.Local.json
+appsettings.*.Local.json
+.env
+.env.local
+*.pem
+*.pfx
+*.p12
+*.key
+
+# --- GeoIP database (DB-IP City Lite, ~130 MB) — downloaded separately ---
+*.mmdb
+*.mmdb.gz
+
+# --- Editors / OS ---
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+desktop.ini
+.history/
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-error.log
+
+# --- Claude Code scratch files ---
+temp_running_process/
+.claude/settings.local.json
