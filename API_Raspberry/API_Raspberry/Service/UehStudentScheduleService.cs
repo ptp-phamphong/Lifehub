@@ -15,6 +15,13 @@ namespace API_Raspberry.Service
         Task<UehWeekListResponseDto> FetchWeekListAsync(UehStudentScheduleRequestDto request);
         Task<UehWeekScheduleResponseDto> FetchWeekScheduleAsync(UehStudentScheduleRequestDto request, int week);
         Task<UehAllWeeksResponseDto> FetchAllWeeksAsync(UehStudentScheduleRequestDto request);
+
+        // Học kỳ nào có IsCurrentSemester = true thì được đồng bộ - cho phép nhiều dòng cùng true.
+        Task<List<SemesterMetadata>> GetSemestersToSyncAsync();
+
+        // Login một lần, dùng chung session cho toàn bộ semesters truyền vào.
+        Task<(List<UehAllWeeksResponseDto> results, string loginError)> FetchAllWeeksForSemestersAsync(
+            List<SemesterMetadata> semesters, UehStudentScheduleRequestDto request);
     }
 
     public class UehStudentScheduleService : IUehStudentScheduleService
@@ -24,6 +31,7 @@ namespace API_Raspberry.Service
         private const string WeekListUrlFormat = "https://student.ueh.edu.vn/Home/GetWeek/{0}${1}";
         private const string WeekScheduleUrlFormat = "https://student.ueh.edu.vn/Home/DrawingSchedules?YearStudy={0}&TermID={1}&Week={2}";
         private const int DefaultWeekRequestDelayMs = 400;
+        private const int DefaultSemesterRequestDelayMs = 2000;
 
         private static readonly JsonSerializerOptions WeekListJsonOptions = new JsonSerializerOptions
         {
@@ -62,6 +70,15 @@ namespace API_Raspberry.Service
                 .AsNoTracking()
                 .OrderByDescending(x => x.Id)
                 .FirstOrDefaultAsync(x => x.IsCurrentSemester);
+        }
+
+        public async Task<List<SemesterMetadata>> GetSemestersToSyncAsync()
+        {
+            return await _context.SemesterMetadatas
+                .AsNoTracking()
+                .Where(x => x.IsCurrentSemester)
+                .OrderByDescending(x => x.Id)
+                .ToListAsync();
         }
 
         // Trả về (session, error). Đúng một trong hai khác null.
@@ -282,9 +299,6 @@ namespace API_Raspberry.Service
                 };
             }
 
-            var yearStudy = currentSemester.Year;
-            var termId = currentSemester.CodeSemester;
-
             var (session, error) = await LoginAsync(request?.SaveLogin ?? true);
             if (session == null)
             {
@@ -292,80 +306,119 @@ namespace API_Raspberry.Service
                 {
                     Success = false,
                     Message = error,
-                    YearStudy = yearStudy,
-                    TermId = termId
+                    YearStudy = currentSemester.Year,
+                    TermId = currentSemester.CodeSemester
                 };
             }
 
             using (session)
             {
-                var (weekList, weekError) = await GetWeekListAsync(session, yearStudy, termId);
-                if (weekList == null)
+                return await FetchAllWeeksForSemesterAsync(session, currentSemester);
+            }
+        }
+
+        public async Task<(List<UehAllWeeksResponseDto> results, string loginError)> FetchAllWeeksForSemestersAsync(
+            List<SemesterMetadata> semesters, UehStudentScheduleRequestDto request)
+        {
+            var (session, error) = await LoginAsync(request?.SaveLogin ?? true);
+            if (session == null)
+            {
+                return (new List<UehAllWeeksResponseDto>(), error);
+            }
+
+            var semesterDelayMs = _configuration.GetValue<int?>("UehSchedule:SemesterRequestDelayMs") ?? DefaultSemesterRequestDelayMs;
+            var results = new List<UehAllWeeksResponseDto>();
+
+            using (session)
+            {
+                for (var i = 0; i < semesters.Count; i++)
                 {
-                    return new UehAllWeeksResponseDto
+                    var semester = semesters[i];
+                    var result = await FetchAllWeeksForSemesterAsync(session, semester);
+                    results.Add(result);
+
+                    if (semesterDelayMs > 0 && i < semesters.Count - 1)
                     {
-                        Success = false,
-                        Message = weekError,
-                        YearStudy = yearStudy,
-                        TermId = termId
-                    };
-                }
-
-                // Week không unique khi học kỳ vắt qua giao thừa, và portal luôn trả về lần xuất hiện
-                // đầu tiên, nên gọi trùng chỉ tốn request mà không lấy thêm được dữ liệu.
-                var distinctWeeks = weekList
-                    .Select(x => x.Week)
-                    .Distinct()
-                    .ToList();
-
-                var delayMs = _configuration.GetValue<int?>("UehSchedule:WeekRequestDelayMs") ?? DefaultWeekRequestDelayMs;
-                var results = new List<UehWeekHtmlDto>();
-
-                for (var i = 0; i < distinctWeeks.Count; i++)
-                {
-                    var week = distinctWeeks[i];
-                    var (html, htmlError) = await GetWeekHtmlAsync(session, yearStudy, termId, week);
-
-                    if (html == null)
-                    {
-                        // Một tuần lỗi không nên làm hỏng cả lần import; các tuần còn lại vẫn có giá trị.
-                        _logger.LogWarning("Bỏ qua tuần {Week} của {Year}/{Term}: {Error}", week, yearStudy, termId, htmlError);
-                        continue;
-                    }
-
-                    results.Add(new UehWeekHtmlDto { Week = week, Html = html });
-
-                    if (delayMs > 0 && i < distinctWeeks.Count - 1)
-                    {
-                        await Task.Delay(delayMs);
+                        await Task.Delay(semesterDelayMs);
                     }
                 }
+            }
 
-                if (results.Count == 0)
-                {
-                    return new UehAllWeeksResponseDto
-                    {
-                        Success = false,
-                        Message = $"Không lấy được tuần nào trong {distinctWeeks.Count} tuần của học kỳ {termId} năm {yearStudy}.",
-                        YearStudy = yearStudy,
-                        TermId = termId,
-                        SemesterMetadataId = currentSemester.Id,
-                        WeeksScanned = distinctWeeks.Count,
-                        Weeks = results
-                    };
-                }
+            return (results, null);
+        }
 
+        private async Task<UehAllWeeksResponseDto> FetchAllWeeksForSemesterAsync(UehSession session, SemesterMetadata semester)
+        {
+            var yearStudy = semester.Year;
+            var termId = semester.CodeSemester;
+
+            var (weekList, weekError) = await GetWeekListAsync(session, yearStudy, termId);
+            if (weekList == null)
+            {
                 return new UehAllWeeksResponseDto
                 {
-                    Success = true,
-                    Message = $"Lấy thành công {results.Count}/{distinctWeeks.Count} tuần.",
+                    Success = false,
+                    Message = weekError,
                     YearStudy = yearStudy,
                     TermId = termId,
-                    SemesterMetadataId = currentSemester.Id,
+                    SemesterMetadataId = semester.Id
+                };
+            }
+
+            // Week không unique khi học kỳ vắt qua giao thừa, và portal luôn trả về lần xuất hiện
+            // đầu tiên, nên gọi trùng chỉ tốn request mà không lấy thêm được dữ liệu.
+            var distinctWeeks = weekList
+                .Select(x => x.Week)
+                .Distinct()
+                .ToList();
+
+            var delayMs = _configuration.GetValue<int?>("UehSchedule:WeekRequestDelayMs") ?? DefaultWeekRequestDelayMs;
+            var results = new List<UehWeekHtmlDto>();
+
+            for (var i = 0; i < distinctWeeks.Count; i++)
+            {
+                var week = distinctWeeks[i];
+                var (html, htmlError) = await GetWeekHtmlAsync(session, yearStudy, termId, week);
+
+                if (html == null)
+                {
+                    // Một tuần lỗi không nên làm hỏng cả lần import; các tuần còn lại vẫn có giá trị.
+                    _logger.LogWarning("Bỏ qua tuần {Week} của {Year}/{Term}: {Error}", week, yearStudy, termId, htmlError);
+                    continue;
+                }
+
+                results.Add(new UehWeekHtmlDto { Week = week, Html = html });
+
+                if (delayMs > 0 && i < distinctWeeks.Count - 1)
+                {
+                    await Task.Delay(delayMs);
+                }
+            }
+
+            if (results.Count == 0)
+            {
+                return new UehAllWeeksResponseDto
+                {
+                    Success = false,
+                    Message = $"Không lấy được tuần nào trong {distinctWeeks.Count} tuần của học kỳ {termId} năm {yearStudy}.",
+                    YearStudy = yearStudy,
+                    TermId = termId,
+                    SemesterMetadataId = semester.Id,
                     WeeksScanned = distinctWeeks.Count,
                     Weeks = results
                 };
             }
+
+            return new UehAllWeeksResponseDto
+            {
+                Success = true,
+                Message = $"Lấy thành công {results.Count}/{distinctWeeks.Count} tuần.",
+                YearStudy = yearStudy,
+                TermId = termId,
+                SemesterMetadataId = semester.Id,
+                WeeksScanned = distinctWeeks.Count,
+                Weeks = results
+            };
         }
 
         private async Task<(List<UehWeekDto> weeks, string error)> GetWeekListAsync(UehSession session, int yearStudy, string termId)

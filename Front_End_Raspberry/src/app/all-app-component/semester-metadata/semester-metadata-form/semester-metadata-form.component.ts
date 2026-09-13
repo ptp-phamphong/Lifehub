@@ -64,11 +64,6 @@ export class SemesterMetadataFormComponent {
       return;
     }
 
-    if (this.isCurrentSemester && this.hasAnotherCurrentSemester()) {
-      this.messageKey = 'semester.onlyOneCurrent';
-      return;
-    }
-
     const payload: SemesterMetadata = {
       semesterName: this.semesterName,
       codeSemester: this.codeSemester,
@@ -99,11 +94,6 @@ export class SemesterMetadataFormComponent {
           }
         });
     }
-  }
-
-  hasAnotherCurrentSemester(): boolean {
-    const semesters: SemesterMetadata[] = this.data?.semesters || [];
-    return semesters.some(item => item.isCurrentSemester && item.id !== this.id);
   }
 
   cancel() {

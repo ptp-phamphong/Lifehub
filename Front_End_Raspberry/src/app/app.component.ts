@@ -9,7 +9,7 @@ import { LanguageService } from './services/language.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  title = 'Front_End_Raspberry';
+  title = 'LifeHub';
 
   constructor(
     public loadingService: LoadingService,

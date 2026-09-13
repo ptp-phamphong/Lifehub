@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Mobile_Raspberry",
-    "slug": "Mobile_Raspberry",
+    "name": "LifeHub",
+    "slug": "LifeHub",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +15,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.phamphong.mobileRaspberry",
+      "package": "com.phamphong.lifehub",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",

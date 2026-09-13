@@ -70,20 +70,30 @@ Table name: semesterMetadata
 - Semester name (required)
 - Semester code (required)
 - Year (required)
-- Is current semester (boolean)
+- Đồng bộ học kỳ này từ UEH (boolean) — key `semester.isCurrent`, field name `isCurrentSemester`
 
-### Validation rule
+### `IsCurrentSemester` — meaning changed: no longer "the one current semester"
 
-Business rule: only one semester can have IsCurrentSemester = true.
+`IsCurrentSemester` is **not** a "there can be only one" flag anymore. It now means "sync this semester
+from UEH" — **multiple rows can have `IsCurrentSemester = true` at the same time**, e.g. current semester
++ an upcoming one both flagged for sync. See `15_feature-ueh-student-schedule.md` for how the sync job
+consumes this flag (`GetSemestersToSyncAsync()` returns every row where it's `true`, not just the first).
 
-Current implementation:
-- Validation is handled on Angular form before submit.
-- When user sets current semester = true, form checks in-memory list from dialog data.
-- If another record is already true (and different id), submit is blocked and error message is shown.
+Backend never enforced a uniqueness constraint on this field — it only ever accepted the payload as-is.
+The previous "only one current semester" behavior existed **only** as an Angular-side check:
+`semester-metadata-form.component.ts` used to block submit via `hasAnotherCurrentSemester()` when another
+row was already `true`. **That check and the method have been removed** — ticking the box for a second
+(or third) row while another is already ticked no longer blocks submit.
 
-Note:
-- Backend currently accepts payload as-is and does not enforce unique current semester constraint.
-- This follows current request scope (frontend validation first).
+UI labels reflect the new meaning:
+
+| Where | vi | en |
+|---|---|---|
+| Form checkbox (`semester.isCurrent`) | "Đồng bộ học kỳ này từ UEH" | "Sync this semester from UEH" |
+| List badge, true (`semester.current`) | "Đang đồng bộ" | "Syncing" |
+| List badge, false (`semester.notCurrent`) | "Không" | "No" |
+
+The old i18n key `semester.onlyOneCurrent` (and its blocking-submit message) no longer exists.
 
 ## React Native Mobile
 

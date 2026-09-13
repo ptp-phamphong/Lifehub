@@ -27,11 +27,42 @@ it is driven by `ICourseScheduleUehSyncService` (see doc 07).
 | `FetchScheduleAsync` | `DrawingStudentSchedule_Perior` — whole semester, legacy |
 | `FetchWeekListAsync` | `GetWeek` — list of weeks |
 | `FetchWeekScheduleAsync` | `DrawingSchedules` — one week |
-| `FetchAllWeeksAsync` | login once → `GetWeek` → loop `DrawingSchedules` over **distinct** weeks |
+| `FetchAllWeeksAsync` | login once → `GetWeek` → loop `DrawingSchedules` over **distinct** weeks, for **one** semester |
+| `GetSemestersToSyncAsync` | no portal call — reads `SemesterMetadatas` where `IsCurrentSemester = true`, **multiple rows allowed** |
+| `FetchAllWeeksForSemestersAsync` | login once → loop `GetWeek`+`DrawingSchedules` over **every semester passed in** |
 
 `LoginAsync` is private and returns a `UehSession` (an `HttpClient` carrying the auth cookie) so a
-single login serves all ~52 week requests. A failing week logs a warning and is skipped rather than
-failing the whole run.
+single login serves all requests across **all** selected semesters, not just one. A failing week logs
+a warning and is skipped rather than failing the whole run; a failing semester behaves the same way one
+level up (see "Multi-semester sync" below).
+
+`FetchAllWeeksAsync(request)` keeps its old signature and behavior for backward compatibility: it
+internally calls the private `GetCurrentSemesterAsync()` (`FirstOrDefault` ordered by `Id` descending),
+which — now that multiple rows can have `IsCurrentSemester = true` — picks **an arbitrary one** of them.
+It is only used by the legacy debug endpoints (`FetchScheduleAsync`, `FetchWeekListAsync`,
+`FetchWeekScheduleAsync`, and `FetchAllWeeksAsync` itself, `API_Raspberry/Service/UehStudentScheduleService.cs:67-73,290-318`).
+**None of these are used by the main sync flow anymore** — that flow always calls
+`FetchAllWeeksForSemestersAsync` with the full list from `GetSemestersToSyncAsync()`.
+
+### Multi-semester sync
+
+`GetSemestersToSyncAsync()` (`UehStudentScheduleService.cs:75-82`) returns every `SemesterMetadata` row
+with `IsCurrentSemester = true` — the flag is no longer "the one current semester" but "sync this
+semester from UEH", and several rows can be true at once (see `13_feature-semester-metadata-crud.md`).
+
+`FetchAllWeeksForSemestersAsync(semesters, request)` (`UehStudentScheduleService.cs:320-348`) logs in
+**once**, then loops the semester list calling the same per-semester fetch
+(`FetchAllWeeksForSemesterAsync`) used by the legacy single-semester path. One semester failing (portal
+has no data for it, session drops mid-run, etc.) does not abort the batch — its error is recorded in that
+semester's result and the loop continues to the next semester, mirroring the existing "one bad week
+doesn't fail the whole run" rule, applied one level up.
+
+⚠ **Request volume multiplies by the number of semesters selected.** Each semester still costs up to
+~52 portal requests (one `GetWeek` + one `DrawingSchedules` per distinct week); marking 3 semesters
+`IsCurrentSemester = true` means ~156 requests in one run instead of ~52. There is a delay between weeks
+(`UehSchedule:WeekRequestDelayMs`, default 400ms) **and** a delay between semesters
+(`UehSchedule:SemesterRequestDelayMs`, default 2000ms, added after the last week of one semester and
+before the first request of the next) — both configurable in the same `UehSchedule` config section.
 
 ### Flow
 
@@ -105,11 +136,15 @@ Richer than the Perior view: it has periods, lecturer, email, learning mode, and
 ### Configuration
 
 ```json
-"UehSchedule": { "WeekRequestDelayMs": 400 }
+"UehSchedule": { "WeekRequestDelayMs": 400, "SemesterRequestDelayMs": 2000 }
 ```
 
-Delay between week requests; defaults to 400ms if absent. A full run (52 requests at 400ms) has been
-verified against the live portal with no rate limiting.
+`WeekRequestDelayMs` — delay between week requests within one semester; defaults to 400ms if absent. A
+full run (52 requests at 400ms) has been verified against the live portal with no rate limiting.
+
+`SemesterRequestDelayMs` — extra delay applied between semesters when syncing more than one in the same
+run; defaults to 2000ms if absent. Not strictly required for rate-limiting (the sync runs in the
+background, rarely triggered manually), but cheap enough to keep as a safety margin.
 
 ⚠ `appsettings.Development.json` carries its own `UehLogin` block. An empty one there **overrides**
 `appsettings.json` when running Development, producing "Thiếu thông tin đăng nhập UEH" even though
@@ -314,7 +349,54 @@ The HTML returned by the Perior view contains a `<table>` with the following col
 Change the sync flow there, not in either caller. Full description and the two safety guards:
 `07_feature-course-schedule-crud.md`.
 
-Runtime configuration (runs on Hangfire now — see `23_feature-hangfire-jobs.md`):
+**It now syncs every semester with `IsCurrentSemester = true`, not just one.** `ResetImportByWeekAsync`
+(`API_Raspberry/Service/CourseScheduleUehSyncService.cs:34-73`):
+
+1. `GetSemestersToSyncAsync()` → if empty, returns a failure with message
+   `"Không có học kỳ nào được đánh dấu đồng bộ (IsCurrentSemester = true)."` (no portal call made).
+2. `FetchAllWeeksForSemestersAsync(semesters, request)` — logs in once, fetches all weeks for every
+   semester in the list.
+3. Each semester's fetched weeks are parsed, deduped, and imported independently via `ImportOneSemester`
+   (`CourseScheduleUehSyncService.cs:77-153`) — the two existing safety guards still apply **per
+   semester**: no delete when zero sessions parse, and delete only happens after that semester's weeks are
+   fully fetched and parsed. `DeleteBySemesterMetadataId` only removes rows for that one
+   `SemesterMetadataId`, so looping semesters never touches another semester's already-imported data.
+
+### Response shape (`CourseScheduleUehSyncResultDto`)
+
+```csharp
+public class CourseScheduleUehSyncResultDto
+{
+    public bool Success { get; set; }      // true if AT LEAST ONE semester synced successfully
+    public string Message { get; set; }    // aggregate, e.g. "Đồng bộ 3/4 học kỳ thành công, tổng 210 buổi học."
+    public int Count { get; set; }         // total sessions imported across ALL semesters
+    public List<CourseScheduleUehSyncSemesterResultDto> Semesters { get; set; }
+}
+
+public class CourseScheduleUehSyncSemesterResultDto
+{
+    public bool Success { get; set; }
+    public string Message { get; set; }
+    public int Count { get; set; }
+    public int SemesterMetadataId { get; set; }
+    public int? YearStudy { get; set; }
+    public string TermId { get; set; }
+    public int WeeksScanned { get; set; }
+    public int WeeksWithData { get; set; }
+}
+```
+
+(`API_Raspberry/Dto/CourseScheduleDto.cs:6-31`.) The old top-level `Success`/`Message`/`Count` fields are
+kept as-is so the frontend (`course-schedule-list.component.ts:164`, which only reads `count`/`message`)
+doesn't break; `Semesters` is new, and the raw parsed list (`Data`) was **deliberately not added** to the
+response — it isn't consumed anywhere and would bloat the payload once multiplied by N semesters.
+
+`Success` at the top level is `true` if **at least one** semester succeeded, not all of them — a single
+semester failing (temporary portal hiccup, expired session mid-run) would otherwise cause Hangfire's
+`[AutomaticRetry]` to re-run the whole batch, including semesters that already succeeded, wasting portal
+requests for no gain.
+
+Runtime configuration (runs on Hangfire — see `23_feature-hangfire-jobs.md`):
 
 ```json
 "HangfireJobs": {
@@ -322,11 +404,30 @@ Runtime configuration (runs on Hangfire now — see `23_feature-hangfire-jobs.md
 }
 ```
 
-- `ScheduleImportCron`: cron for the automatic refresh (replaced the old `Enabled`/`IntervalMinutes`)
+- `ScheduleImportCron`: cron for the automatic refresh (replaced the old `Enabled`/`IntervalMinutes`).
+  This appsettings value is now only the **fallback** — see below for the System Configuration override.
 - On-demand trigger: `POST /Jobs/Trigger/schedule-import`, or "Chạy ngay" on `/app/settings/jobs-settings`
-- ⚠ Each run is now **~52 portal requests** instead of 1. Verified fine at 400ms spacing, but consider a
-  longer interval than the old default.
+- ⚠ Each run is now **~52 portal requests per selected semester**, not ~52 total. Verified fine at 400ms
+  (week) / 2000ms (semester) spacing, but consider a longer cron interval than the old default the more
+  semesters get flagged for sync.
 - Recommended migration step: remove any old Raspberry Pi `crontab` entry for `reset_schedule.sh` to avoid duplicate imports
+
+### Cron override via System Configuration
+
+`Program.cs` reads the cron expression for `ScheduleImportRecurringId` in this priority order at
+**app startup only**: **System Configuration row (`KeyConfig = "ScheduleImportCron"`) → appsettings
+`HangfireJobs:ScheduleImportCron` → hardcoded `Cron.Hourly()`**. Add/edit the row through the existing
+Settings UI at `/settings/system-configuration-settings` — no new UI needed.
+
+- The override is validated by attempting `recurringJobManager.AddOrUpdate` with it before committing to
+  it; if Hangfire throws (bad cron syntax), the app logs a warning and falls back to the
+  appsettings/default value instead of crashing at startup. (`Cronos.CronExpression`, the type that would
+  otherwise validate this directly, is internal inside `Hangfire.Core 1.8.21`, so it can't be called
+  directly — validating via a real `AddOrUpdate` call is the only way to catch a bad expression before it
+  takes effect.)
+- **Changing the value only takes effect after an app restart** — there is no runtime reload; the
+  recurring job registration happens once during `Program.cs` startup.
+- Full behavior and caveats of the System Configuration table itself: `14_feature-system-configuration-crud.md`.
 
 See `07_feature-course-schedule-crud.md` for the full course schedule feature documentation.
 
@@ -335,4 +436,5 @@ See `07_feature-course-schedule-crud.md` for the full course schedule feature do
 ## Keywords
 
 ueh, login, sso, schedule, lịch học, student portal, html import, fetch, timetable, scraping, week,
-tuần, GetWeek, DrawingSchedules, unicode, NFC, decomposed, NGHỈ, learning mode
+tuần, GetWeek, DrawingSchedules, unicode, NFC, decomposed, NGHỈ, learning mode, multi-semester sync,
+đồng bộ nhiều học kỳ, IsCurrentSemester, ScheduleImportCron, System Configuration override

@@ -33,13 +33,56 @@ namespace API_Raspberry.Service
 
         public async Task<CourseScheduleUehSyncResultDto> ResetImportByWeekAsync(UehStudentScheduleRequestDto request)
         {
-            var fetchResult = await _uehStudentScheduleService.FetchAllWeeksAsync(request);
-            if (!fetchResult.Success)
+            var semesters = await _uehStudentScheduleService.GetSemestersToSyncAsync();
+            if (semesters.Count == 0)
             {
                 return new CourseScheduleUehSyncResultDto
                 {
                     Success = false,
+                    Message = "Không có học kỳ nào được đánh dấu đồng bộ (IsCurrentSemester = true)."
+                };
+            }
+
+            var (fetchResults, loginError) = await _uehStudentScheduleService.FetchAllWeeksForSemestersAsync(semesters, request);
+            if (loginError != null)
+            {
+                return new CourseScheduleUehSyncResultDto
+                {
+                    Success = false,
+                    Message = loginError
+                };
+            }
+
+            var semesterResults = fetchResults.Select(ImportOneSemester).ToList();
+
+            var totalCount = semesterResults.Sum(s => s.Count);
+            var successCount = semesterResults.Count(s => s.Success);
+            var overallSuccess = successCount > 0;
+
+            _logger.LogInformation(
+                "Đồng bộ UEH: {SuccessCount}/{Total} học kỳ thành công, tổng {Count} buổi học.",
+                successCount, semesterResults.Count, totalCount);
+
+            return new CourseScheduleUehSyncResultDto
+            {
+                Success = overallSuccess,
+                Message = $"Đồng bộ {successCount}/{semesterResults.Count} học kỳ thành công, tổng {totalCount} buổi học.",
+                Count = totalCount,
+                Semesters = semesterResults
+            };
+        }
+
+        // Parse + dedupe + xoá/ghi lại TKB cho ĐÚNG 1 học kỳ. DeleteBySemesterMetadataId chỉ xoá theo
+        // SemesterMetadataId nên không đụng dữ liệu của các học kỳ khác đang được loop cùng lượt này.
+        private CourseScheduleUehSyncSemesterResultDto ImportOneSemester(UehAllWeeksResponseDto fetchResult)
+        {
+            if (!fetchResult.Success)
+            {
+                return new CourseScheduleUehSyncSemesterResultDto
+                {
+                    Success = false,
                     Message = fetchResult.Message,
+                    SemesterMetadataId = fetchResult.SemesterMetadataId,
                     YearStudy = fetchResult.YearStudy,
                     TermId = fetchResult.TermId,
                     WeeksScanned = fetchResult.WeeksScanned
@@ -74,10 +117,10 @@ namespace API_Raspberry.Service
             if (toInsert.Count == 0)
             {
                 _logger.LogWarning(
-                    "Đồng bộ UEH: quét {Scanned} tuần nhưng không parse được buổi học nào. Giữ nguyên dữ liệu cũ.",
-                    fetchResult.WeeksScanned);
+                    "Đồng bộ UEH: học kỳ {SemesterId} quét {Scanned} tuần nhưng không parse được buổi học nào. Giữ nguyên dữ liệu cũ.",
+                    semesterMetadataId, fetchResult.WeeksScanned);
 
-                return new CourseScheduleUehSyncResultDto
+                return new CourseScheduleUehSyncSemesterResultDto
                 {
                     Success = false,
                     Message = $"Quét {fetchResult.WeeksScanned} tuần nhưng không đọc được buổi học nào. Đã giữ nguyên thời khóa biểu cũ để tránh mất dữ liệu.",
@@ -96,7 +139,7 @@ namespace API_Raspberry.Service
                 "Đồng bộ UEH: {Count} buổi học từ {WithData}/{Scanned} tuần cho học kỳ {SemesterId}.",
                 toInsert.Count, weeksWithData, fetchResult.WeeksScanned, semesterMetadataId);
 
-            return new CourseScheduleUehSyncResultDto
+            return new CourseScheduleUehSyncSemesterResultDto
             {
                 Success = true,
                 Message = $"Đồng bộ thành công {toInsert.Count} buổi học từ {weeksWithData} tuần có lịch.",
@@ -105,8 +148,7 @@ namespace API_Raspberry.Service
                 YearStudy = fetchResult.YearStudy,
                 TermId = fetchResult.TermId,
                 WeeksScanned = fetchResult.WeeksScanned,
-                WeeksWithData = weeksWithData,
-                Data = toInsert
+                WeeksWithData = weeksWithData
             };
         }
     }

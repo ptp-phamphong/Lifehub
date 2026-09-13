@@ -113,7 +113,7 @@ namespace API_Raspberry.Service
                 Attempts = 0
             });
 
-            var subject = "🔐 Mã OTP đặt lại mật khẩu - Raspberry Pi App";
+            var subject = "🔐 Mã OTP đặt lại mật khẩu - LifeHub";
             var body = BuildOtpEmail(user.Name ?? user.Username, code);
 
             var emailService = new EmailService(senderEmail, appPassword);

@@ -18,7 +18,7 @@ const { resolve } = require('path');
  * cho hầu hết app (trừ system apps).
  */
 
-const APP_INFO_MODULE_JAVA = `package com.phamphong.mobileRaspberry.appinfo;
+const APP_INFO_MODULE_JAVA = `package com.phamphong.lifehub.appinfo;
 
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -142,7 +142,7 @@ public class AppInfoModule extends ReactContextBaseJavaModule {
 }
 `;
 
-const APP_INFO_PACKAGE_JAVA = `package com.phamphong.mobileRaspberry.appinfo;
+const APP_INFO_PACKAGE_JAVA = `package com.phamphong.lifehub.appinfo;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
@@ -201,7 +201,7 @@ function withAppInfoModule(config) {
       const projectRoot = modConfig.modRequest.platformProjectRoot;
       const javaDir = resolve(
         projectRoot,
-        'app/src/main/java/com/phamphong/mobileRaspberry/appinfo'
+        'app/src/main/java/com/phamphong/lifehub/appinfo'
       );
       mkdirSync(javaDir, { recursive: true });
       writeFileSync(resolve(javaDir, 'AppInfoModule.java'), APP_INFO_MODULE_JAVA);
@@ -221,7 +221,7 @@ function withAppInfoModule(config) {
 
     if (language === 'kt' || language === 'kotlin') {
       // Kotlin MainApplication
-      const importLine = 'import com.phamphong.mobileRaspberry.appinfo.AppInfoPackage';
+      const importLine = 'import com.phamphong.lifehub.appinfo.AppInfoPackage';
 
       // Thêm import
       const lastImportIdx = contents.lastIndexOf('import ');
@@ -245,7 +245,7 @@ function withAppInfoModule(config) {
       }
     } else {
       // Java MainApplication
-      const importLine = 'import com.phamphong.mobileRaspberry.appinfo.AppInfoPackage;';
+      const importLine = 'import com.phamphong.lifehub.appinfo.AppInfoPackage;';
 
       const lastImportIdx = contents.lastIndexOf('import ');
       const eol = contents.indexOf('\n', lastImportIdx);

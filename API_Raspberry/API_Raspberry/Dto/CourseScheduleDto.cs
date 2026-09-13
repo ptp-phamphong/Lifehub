@@ -1,6 +1,20 @@
 namespace API_Raspberry.Dto
 {
+    // Kết quả tổng hợp của 1 lần sync - có thể gồm nhiều học kỳ (mọi SemesterMetadata có
+    // IsCurrentSemester = true). Giữ nguyên các field top-level (Success/Message/Count) để không phá
+    // các consumer cũ chỉ đọc 3 field này; chi tiết theo từng học kỳ nằm trong Semesters.
     public class CourseScheduleUehSyncResultDto
+    {
+        // true nếu ÍT NHẤT 1 học kỳ sync thành công - tránh Hangfire retry cả batch (kể cả phần đã
+        // xong) chỉ vì 1 học kỳ lỗi tạm thời.
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public int Count { get; set; }
+
+        public List<CourseScheduleUehSyncSemesterResultDto> Semesters { get; set; } = new();
+    }
+
+    public class CourseScheduleUehSyncSemesterResultDto
     {
         public bool Success { get; set; }
         public string Message { get; set; }
@@ -14,8 +28,6 @@ namespace API_Raspberry.Dto
 
         // Số tuần thực sự có buổi học; phần còn lại là tuần rỗng, bình thường.
         public int WeeksWithData { get; set; }
-
-        public List<CourseScheduleCreateDto> Data { get; set; }
     }
 
     public class CourseScheduleDto

@@ -126,7 +126,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text }]}>🔒 Đăng nhập</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Raspberry Pi Expense Tracker
+          LifeHub Expense Tracker
         </Text>
 
         {error ? (

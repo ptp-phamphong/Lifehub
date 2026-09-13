@@ -40,7 +40,7 @@ export type Dictionary = {
 
   /** Thanh điều hướng chính (`main-tab`) — hiện ở mọi trang sau khi đăng nhập. */
   nav: {
-    /** Dòng phụ dưới chữ "Raspberry". Tên thương hiệu không dịch. */
+    /** Dòng phụ dưới chữ "LifeHub". Tên thương hiệu không dịch. */
     brandSub: string;
     /** aria-label cho thẻ <nav>. */
     mainNavigation: string;
@@ -130,7 +130,6 @@ export type Dictionary = {
     missingName: string;
     missingCode: string;
     missingYear: string;
-    onlyOneCurrent: string;
     loadFailed: string;
     updateFailed: string;
     createFailed: string;

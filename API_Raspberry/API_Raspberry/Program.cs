@@ -276,10 +276,47 @@ try
     if (!isDemo)
     {
         var scheduleImportCron = builder.Configuration["HangfireJobs:ScheduleImportCron"] ?? Cron.Hourly();
-        recurringJobManager.AddOrUpdate<IScheduleImportJob>(
-            JobDefinitions.ScheduleImportRecurringId,
-            job => job.RunAsync(),
-            scheduleImportCron);
+
+        // Cho phép override qua System Configuration (key "ScheduleImportCron") mà không cần sửa
+        // appsettings/redeploy - chỉ áp dụng lúc khởi động app, không reload runtime.
+        var dbContext = jobScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var scheduleImportCronOverride = dbContext.SystemConfigurations
+            .FirstOrDefault(c => c.KeyConfig == "ScheduleImportCron")?.ValueConfig;
+
+        var startupLogger = jobScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        if (!string.IsNullOrWhiteSpace(scheduleImportCronOverride))
+        {
+            // Cronos (bundled trong Hangfire.Core) là internal nên không gọi thẳng để validate được -
+            // validate bằng cách thử AddOrUpdate với giá trị override trước; nếu cú pháp sai, Hangfire
+            // tự ném exception ở đây và ta fallback về appsettings/mặc định thay vì để sập cả app.
+            try
+            {
+                recurringJobManager.AddOrUpdate<IScheduleImportJob>(
+                    JobDefinitions.ScheduleImportRecurringId,
+                    job => job.RunAsync(),
+                    scheduleImportCronOverride);
+                scheduleImportCron = scheduleImportCronOverride;
+            }
+            catch (Exception ex)
+            {
+                startupLogger.LogWarning(ex,
+                    "ScheduleImportCron trong System Configuration không hợp lệ ('{Value}'), dùng lại giá trị appsettings/mặc định.",
+                    scheduleImportCronOverride);
+
+                recurringJobManager.AddOrUpdate<IScheduleImportJob>(
+                    JobDefinitions.ScheduleImportRecurringId,
+                    job => job.RunAsync(),
+                    scheduleImportCron);
+            }
+        }
+        else
+        {
+            recurringJobManager.AddOrUpdate<IScheduleImportJob>(
+                JobDefinitions.ScheduleImportRecurringId,
+                job => job.RunAsync(),
+                scheduleImportCron);
+        }
 
         var visitorLogMaintenanceCron = builder.Configuration["HangfireJobs:VisitorLogMaintenanceCron"] ?? "0 */6 * * *";
         recurringJobManager.AddOrUpdate<IVisitorLogMaintenanceJob>(

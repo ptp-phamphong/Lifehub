@@ -32,8 +32,8 @@ namespace API_Raspberry.Service.Jobs
             }
 
             _logger.LogInformation(
-                "ScheduleImportJob: Import thành công {Count} buổi học từ {WithData}/{Scanned} tuần cho semester {SemesterId}.",
-                result.Count, result.WeeksWithData, result.WeeksScanned, result.SemesterMetadataId);
+                "ScheduleImportJob: {SemesterCount} học kỳ, tổng {Count} buổi học ({SuccessCount} học kỳ OK).",
+                result.Semesters.Count, result.Count, result.Semesters.Count(s => s.Success));
         }
     }
 }

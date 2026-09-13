@@ -113,9 +113,7 @@ namespace API_Raspberry.Controllers
                 return BadRequest(new
                 {
                     message = result.Message,
-                    weeksScanned = result.WeeksScanned,
-                    yearStudy = result.YearStudy,
-                    termId = result.TermId
+                    semesters = result.Semesters
                 });
             }
 
@@ -123,12 +121,7 @@ namespace API_Raspberry.Controllers
             {
                 message = result.Message,
                 count = result.Count,
-                weeksScanned = result.WeeksScanned,
-                weeksWithData = result.WeeksWithData,
-                semesterMetadataId = result.SemesterMetadataId,
-                yearStudy = result.YearStudy,
-                termId = result.TermId,
-                data = result.Data
+                semesters = result.Semesters
             });
         }
     }
