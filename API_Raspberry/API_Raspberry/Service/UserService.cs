@@ -8,11 +8,13 @@ namespace API_Raspberry.Service
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly IDemoModeService _demoMode;
 
-        public UserService(IUserRepository userRepository, IConfiguration configuration)
+        public UserService(IUserRepository userRepository, IConfiguration configuration, IDemoModeService demoMode)
         {
             _userRepository = userRepository;
             _configuration = configuration;
+            _demoMode = demoMode;
         }
 
         /// <summary>
@@ -23,7 +25,7 @@ namespace API_Raspberry.Service
         /// </summary>
         private void EnsureNotDemoAccount(int userId, string action)
         {
-            if (!_configuration.GetValue<bool>("DemoMode")) return;
+            if (!_demoMode.IsDemo) return;
 
             var demoUsername = _configuration["Auth:Username"];
             var user = _userRepository.GetById(userId);
@@ -40,9 +42,21 @@ namespace API_Raspberry.Service
                 Id = u.Id,
                 Username = u.Username,
                 Name = u.Name,
-                Email = u.Email,
+                Email = _demoMode.IsDemo ? MaskEmail(u.Email) : u.Email,
                 Active = u.Active
             }).ToList();
+        }
+
+        // Demo: che email ngay ở server (che ở frontend thì ai gọi thẳng API vẫn đọc được).
+        // ptp.phamphong@gmail.com -> p***@gmail.com
+        private static string MaskEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+                return email;
+
+            var parts = email.Split('@', 2);
+            var visible = parts[0].Length <= 1 ? parts[0] : parts[0].Substring(0, 1);
+            return $"{visible}***@{parts[1]}";
         }
 
         public UserDto GetById(int id)
@@ -62,6 +76,11 @@ namespace API_Raspberry.Service
 
         public int Create(UserCreateDto dto)
         {
+            // Lớp chặn thứ hai sau DemoGateMiddleware: user mới trên demo + quên mật khẩu từng là
+            // đường gửi mail từ Gmail của chủ repo tới địa chỉ tùy ý.
+            if (_demoMode.IsDemo)
+                throw new InvalidOperationException("Không thể tạo tài khoản trên bản demo.");
+
             var user = new User
             {
                 Username = dto.Username,
@@ -76,6 +95,9 @@ namespace API_Raspberry.Service
 
         public void Update(int id, UserUpdateDto dto)
         {
+            // Update đặt được Active=false, tức là khóa được tài khoản demo dùng chung.
+            EnsureNotDemoAccount(id, "sửa");
+
             var user = _userRepository.GetById(id);
             if (user == null) return;
 

@@ -35,12 +35,24 @@ namespace API_Raspberry.Service.Jobs
 
         private readonly AppDbContext _db;
         private readonly IConfiguration _configuration;
+        private readonly IHostEnvironment _environment;
+        private readonly INotificationFilterService _notificationFilterService;
+        private readonly IVisitorLogSettingsService _visitorLogSettingsService;
         private readonly ILogger<DemoReseedJob> _logger;
 
-        public DemoReseedJob(AppDbContext db, IConfiguration configuration, ILogger<DemoReseedJob> logger)
+        public DemoReseedJob(
+            AppDbContext db,
+            IConfiguration configuration,
+            IHostEnvironment environment,
+            INotificationFilterService notificationFilterService,
+            IVisitorLogSettingsService visitorLogSettingsService,
+            ILogger<DemoReseedJob> logger)
         {
             _db = db;
             _configuration = configuration;
+            _environment = environment;
+            _notificationFilterService = notificationFilterService;
+            _visitorLogSettingsService = visitorLogSettingsService;
             _logger = logger;
         }
 
@@ -48,25 +60,47 @@ namespace API_Raspberry.Service.Jobs
         {
             // Chốt an toàn thứ hai (chốt thứ nhất là Program.cs chỉ đăng ký recurring job này khi
             // isDemo) - job này xóa data thật nếu lỡ chạy nhầm trên instance thật.
-            var isDemo = _configuration.GetValue<bool>("DemoMode");
+            // Ngược với IDemoModeService (chỉ cần MỘT dấu hiệu là coi như demo, để chặn cho chắc):
+            // việc XÓA data đòi đủ CẢ HAI dấu hiệu, để chắc chắn không bao giờ chạy trên bản thật.
+            var isDemo = _configuration.GetValue<bool>("DemoMode")
+                && _environment.IsEnvironment(DemoModeService.EnvironmentName);
             if (!isDemo)
             {
-                _logger.LogWarning("DemoReseedJob: DemoMode=false, bỏ qua (instance này không phải demo).");
+                _logger.LogWarning("DemoReseedJob: không phải instance demo (cần DemoMode=true và môi trường Demo), bỏ qua.");
                 return;
             }
 
             var today = DateTime.Today;
             var faker = new Faker("en");
 
+            // Một transaction cho cả xóa lẫn seed: lỗi giữa chừng thì demo giữ nguyên data cũ,
+            // không bị bỏ lại trong trạng thái nửa trống.
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+
             await SelfHealDemoUserAsync();
 
+            // Reset mọi thứ người xem demo sửa được, kể cả danh mục, cấu hình (theme nằm trong
+            // SystemConfigurations: THEME_WEB_DARK/THEME_MOBILE_DARK) và dấu vết visitor/notification.
+            // Thứ tự: ExpenseRecords trước ReasonTypes (khóa ngoại SetNull, AppDbContext.cs); không
+            // bảng nào trỏ tới Users.
             _logger.LogInformation("DemoReseedJob: Xóa data demo cũ...");
             await _db.ExpenseRecords.ExecuteDeleteAsync();
             await _db.IncomeRecords.ExecuteDeleteAsync();
             await _db.CourseSchedules.ExecuteDeleteAsync();
             await _db.SemesterMetadatas.ExecuteDeleteAsync();
+            await _db.ReasonTypes.ExecuteDeleteAsync();
+            await _db.SystemConfigurations.ExecuteDeleteAsync();
+            await _db.PhoneNotifications.ExecuteDeleteAsync();
+            await _db.NotificationFilters.ExecuteDeleteAsync();
+            await _db.VisitEvents.ExecuteDeleteAsync();
+            await _db.VisitorKnownIps.ExecuteDeleteAsync();
+            await _db.VisitorDailyStats.ExecuteDeleteAsync();
 
-            var reasonTypes = await SeedReasonTypesIfEmptyAsync();
+            // Cấu hình mặc định như lúc app khởi động lần đầu (Program.cs).
+            _notificationFilterService.SeedDefaults();
+            _visitorLogSettingsService.SeedDefaults();
+
+            var reasonTypes = await SeedReasonTypesAsync();
             var semester = SeedSemester(today);
             _db.SemesterMetadatas.Add(semester);
             await _db.SaveChangesAsync();
@@ -76,13 +110,16 @@ namespace API_Raspberry.Service.Jobs
             SeedIncomeRecords(faker, today);
 
             await _db.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             _logger.LogInformation("DemoReseedJob: Hoàn tất sinh lại data demo tính đến {Today}.", today);
         }
 
         /// <summary>
-        /// Đảm bảo tài khoản demo (Auth:Username/PasswordHash trong appsettings.Demo.json) luôn tồn
-        /// tại và đúng mật khẩu, phòng khi ai đó lách được guard chặn xóa/đổi mật khẩu ở UserService.
+        /// Đảm bảo tài khoản demo (Auth:Username/PasswordHash) là tài khoản DUY NHẤT, tồn tại và đúng
+        /// mật khẩu/tên/email - phòng khi ai đó lách được guard ở UserService. Xóa mọi user khác:
+        /// trước khi có DemoGateMiddleware, người lạ tạo được user tùy ý trên demo.
+        /// Không bảng nào có khóa ngoại tới Users nên xóa thẳng là an toàn.
         /// </summary>
         private async Task SelfHealDemoUserAsync()
         {
@@ -91,6 +128,12 @@ namespace API_Raspberry.Service.Jobs
             if (string.IsNullOrEmpty(demoUsername) || string.IsNullOrEmpty(demoPasswordHash))
             {
                 return;
+            }
+
+            var removed = await _db.Users.Where(u => u.Username != demoUsername).ExecuteDeleteAsync();
+            if (removed > 0)
+            {
+                _logger.LogWarning("DemoReseedJob: đã xóa {Count} user lạ khỏi DB demo.", removed);
             }
 
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == demoUsername);
@@ -108,19 +151,16 @@ namespace API_Raspberry.Service.Jobs
             else
             {
                 user.Password = demoPasswordHash;
+                user.Name = demoUsername;
+                user.Email = _configuration["Auth:AdminEmail"];
                 user.Active = true;
             }
 
             await _db.SaveChangesAsync();
         }
 
-        private async Task<List<ReasonType>> SeedReasonTypesIfEmptyAsync()
+        private async Task<List<ReasonType>> SeedReasonTypesAsync()
         {
-            if (await _db.ReasonTypes.AnyAsync())
-            {
-                return await _db.ReasonTypes.ToListAsync();
-            }
-
             var reasonTypes = ExpenseCategories.Select((name, i) => new ReasonType
             {
                 ReasonName = name,

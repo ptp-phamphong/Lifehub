@@ -26,7 +26,8 @@ App điện thoại (LoginScreen)      Web Angular (login.component)
         │                                 │
         ▼                                 ▼
   POST /Auth/ForgotPassword  { username }            [AllowAnonymous]
-        → sinh OTP 6 số, lưu OtpStore (RAM), gửi email → trả { message, maskedEmail }
+        → kiểm tra giới hạn theo tài khoản, sinh OTP 6 số, lưu OtpStore (RAM), gửi email
+        → trả { message } (cùng một câu cho mọi trường hợp, không còn maskedEmail)
         ▼
   POST /Auth/ResetPassword   { username, otp, newPassword }   [AllowAnonymous]
         → kiểm tra OTP (hạn 10p, tối đa 5 lần sai) → BCrypt hash mật khẩu mới → users.Update
@@ -70,11 +71,16 @@ AuthController
 
 | Method | Route | Auth | Body | Trả về |
 |--------|-------|------|------|--------|
-| POST | `/Auth/ForgotPassword` | AllowAnonymous | `{ username }` | `{ message, maskedEmail }` (vd `p***@gmail.com`) |
-| POST | `/Auth/ResetPassword` | AllowAnonymous | `{ username, otp, newPassword }` | `{ message }` |
+| POST | `/Auth/ForgotPassword` | AllowAnonymous · rate limit 3 lần/giờ/IP | `{ username }` | `{ message }` (câu chung, xem §7) |
+| POST | `/Auth/ResetPassword` | AllowAnonymous · rate limit 10 lần/giờ/IP | `{ username, otp, newPassword }` | `{ message }` |
 
-Lỗi trả `400` với `{ message }` tiếng Việt (username sai, chưa cấu hình email, OTP sai/hết hạn,
-mật khẩu mới < 4 ký tự, email server chưa cấu hình...).
+Lỗi trả `400` với `{ message }` tiếng Việt (OTP sai/hết hạn, mật khẩu mới < 4 ký tự, email server chưa
+cấu hình, gửi mail thất bại...). **Không còn** lỗi riêng cho "username sai" hay "user chưa có email":
+các trường hợp đó trả `200` với cùng câu chung để không lộ username nào tồn tại.
+
+> **Thay đổi so với bản trước:** response `ForgotPassword` không còn trả `maskedEmail` (`PasswordResetResult.MaskedEmail`
+> không còn được gán; `AuthController.ForgotPassword` vẫn copy trường này sang `ForgotPasswordResponseDto` nên JSON còn khóa `maskedEmail` với giá trị `null`). Web và mobile đã có chữ dự phòng "email của bạn".
+> Trên **demo** cả hai endpoint bị chặn ở cổng allowlist (404) và ở service (xem §7).
 
 ## 6. Cấu hình bắt buộc khi deploy
 
@@ -95,14 +101,28 @@ trực tiếp trong màn **Quản lý user ▸ Sửa ▸ Email**.
 - OTP sinh bằng `RandomNumberGenerator.GetInt32` (RNG mật mã), 6 chữ số.
 - Hết hạn **10 phút**; sai quá **5 lần** thì xóa mã, buộc gửi lại.
 - Mật khẩu mới hash bằng **BCrypt** (workfactor mặc định), không lưu plaintext.
-- Email hiển thị cho người dùng đã được **che bớt** (`p***@gmail.com`).
 - OTP không bao giờ trả về trong response — chỉ gửi qua email.
+- **Giới hạn theo tài khoản** (`PasswordResetService`, bộ đếm `OtpStore.TryRegisterRequest` trong RAM):
+  tối đa **3 OTP mỗi giờ** cho một username, và chờ ít nhất **60 giây** giữa hai lần xin.
+  Lý do: mỗi OTP mới đặt lại `Attempts = 0`; không có giới hạn này thì kẻ tấn công cứ xin mã mới là dò tiếp
+  được. 3 mã x 5 lần nhập = tối đa 15 lần đoán mỗi giờ trên 1 triệu khả năng. Rate limit theo IP không
+  thay thế được lớp này vì kẻ tấn công đổi được IP (VPN, proxy). Chỉ đếm cho user có thật.
+- **Rate limit theo IP** (`Middleware/RateLimitPolicies.cs`, `[EnableRateLimiting]` trên `AuthController`):
+  `ForgotPassword` 3 lần/giờ, `ResetPassword` 10 lần/giờ. Vượt thì `429`.
+- **Câu trả lời chung** (`PasswordResetService.GenericRequestMessage`): "Nếu tài khoản tồn tại và đã có
+  email, mã OTP đã được gửi tới email đó. Mã có hiệu lực 10 phút." Dùng cho cả bốn trường hợp: không
+  có user / user không hoạt động, user chưa có email, bị giới hạn theo tài khoản, và gửi thành công. Nhờ
+  đó không dò được username nào tồn tại. Vì vậy cũng **không trả email đã che** nữa.
+- **Demo:** `RequestOtpAsync` và `VerifyAndReset` đều trả lỗi "Tính năng quên mật khẩu không khả dụng
+  trên bản demo" (lớp chặn thứ hai sau `DemoGateMiddleware`; demo không được gửi mail từ Gmail của chủ
+  repo). Xem `25_feature-demo-environment.md`.
 
 ## 8. Kiểm thử nhanh
 
 1. Chưa cấu hình `EMAIL_*` → gọi `/Auth/ForgotPassword` phải trả lỗi cấu hình.
-2. Username không tồn tại / inactive → lỗi "Không tìm thấy tài khoản...".
-3. Thành công → nhận email OTP, `maskedEmail` đúng dạng `p***@gmail.com`.
+2. Username không tồn tại / inactive / chưa có email → vẫn `200` với **cùng câu chung** như khi thật sự gửi, và không có mail nào được gửi.
+3. Thành công → nhận email OTP; response chỉ có `message` (câu chung).
+3b. Xin OTP lần 2 trong vòng 60 giây, hoặc lần 4 trong một giờ cho cùng username (tạm nới rate limit theo IP) → vẫn câu chung, nhưng không có mail mới.
 4. Nhập OTP sai 5 lần → lỗi "nhập sai quá nhiều lần".
 5. Sau 10 phút → lỗi "OTP đã hết hạn".
 6. OTP đúng + mật khẩu mới ≥ 4 ký tự → đăng nhập lại bằng mật khẩu mới thành công.

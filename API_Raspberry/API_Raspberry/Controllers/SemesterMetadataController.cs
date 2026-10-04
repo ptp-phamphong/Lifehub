@@ -1,5 +1,6 @@
 using API_Raspberry.Dto;
 using API_Raspberry.Service;
+using API_Raspberry.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API_Raspberry.Controllers
@@ -21,6 +22,7 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetAllSemesterMetadata")]
         public List<SemesterMetadataDto> GetAll()

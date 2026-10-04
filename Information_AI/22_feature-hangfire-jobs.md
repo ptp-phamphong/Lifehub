@@ -1,5 +1,8 @@
 # Feature: Background Jobs (Hangfire) + trang giám sát "Tác vụ nền"
 
+> **Instance demo** chỉ đăng ký job `demo-reseed`; hai job của bản thật bị gỡ khỏi kho Hangfire của demo
+> (xem §Job `demo-reseed` bên dưới và `25_feature-demo-environment.md`).
+
 Hai tác vụ chạy nền — **đồng bộ lịch học UEH** và **bảo trì nhật ký truy cập** — chạy trên **Hangfire**
 thay cho `BackgroundService` cũ. Hangfire tự lưu lịch sử mỗi lần chạy (thành công / thất bại / exception)
 vào chính MariaDB đang dùng, nên có thể:
@@ -47,6 +50,25 @@ là các dependency giờ nhận qua constructor (Hangfire tự tạo DI scope m
 > `return` khi UEH sync thất bại → Hangfire sẽ tưởng job Succeeded và **giấu mất đúng thứ cần xem lại**.
 > `VisitorLogMaintenanceJob` không cần sửa gì — cứ lỗi là ném, Hangfire tự bắt.
 
+### Job `demo-reseed` (chỉ instance demo)
+
+`Service/Jobs/DemoReseedJob.cs`, id `demo-reseed-job`, khóa API `demo-reseed`
+(`JobDefinitions.DemoReseedRecurringId` / `DemoReseedKey`). Cron `HangfireJobs:DemoReseedCron`, mặc định
+`0 3 * * *`, múi giờ `SE Asia Standard Time`. Chạy tay từ trang Jobs của bản thật qua cầu nối
+`DemoControl:ConnectionString`.
+
+| Nội dung | Hành vi hiện tại |
+|---|---|
+| Điều kiện chạy | Cần **cả** `DemoMode=true` **và** môi trường `Demo`; thiếu một thì bỏ qua + warning |
+| Transaction | **Một transaction** cho cả xóa lẫn seed; lỗi giữa chừng thì giữ nguyên dữ liệu cũ |
+| User | Xóa mọi user khác user demo (`Auth:Username`); đặt lại `Name`, `Email`, `Active`, `Password` |
+| Bảng bị xóa | `ExpenseRecords`, `IncomeRecords`, `CourseSchedules`, `SemesterMetadatas`, `ReasonTypes`, `SystemConfigurations`, `PhoneNotifications`, `NotificationFilters`, `VisitEvents`, `VisitorKnownIps`, `VisitorDailyStats` |
+| Seed lại | `NotificationFilterService.SeedDefaults`, `VisitorLogSettingsService.SeedDefaults`, `ReasonTypes` (luôn seed), học kỳ, lịch học, chi tiêu, thu nhập giả |
+
+`Program.cs` trên demo còn gọi `RemoveIfExists` cho `schedule-import-job` và `visitor-log-maintenance-job`:
+Hangfire không tự xóa recurring job đã đăng ký từ trước, và hai job đó (sync UEH thật, dọn log) không được
+chạy trên demo. Chi tiết: `25_feature-demo-environment.md`.
+
 ### Đăng ký job định kỳ (`Program.cs`)
 
 Phải lấy `IRecurringJobManager` **từ DI scope**, không dùng API tĩnh `RecurringJob.AddOrUpdate`:
@@ -65,7 +87,10 @@ Không có `[Authorize]` riêng — dựa vào global JWT `FallbackPolicy` như 
 | Method | Route | Body / Query | Trả về |
 |---|---|---|---|
 | GET | `/Jobs/History` | `?take=50` | `List<JobRunDto>` — lịch sử chạy, mới nhất trước |
-| POST | `/Jobs/Trigger/{jobKey}` | `jobKey` ∈ `{schedule-import, visitor-log-maintenance}` | `200 {"jobId":"6"}`, hoặc `404` nếu khóa lạ |
+| POST | `/Jobs/Trigger/{jobKey}` | `jobKey` ∈ `{schedule-import, visitor-log-maintenance, demo-reseed}` | `200 {"jobId":"6"}`, hoặc `404` nếu khóa lạ |
+
+Trên instance demo, `JobsController` **bị chặn hoàn toàn** bởi cổng allowlist (không có `[AllowInDemo]`), cũng như
+Hangfire dashboard `/hangfire`.
 
 `JobRunDto`: `jobId`, `jobName` (tên tiếng Việt), `status`, `startedAt`, `finishedAt`, `durationMs`,
 `errorMessage`.

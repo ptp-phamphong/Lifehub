@@ -1,6 +1,7 @@
 ﻿using API_Raspberry.Dto;
 using API_Raspberry.Model;
 using API_Raspberry.Service;
+using API_Raspberry.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API_Raspberry.Controllers
@@ -14,6 +15,7 @@ namespace API_Raspberry.Controllers
             _expenseService = expenseService;
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("ExpenseNote")]
         public int ExpenseNote([FromBody] ExpenseRecordCreateDto note)
@@ -21,6 +23,7 @@ namespace API_Raspberry.Controllers
             return _expenseService.AddExpense(note);
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("GetAllExpenseNote")]
         public List<ExpenseRecordDto> GetAllExpenseNote([FromBody] ParamFilter paramFilter)
@@ -28,6 +31,7 @@ namespace API_Raspberry.Controllers
             return _expenseService.GetAllExpenses(paramFilter);
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("SumAll")]
         public int SumAll()
@@ -35,6 +39,7 @@ namespace API_Raspberry.Controllers
             return _expenseService.SumAll();
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("SumAllWithFilter")]
         public int SumAllWithFilter([FromBody] ParamFilter paramFilter)
@@ -42,6 +47,7 @@ namespace API_Raspberry.Controllers
             return _expenseService.SumAllWithFilter(paramFilter);
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetExpenseById/{id}")]
         public ExpenseRecordDto GetExpenseById(int id)
@@ -49,6 +55,7 @@ namespace API_Raspberry.Controllers
             return _expenseService.GetExpenseById(id);
         }
 
+        [AllowInDemo]
         [HttpPut]
         [Route("UpdateById/{id}")]
         public bool UpdateById(int id, [FromBody] ExpenseRecordUpdateDto note)
@@ -57,6 +64,7 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
+        [AllowInDemo]
         [HttpDelete]
         [Route("DeleteById/{id}")]
         public bool DeleteById(int id)
@@ -65,6 +73,7 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetExpensesByMonth/{month}/{year}")]
         public List<ExpenseRecordDto> GetExpensesByMonth(int month, int year)
@@ -79,6 +88,7 @@ namespace API_Raspberry.Controllers
             return _expenseService.SumByMonth(month, year);
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("SumByCurrentMonth")]
         public int SumByCurrentMonth([FromBody] ParamFilter paramFilter)
@@ -86,6 +96,7 @@ namespace API_Raspberry.Controllers
             return _expenseService.SumByCurrentMonth(paramFilter);
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("SumByCurrentWeek")]
         public int SumByCurrentWeek([FromBody] ParamFilter paramFilter)

@@ -12,6 +12,7 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
+  readonly isDemoMode = environment.demoMode;
   username = '';
   password = '';
   isLoading = false;
@@ -52,7 +53,10 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.trackVisit();
+    // Demo không ghi visitor log (backend cũng chặn Visit/* trên demo).
+    if (!this.isDemoMode) {
+      this.trackVisit();
+    }
   }
 
   setLanguage(lang: Language): void {

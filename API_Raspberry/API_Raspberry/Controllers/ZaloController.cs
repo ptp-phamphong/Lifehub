@@ -1,4 +1,5 @@
 using API_Raspberry.Dto.Zalo;
+using API_Raspberry.Service;
 using API_Raspberry.Service.Zalo;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,12 +13,12 @@ namespace API_Raspberry.Controllers
     public class ZaloController : ControllerBase
     {
         private readonly IZaloSessionManager _zalo;
-        private readonly IConfiguration _configuration;
+        private readonly IDemoModeService _demoMode;
 
-        public ZaloController(IZaloSessionManager zalo, IConfiguration configuration)
+        public ZaloController(IZaloSessionManager zalo, IDemoModeService demoMode)
         {
             _zalo = zalo;
-            _configuration = configuration;
+            _demoMode = demoMode;
         }
 
         /// <summary>
@@ -27,7 +28,7 @@ namespace API_Raspberry.Controllers
         /// </summary>
         private ActionResult BlockIfDemo()
         {
-            if (_configuration.GetValue<bool>("DemoMode"))
+            if (_demoMode.IsDemo)
             {
                 return StatusCode(403, new { message = "Tính năng Zalo không khả dụng trên bản demo." });
             }

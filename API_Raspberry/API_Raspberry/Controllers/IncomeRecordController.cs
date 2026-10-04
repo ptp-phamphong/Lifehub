@@ -1,6 +1,7 @@
 using API_Raspberry.Dto;
 using API_Raspberry.Model;
 using API_Raspberry.Service;
+using API_Raspberry.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API_Raspberry.Controllers
@@ -14,6 +15,7 @@ namespace API_Raspberry.Controllers
             _incomeService = incomeService;
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("IncomeNote")]
         public int IncomeNote([FromBody] IncomeRecordCreateDto note)
@@ -21,6 +23,7 @@ namespace API_Raspberry.Controllers
             return _incomeService.AddIncome(note);
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("GetAllIncomeNote")]
         public List<IncomeRecordDto> GetAllIncomeNote([FromBody] ParamFilter paramFilter)
@@ -28,6 +31,7 @@ namespace API_Raspberry.Controllers
             return _incomeService.GetAllIncomes(paramFilter);
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("SumAllIncome")]
         public int SumAllIncome()
@@ -35,6 +39,7 @@ namespace API_Raspberry.Controllers
             return _incomeService.SumAll();
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("SumAllIncomeWithFilter")]
         public int SumAllIncomeWithFilter([FromBody] ParamFilter paramFilter)
@@ -42,6 +47,7 @@ namespace API_Raspberry.Controllers
             return _incomeService.SumAllWithFilter(paramFilter);
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetIncomeById/{id}")]
         public IncomeRecordDto GetIncomeById(int id)
@@ -49,6 +55,7 @@ namespace API_Raspberry.Controllers
             return _incomeService.GetIncomeById(id);
         }
 
+        [AllowInDemo]
         [HttpPut]
         [Route("UpdateIncomeById/{id}")]
         public bool UpdateIncomeById(int id, [FromBody] IncomeRecordUpdateDto note)
@@ -57,6 +64,7 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
+        [AllowInDemo]
         [HttpDelete]
         [Route("DeleteIncomeById/{id}")]
         public bool DeleteIncomeById(int id)
@@ -79,6 +87,7 @@ namespace API_Raspberry.Controllers
             return _incomeService.SumByMonth(month, year);
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("SumIncomeByCurrentMonth")]
         public int SumIncomeByCurrentMonth([FromBody] ParamFilter paramFilter)
@@ -86,6 +95,7 @@ namespace API_Raspberry.Controllers
             return _incomeService.SumByCurrentMonth(paramFilter);
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("SumIncomeByCurrentWeek")]
         public int SumIncomeByCurrentWeek([FromBody] ParamFilter paramFilter)

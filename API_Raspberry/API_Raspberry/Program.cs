@@ -1,7 +1,9 @@
 using System.Net;
 using System.Text;
 using API_Raspberry.Data;
+using API_Raspberry.Filters;
 using API_Raspberry.Mapper;
+using API_Raspberry.Middleware;
 using API_Raspberry.Repository;
 using API_Raspberry.Service;
 using API_Raspberry.Service.Jobs;
@@ -19,6 +21,29 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions
     Args = args,
     ContentRootPath = AppContext.BaseDirectory
 });
+
+// ----------------------------
+// Instance demo (demo.ptp-phamphong.com, mật khẩu công khai trên portfolio)
+// ----------------------------
+// An toàn khi lỗi: DemoMode=true HOẶC ASPNETCORE_ENVIRONMENT=Demo đều tính là demo. Dùng để tắt mọi
+// thứ có tác dụng phụ thật (sync UEH, Zalo, GPIO, mail), bật cổng allowlist DemoGateMiddleware và
+// job seed data giả. Xem document/plans/plan-security-lifehub-demo.md (repo pi-infra).
+var isDemo = DemoModeService.Detect(builder.Configuration, builder.Environment);
+if (isDemo)
+{
+    // Demo không được cầm secret thật nào: còn dính là từ chối khởi động luôn (chỉ in tên, không in giá trị).
+    var demoProblems = DemoStartupGuard.FindProblems(builder.Configuration, Environment.GetEnvironmentVariables());
+    if (demoProblems.Count > 0)
+    {
+        foreach (var problem in demoProblems)
+            Console.Error.WriteLine($"❌ [DemoStartupGuard] {problem}");
+        throw new InvalidOperationException(
+            $"Instance demo từ chối khởi động: {demoProblems.Count} vấn đề cấu hình (xem log phía trên).");
+    }
+
+    // Không endpoint nào được mở trên demo cần body lớn (import Excel, ghi âm AI đều bị chặn).
+    builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 256 * 1024);
+}
 
 // ----------------------------
 // 0️⃣ Forwarded headers (BẮT BUỘC cho visitor log)
@@ -50,7 +75,6 @@ builder.Services.AddCors(options =>
                 "https://www.ptp-phamphong.com",                 // www (redirected to apex)
                 "https://app.ptp-phamphong.com",                 // Angular expense app
                 "https://demo.ptp-phamphong.com",                // Angular demo build
-                "https://ptp-phamphong-pi.duckdns.org",          // LEGACY - remove after 2026-09-13
                 "http://localhost:4200",                          // Angular dev
                 "http://localhost:8081",                         //  Mobile dev
                 "http://localhost:3000"                          // Portfolio (Next.js) dev
@@ -149,9 +173,7 @@ builder.Services.AddScoped<IVisitorLogMaintenanceJob, VisitorLogMaintenanceJob>(
 builder.Services.AddScoped<IDemoReseedJob, DemoReseedJob>();
 builder.Services.AddScoped<IJobsService, JobsService>();
 
-// Instance demo (xem appsettings.Demo.json/DemoMode): dùng để tắt mọi thứ có tác dụng phụ thật
-// (sync UEH thật, gửi Zalo thật, GPIO thật) và bật job seed data giả thay vào đó.
-var isDemo = builder.Configuration.GetValue<bool>("DemoMode");
+builder.Services.AddSingleton<IDemoModeService, DemoModeService>();
 
 // Cầu nối để /app điều khiển job demo-reseed như hai job kia: instance thật mở thêm một kho
 // Hangfire trỏ vào raspberry_demo (chỉ đẩy việc + đọc lịch sử, không chạy). Bật khi có
@@ -239,6 +261,8 @@ builder.Services.AddAuthorization(options =>
 // 7️⃣ Các service mặc định
 // ----------------------------
 builder.Services.AddControllers();
+// Rate limit theo IP: Auth/* trên cả hai instance, cộng trần cho request ghi trên demo.
+builder.Services.AddLifeHubRateLimiting(isDemo);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // ButtonListener cần GPIO nên chỉ chạy được trên Pi. Mặc định: bật khi Linux, tắt khi dev Windows.
@@ -329,6 +353,11 @@ try
     // hai (ngoài guard DemoMode trong chính job) chống việc nó lỡ chạy xóa data thật.
     if (isDemo)
     {
+        // Hangfire không tự xóa recurring job đã đăng ký từ lần chạy trước. Gỡ hẳn hai job của bản
+        // thật khỏi kho demo, phòng khi chúng từng được đăng ký ở đây (sync UEH thật, dọn log thật).
+        recurringJobManager.RemoveIfExists(JobDefinitions.ScheduleImportRecurringId);
+        recurringJobManager.RemoveIfExists(JobDefinitions.VisitorLogMaintenanceRecurringId);
+
         var demoReseedCron = builder.Configuration["HangfireJobs:DemoReseedCron"] ?? "0 3 * * *";
         recurringJobManager.AddOrUpdate<IDemoReseedJob>(
             JobDefinitions.DemoReseedRecurringId,
@@ -411,8 +440,21 @@ if (app.Environment.IsDevelopment())
 // của khách thay vì 127.0.0.1 của Caddy.
 app.UseForwardedHeaders();
 
+// Routing tường minh: CORS, cổng demo và rate limiter phía sau đều cần biết endpoint đã khớp.
+app.UseRouting();
+
 // 🔥 Thêm dòng này để bật CORS (quan trọng)
 app.UseCors("AllowAll");
+
+// Cổng allowlist của demo: sau CORS (preflight vẫn 204, response 404 vẫn có header CORS), trước
+// Authentication (trả 404 chứ không phải 401). Bản thật không đăng ký middleware này.
+if (isDemo)
+{
+    app.UseMiddleware<DemoGateMiddleware>();
+}
+
+// Sau UseForwardedHeaders nên phân theo IP thật của khách.
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -430,7 +472,7 @@ app.MapControllers();
 //   - Vào qua Caddy từ internet: UseForwardedHeaders đã thay RemoteIpAddress bằng IP thật của
 //     khách nên khác loopback -> chặn.
 // Caddyfile chặn sẵn /api/hangfire* thêm một lớp nữa, phòng khi Caddy ngừng gửi X-Forwarded-For
-// thì mọi request lại trông như loopback. Xem Information_AI/23_feature-hangfire-jobs.md.
+// thì mọi request lại trông như loopback. Xem Information_AI/22_feature-hangfire-jobs.md.
 app.MapHangfireDashboard("/hangfire", new DashboardOptions
 {
     Authorization = new[] { new LocalRequestsOnlyAuthorizationFilter() }
@@ -439,6 +481,21 @@ app.MapHangfireDashboard("/hangfire", new DashboardOptions
 // ----------------------------
 // 7️⃣ Lắng nghe cổng nội bộ cố định cho Caddy reverse proxy
 // ----------------------------
+if (isDemo)
+{
+    // Ghi ra log đúng danh sách route đang mở trên demo, để soát nhanh sau mỗi lần deploy.
+    app.Lifetime.ApplicationStarted.Register(() =>
+    {
+        var allowed = app.Services.GetRequiredService<EndpointDataSource>().Endpoints
+            .OfType<RouteEndpoint>()
+            .Where(e => e.Metadata.GetMetadata<AllowInDemoAttribute>() != null)
+            .Select(e => $"{string.Join(",", e.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? Array.Empty<string>())} /{e.RoutePattern.RawText}")
+            .OrderBy(r => r)
+            .ToList();
+        app.Logger.LogInformation("Demo allowlist: {Count} route được mở:\n  {Routes}", allowed.Count, string.Join("\n  ", allowed));
+    });
+}
+
 //app.Run("http://127.0.0.1:5000");
     app.Run();
 

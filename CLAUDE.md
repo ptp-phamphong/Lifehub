@@ -46,6 +46,7 @@ cd API_Raspberry/API_Raspberry
 dotnet run                             # start API locally (check launchSettings.json for port)
 dotnet ef migrations add [Name]        # after changing an entity
 dotnet ef database update              # apply pending EF Core migrations
+(cd .. && dotnet test API_Raspberry.Tests)   # xUnit; run from API_Raspberry/ (also guards the demo allowlist)
 
 # Frontend (Angular)
 cd Front_End_Raspberry
@@ -64,6 +65,7 @@ npx tsc --noEmit                       # type check (run before finishing any mo
 - **DI is mandatory**: every service/repository is an interface, registered in `Program.cs`, injected via constructor. Never `new` up a service or repository.
 - **No `/api` prefix**: routes are `/ExpenseNote`, `/SystemInfo`, etc., defined directly on action methods (not at controller level). The reverse proxy in front of the API strips `/api` before forwarding, so the backend never sees it.
 - **Auth is on by default**: a global JWT `FallbackPolicy` means every endpoint requires auth unless marked `[AllowAnonymous]`.
+- **Demo instance is deny-by-default**: on demo (`IDemoModeService.IsDemo`) every endpoint without `[AllowInDemo]` returns an empty 404, including `[AllowAnonymous]` ones. A new endpoint is blocked on demo unless you put `[AllowInDemo]` on the *method* (never the class) — only when it is harmless (no mail/Zalo, no external service, no real data) — **and** update `ExpectedAllowlist` in `API_Raspberry.Tests/DemoAllowlistTests.cs`. Use `IDemoModeService`, not raw `DemoMode`. Narrative: `Information_AI/25_feature-demo-environment.md`.
 - **Nullable disabled** (`<Nullable>disable</Nullable>`) — don't add null-forgiving operators.
 - **CORS is a restricted origin allowlist**, despite the policy being *named* `AllowAll` in `Program.cs`. It permits only the production hosts plus `localhost:4200` (Angular dev), `:8081` (mobile dev), `:3000` (portfolio dev). Add origins there when a new client needs access — don't assume the name means it's open.
 - **Never commit a real credential.** `appsettings*.json` in this repo holds placeholders only; production values arrive as environment variables (`Jwt__SecretKey`, `ConnectionStrings__DefaultConnection`, `UehLogin__TaiKhoan`, `UehLogin__MatKhau`, `Auth__PasswordHash`, `Auth__AdminEmail`) via ASP.NET Core's normal configuration convention — no code change needed to read them. This repository is public.

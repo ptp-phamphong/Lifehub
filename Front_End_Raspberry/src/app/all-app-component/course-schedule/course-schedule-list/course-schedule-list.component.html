@@ -5,6 +5,7 @@
   <div class="toolbar">
     <button class="btn-add" (click)="openEditDialog(0)">+ {{ 'course.addNew' | translate }}</button>
 
+    <ng-container *ngIf="!isDemoMode">
     <select [(ngModel)]="selectedSemesterMetadataId" name="selectedSemesterMetadataId" class="semester-select">
       <option [ngValue]="null">{{ 'course.selectSemesterForImport' | translate }}</option>
       <option *ngFor="let semester of semesters" [ngValue]="semester.id">
@@ -20,6 +21,7 @@
     <button class="btn-import-html-reset" [disabled]="importing" (click)="resetImportFromUeh()">
       <span class="msym" aria-hidden="true">sync</span><span>{{ 'course.reimportUeh' | translate }}</span>
     </button>
+    </ng-container>
 
     <!--
       Hai nguồn thông báo: khoá do client tự sinh, và chuỗi backend trả về

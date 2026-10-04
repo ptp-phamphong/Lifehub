@@ -17,6 +17,8 @@ export class CourseScheduleListComponent {
   courses: CourseSchedule[] = [];
   semesters: SemesterMetadata[] = [];
   selectedSemesterMetadataId: number | null = null;
+  // Demo: import Excel và đồng bộ lại từ UEH bị backend chặn trên demo nên ẩn luôn.
+  readonly isDemoMode = environment.demoMode;
 
   /**
    * Thông báo import tách làm hai: khoá i18n do client tự sinh, và chuỗi

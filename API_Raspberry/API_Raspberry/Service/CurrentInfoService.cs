@@ -10,11 +10,11 @@ namespace API_Raspberry.Service
 
     public class CurrentInfoService : ICurrentInfoService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IDemoModeService _demoMode;
 
-        public CurrentInfoService(IConfiguration configuration)
+        public CurrentInfoService(IDemoModeService demoMode)
         {
-            _configuration = configuration;
+            _demoMode = demoMode;
         }
 
 
@@ -24,7 +24,7 @@ namespace API_Raspberry.Service
             // Khi dev trên Windows, trả số liệu giả để UI vẫn render được thay vì lỗi 500.
             // Trên instance demo cũng trả số liệu giả (dù chạy trên chính con Pi thật), vì bản demo
             // dùng data giả nên số liệu phần cứng thật trộn vào sẽ không nhất quán.
-            if (!OperatingSystem.IsLinux() || _configuration.GetValue<bool>("DemoMode"))
+            if (!OperatingSystem.IsLinux() || _demoMode.IsDemo)
             {
                 return new SystemInfo
                 {

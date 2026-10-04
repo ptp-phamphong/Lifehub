@@ -1,5 +1,6 @@
 using API_Raspberry.Dto;
 using API_Raspberry.Service;
+using API_Raspberry.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API_Raspberry.Controllers
@@ -20,6 +21,7 @@ namespace API_Raspberry.Controllers
             _courseScheduleUehSyncService = courseScheduleUehSyncService;
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetAllCourseSchedule")]
         public List<CourseScheduleDto> GetAll()
@@ -27,6 +29,7 @@ namespace API_Raspberry.Controllers
             return _courseScheduleService.GetAll();
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetCourseScheduleById/{id}")]
         public CourseScheduleDto GetById(int id)
@@ -34,6 +37,7 @@ namespace API_Raspberry.Controllers
             return _courseScheduleService.GetById(id);
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("AddCourseSchedule")]
         public bool Add([FromBody] CourseScheduleCreateDto course)
@@ -42,6 +46,7 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
+        [AllowInDemo]
         [HttpPut]
         [Route("UpdateCourseSchedule/{id}")]
         public bool Update(int id, [FromBody] CourseScheduleUpdateDto course)
@@ -50,6 +55,7 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetCourseScheduleByMonth/{month}/{year}")]
         public List<CourseScheduleDto> GetByMonth(int month, int year)
@@ -60,6 +66,7 @@ namespace API_Raspberry.Controllers
         /// <summary>
         /// date: ngày bất kỳ trong tuần cần lấy, dạng yyyy-MM-dd. Tuần tính từ thứ Hai.
         /// </summary>
+        [AllowInDemo]
         [HttpGet]
         [Route("GetCourseScheduleByWeek/{date}")]
         public List<CourseScheduleDto> GetByWeek(DateTime date)
@@ -67,6 +74,7 @@ namespace API_Raspberry.Controllers
             return _courseScheduleService.GetByWeek(date);
         }
 
+        [AllowInDemo]
         [HttpDelete]
         [Route("DeleteCourseSchedule/{id}")]
         public bool Delete(int id)
@@ -77,6 +85,7 @@ namespace API_Raspberry.Controllers
 
         
 
+        [AllowInDemo]
         [HttpDelete]
         [Route("DeleteBySemesterMetadataId/{semesterMetadataId}")]
         public bool DeleteBySemesterMetadataId(int semesterMetadataId)

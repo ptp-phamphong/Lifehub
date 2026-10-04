@@ -26,6 +26,13 @@ namespace API_Raspberry.Service
         void Set(string username, OtpEntry entry);
         OtpEntry Get(string username);
         void Remove(string username);
+
+        /// <summary>
+        /// Ghi nhận một lần xin OTP cho username. Trả false (và không ghi nhận) nếu trong cửa sổ
+        /// <paramref name="window"/> đã có đủ <paramref name="maxPerWindow"/> lần, hoặc lần gần nhất
+        /// cách chưa tới <paramref name="minInterval"/>.
+        /// </summary>
+        bool TryRegisterRequest(string username, DateTime utcNow, int maxPerWindow, TimeSpan window, TimeSpan minInterval);
     }
 
     /// <summary>
@@ -34,6 +41,23 @@ namespace API_Raspberry.Service
     public class OtpStore : IOtpStore
     {
         private readonly ConcurrentDictionary<string, OtpEntry> _store = new();
+        private readonly ConcurrentDictionary<string, List<DateTime>> _requests = new();
+
+        public bool TryRegisterRequest(string username, DateTime utcNow, int maxPerWindow, TimeSpan window, TimeSpan minInterval)
+        {
+            var times = _requests.GetOrAdd(Key(username), _ => new List<DateTime>());
+            lock (times)
+            {
+                times.RemoveAll(t => utcNow - t >= window);
+                if (times.Count >= maxPerWindow)
+                    return false;
+                if (times.Count > 0 && utcNow - times[^1] < minInterval)
+                    return false;
+
+                times.Add(utcNow);
+                return true;
+            }
+        }
 
         public void Set(string username, OtpEntry entry)
             => _store[Key(username)] = entry;
@@ -70,31 +94,60 @@ namespace API_Raspberry.Service
         private const int MaxVerifyAttempts = 5;
         private const int MinPasswordLength = 4;
 
+        // Giới hạn theo TÀI KHOẢN (rate limit theo IP ở RateLimitPolicies không chặn được kẻ đổi IP).
+        // Mỗi OTP mới đặt lại Attempts = 0, nên không có giới hạn này thì cứ xin mã mới là dò tiếp
+        // được. 3 mã/giờ x 5 lần nhập = tối đa 15 lần đoán mỗi giờ trên 1 triệu khả năng.
+        private const int MaxOtpRequestsPerHour = 3;
+        private static readonly TimeSpan MinTimeBetweenOtpRequests = TimeSpan.FromSeconds(60);
+
+        // Cùng một câu cho mọi trường hợp (có/không có user, có/không có email, bị giới hạn), để
+        // không ai dò được username nào tồn tại. Vì vậy cũng không trả MaskedEmail nữa: web và
+        // mobile đã có sẵn chữ dự phòng "email của bạn".
+        public static readonly string GenericRequestMessage =
+            $"Nếu tài khoản tồn tại và đã có email, mã OTP đã được gửi tới email đó. Mã có hiệu lực {OtpLifetimeMinutes} phút.";
+
+        private const string DemoBlockedMessage = "Tính năng quên mật khẩu không khả dụng trên bản demo.";
+
         private readonly IUserRepository _userRepository;
         private readonly IOtpStore _otpStore;
+        private readonly IDemoModeService _demoMode;
         private readonly ILogger<PasswordResetService> _logger;
 
         public PasswordResetService(
             IUserRepository userRepository,
             IOtpStore otpStore,
+            IDemoModeService demoMode,
             ILogger<PasswordResetService> logger)
         {
             _userRepository = userRepository;
             _otpStore = otpStore;
+            _demoMode = demoMode;
             _logger = logger;
         }
 
         public async Task<PasswordResetResult> RequestOtpAsync(string username)
         {
+            // Lớp chặn thứ hai sau DemoGateMiddleware: demo không được gửi mail từ Gmail của chủ repo.
+            if (_demoMode.IsDemo)
+                return PasswordResetResult.Fail(DemoBlockedMessage);
+
             if (string.IsNullOrWhiteSpace(username))
                 return PasswordResetResult.Fail("Vui lòng nhập username.");
 
             var user = _userRepository.GetByUsername(username);
-            if (user == null || !user.Active)
-                return PasswordResetResult.Fail("Không tìm thấy tài khoản đang hoạt động với username này.");
+            if (user == null || !user.Active || string.IsNullOrWhiteSpace(user.Email))
+            {
+                _logger.LogInformation("Yêu cầu OTP cho username không hợp lệ hoặc chưa có email - trả lời chung, không gửi mail.");
+                return PasswordResetResult.Ok(GenericRequestMessage);
+            }
 
-            if (string.IsNullOrWhiteSpace(user.Email))
-                return PasswordResetResult.Fail("Tài khoản này chưa cấu hình email nhận OTP. Vui lòng liên hệ quản trị.");
+            // Chỉ đếm cho user có thật, để username bịa ra không làm phình bộ nhớ.
+            if (!_otpStore.TryRegisterRequest(user.Username, DateTime.UtcNow,
+                    MaxOtpRequestsPerHour, TimeSpan.FromHours(1), MinTimeBetweenOtpRequests))
+            {
+                _logger.LogWarning("Yêu cầu OTP cho {Username} bị từ chối do vượt giới hạn theo tài khoản.", user.Username);
+                return PasswordResetResult.Ok(GenericRequestMessage);
+            }
 
             // Đọc thông tin SMTP từ biến môi trường (giống NotificationEmailController).
             var senderEmail = Environment.GetEnvironmentVariable("EMAIL_ADDRESS");
@@ -124,13 +177,14 @@ namespace API_Raspberry.Service
                 return PasswordResetResult.Fail("Gửi email thất bại. Vui lòng thử lại.");
             }
 
-            return PasswordResetResult.Ok(
-                $"Đã gửi mã OTP tới email của bạn. Mã có hiệu lực {OtpLifetimeMinutes} phút.",
-                MaskEmail(user.Email));
+            return PasswordResetResult.Ok(GenericRequestMessage);
         }
 
         public PasswordResetResult VerifyAndReset(string username, string otp, string newPassword)
         {
+            if (_demoMode.IsDemo)
+                return PasswordResetResult.Fail(DemoBlockedMessage);
+
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(otp))
                 return PasswordResetResult.Fail("Vui lòng nhập đầy đủ username và mã OTP.");
 
@@ -179,18 +233,6 @@ namespace API_Raspberry.Service
         {
             var value = RandomNumberGenerator.GetInt32(0, 1_000_000);
             return value.ToString("D6");
-        }
-
-        // Che email: ptp.phamphong@gmail.com -> p***@gmail.com
-        private static string MaskEmail(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
-                return email;
-
-            var parts = email.Split('@', 2);
-            var local = parts[0];
-            var visible = local.Length <= 1 ? local : local.Substring(0, 1);
-            return $"{visible}***@{parts[1]}";
         }
 
         private static string BuildOtpEmail(string name, string code)

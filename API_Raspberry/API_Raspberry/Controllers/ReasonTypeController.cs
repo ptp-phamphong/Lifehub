@@ -1,5 +1,6 @@
 ﻿using API_Raspberry.Dto;
 using API_Raspberry.Service;
+using API_Raspberry.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API_Raspberry.Controllers
@@ -13,6 +14,7 @@ namespace API_Raspberry.Controllers
             _reasonTypeService = reasonTypeService;
         }
 
+        [AllowInDemo]
         [HttpPost]
         [Route("ReasonType")]
         public bool AddReasonType([FromBody] ReasonTypeCreateDto reasonType)
@@ -21,6 +23,7 @@ namespace API_Raspberry.Controllers
             return true;
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetAllReasonType")]
         public List<ReasonTypeDto> GetAllReasonType()
@@ -28,6 +31,7 @@ namespace API_Raspberry.Controllers
             return _reasonTypeService.GetAllReasonType();
         }
 
+        [AllowInDemo]
         [HttpGet]
         [Route("GetReasonTypeById/{id}")]
         public ReasonTypeDto GetReasonTypeById(int id)
@@ -35,6 +39,7 @@ namespace API_Raspberry.Controllers
             return _reasonTypeService.GetReasonTypeById(id);
         }
 
+        [AllowInDemo]
         [HttpPut]
         [Route("UpdateReasonTypeById/{id}")]
         public bool UpdateReasonTypeById(int id, [FromBody] ReasonTypeUpdateDto reasonType)

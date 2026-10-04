@@ -63,7 +63,8 @@
         {{ (isLoading ? 'login.submitting' : 'login.submit') | translate }}
       </button>
 
-      <button type="button" class="link-button" (click)="openForgot()" [disabled]="isLoading">
+      <!-- Demo: quên mật khẩu bị chặn ở backend (không gửi mail từ bản demo), nên ẩn luôn. -->
+      <button *ngIf="!isDemoMode" type="button" class="link-button" (click)="openForgot()" [disabled]="isLoading">
         {{ 'login.forgotPassword' | translate }}
       </button>
     </ng-container>

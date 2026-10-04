@@ -20,6 +20,9 @@ Files:
 - `15_feature-ueh-student-schedule.md`: UEH student portal SSO login + timetable HTML import.
 - `16_feature-theme-settings.md`: Dark mode / theme settings for web and mobile.
 - `17_feature-visitor-analytics.md`: Visitor analytics for the public portfolio + login-attempt audit (admin tab).
+- `18_feature-password-reset-otp.md`: Forgot/reset password via emailed OTP (generic response, per-account + per-IP limits, blocked on demo).
+- `22_feature-hangfire-jobs.md`: Hangfire background jobs + "Tác vụ nền" monitoring page (incl. the demo-only `demo-reseed` job).
+- `25_feature-demo-environment.md`: Demo instance from the app's side: `IDemoModeService`, `[AllowInDemo]` allowlist gate (deny by default), startup guard, rate limits, reseed, frontend hiding, tests.
 
 Scope covered:
 - Database: MySQL

@@ -1,7 +1,7 @@
 <div class="expense-table-container">
   <h2>{{ 'user.listTitle' | translate }}</h2>
 
-  <div class="toolbar">
+  <div class="toolbar" *ngIf="!isDemoMode">
     <button class="btn-add" (click)="openCreateDialog()">+ {{ 'user.addNew' | translate }}</button>
   </div>
 
@@ -13,7 +13,7 @@
         <th>{{ 'user.name' | translate }}</th>
         <th>Email</th>
         <th>{{ 'user.status' | translate }}</th>
-        <th>{{ 'common.actions' | translate }}</th>
+        <th *ngIf="!isDemoMode">{{ 'common.actions' | translate }}</th>
       </tr>
     </thead>
     <tbody>
@@ -28,7 +28,7 @@
             {{ (user.active ? 'user.active' : 'user.inactive') | translate }}
           </span>
         </td>
-        <td class="col-actions">
+        <td class="col-actions" *ngIf="!isDemoMode">
           <button class="btn-action btn-edit" (click)="openEditDialog(user)">{{ 'common.edit' | translate }}</button>
           <button class="btn-action btn-password" (click)="openChangePasswordDialog(user)">{{ 'user.changePassword' | translate }}</button>
           <button class="btn-action btn-delete" (click)="deleteUser(user)">{{ 'common.delete' | translate }}</button>

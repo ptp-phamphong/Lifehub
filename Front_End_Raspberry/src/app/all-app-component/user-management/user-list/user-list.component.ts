@@ -13,6 +13,8 @@ import { UserFormComponent } from '../user-form/user-form.component';
 })
 export class UserListComponent {
   users: UserModel[] = [];
+  // Demo: chỉ xem danh sách. Thêm/sửa/đổi mật khẩu/xóa đều bị backend chặn trên demo.
+  readonly isDemoMode = environment.demoMode;
 
   // `window.confirm` cần chuỗi ngay tại chỗ gọi — một trong số ít nơi dùng
   // `instant()`. Không lưu kết quả vào field.
