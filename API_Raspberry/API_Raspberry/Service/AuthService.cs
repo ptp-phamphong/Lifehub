@@ -20,6 +20,11 @@ namespace API_Raspberry.Service
 
         public LoginResponseDto Authenticate(LoginDto login)
         {
+            // Body thiếu username/password: trả "sai thông tin" (401) thay vì để EF ném
+            // NullReferenceException khi so sánh với null (trước đây thành 500).
+            if (login == null || string.IsNullOrWhiteSpace(login.Username) || string.IsNullOrEmpty(login.Password))
+                return null;
+
             var user = _userRepository.GetByUsername(login.Username);
 
             if (user == null || !user.Active)
