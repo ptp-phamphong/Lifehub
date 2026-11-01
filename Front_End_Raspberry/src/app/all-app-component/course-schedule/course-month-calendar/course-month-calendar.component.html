@@ -11,7 +11,7 @@
   </div>
 
   <!-- Calendar Grid -->
-  <div class="calendar-grid">
+  <div class="calendar-grid" [style.--max-chips]="maxVisibleCourses">
     <!-- Weekday headers -->
     <div class="weekday-header" *ngFor="let wd of weekDayKeys">{{ wd | translate }}</div>
 

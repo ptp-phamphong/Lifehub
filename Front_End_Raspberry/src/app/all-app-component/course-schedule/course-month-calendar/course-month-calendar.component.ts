@@ -8,6 +8,9 @@ import { LanguageService } from 'src/app/services/language.service';
 import { toLunarDate, formatLunarDateShort } from 'src/app/utils/lunar-calendar';
 import { isCancelledSession, learningModeLabel } from 'src/app/utils/learning-mode';
 import { WEEK_DOW_KEYS, dowTranslationKey } from 'src/app/utils/day-of-week';
+import { SystemConfiguration } from 'src/app/model/system-configuration.model';
+
+const MAX_VISIBLE_COURSES_KEY = 'CourseCalendar.MaxVisibleCourses';
 
 const COURSE_COLORS = [
   { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af' },
@@ -46,7 +49,8 @@ export class CourseMonthCalendarComponent implements OnChanges {
     courses: CourseSchedule[] = [];
     selectedCourse: CourseSchedule | null = null;
     selectedDay: CalendarDay | null = null;
-    maxVisibleCourses = 1;
+    /** Mặc định khi chưa có key `CourseCalendar.MaxVisibleCourses` trong systemConfiguration. */
+    maxVisibleCourses = 2;
     private colorMap: Map<string, number> = new Map();
 
     // Expense overlay
@@ -66,7 +70,26 @@ export class CourseMonthCalendarComponent implements OnChanges {
     constructor(private http: HttpClient) {}
   
     ngOnInit() {
+      this.loadDisplayConfig();
       this.loadMonth();
+    }
+
+    /**
+     * Đọc số môn hiển thị tối đa mỗi ô từ bảng systemConfiguration
+     * (key `CourseCalendar.MaxVisibleCourses`). Thiếu key hoặc giá trị sai
+     * thì giữ mặc định. Chiều cao ô tự tăng theo con số này (xem --max-chips trong SCSS).
+     */
+    private loadDisplayConfig() {
+      this.http.get<SystemConfiguration[]>(`${environment.apiBaseUrl}/GetAllSystemConfiguration`).subscribe({
+        next: (configs) => {
+          const raw = configs?.find(c => c.keyConfig === MAX_VISIBLE_COURSES_KEY)?.valueConfig;
+          const n = parseInt(raw ?? '', 10);
+          if (!isNaN(n)) {
+            this.maxVisibleCourses = Math.min(Math.max(n, 1), 10);
+          }
+        },
+        error: () => { /* giữ giá trị mặc định */ }
+      });
     }
 
     ngOnChanges(changes: SimpleChanges) {
