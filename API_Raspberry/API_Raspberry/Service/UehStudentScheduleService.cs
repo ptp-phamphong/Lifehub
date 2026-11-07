@@ -142,6 +142,24 @@ namespace API_Raspberry.Service
                     return (null, $"Login thất bại. Status: {(int)loginResponse.StatusCode}");
                 }
 
+                // Portal trả 200 kèm lại trang login khi đăng nhập không qua (sai mật khẩu, hoặc từ 04/11/2026
+                // UEH bắt reCAPTCHA). Không kiểm tra ở đây thì lỗi chỉ lộ ra muộn, thành "không parse được JSON".
+                var loginHtml = await loginResponse.Content.ReadAsStringAsync();
+                if (loginHtml.Contains("name=\"MatKhau\"", StringComparison.OrdinalIgnoreCase))
+                {
+                    var loginDoc = new HtmlDocument();
+                    loginDoc.LoadHtml(loginHtml);
+                    var statusText = HtmlEntity.DeEntitize(
+                        loginDoc.DocumentNode.SelectSingleNode("//form//*[@role='status']")?.InnerText ?? string.Empty).Trim();
+                    var needsCaptcha = loginHtml.Contains("grecaptchaToken", StringComparison.OrdinalIgnoreCase);
+
+                    client.Dispose();
+                    var reason = needsCaptcha
+                        ? "Portal UEH yêu cầu xác nhận reCAPTCHA nên không đăng nhập tự động được"
+                        : "Portal UEH trả lại trang đăng nhập (sai tài khoản/mật khẩu?)";
+                    return (null, string.IsNullOrEmpty(statusText) ? $"{reason}." : $"{reason}. Portal báo: \"{statusText}\"");
+                }
+
                 return (new UehSession { Client = client, Token = token }, null);
             }
             catch

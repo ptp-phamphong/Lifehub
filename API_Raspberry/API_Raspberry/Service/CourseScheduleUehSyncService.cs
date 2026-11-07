@@ -63,10 +63,26 @@ namespace API_Raspberry.Service
                 "Đồng bộ UEH: {SuccessCount}/{Total} học kỳ thành công, tổng {Count} buổi học.",
                 successCount, semesterResults.Count, totalCount);
 
+            // Lý do lỗi của từng học kỳ trước đây chỉ nằm trong Semesters[] — job Hangfire chỉ ném Message
+            // tổng nên trang Tác vụ nền và journald không bao giờ thấy được nguyên nhân thật.
+            var failed = semesterResults.Where(s => !s.Success).ToList();
+            foreach (var s in failed)
+            {
+                _logger.LogWarning(
+                    "Đồng bộ UEH: học kỳ {TermId} năm {YearStudy} (SemesterMetadataId {Id}) thất bại: {Reason}",
+                    s.TermId, s.YearStudy, s.SemesterMetadataId, s.Message);
+            }
+
+            var message = $"Đồng bộ {successCount}/{semesterResults.Count} học kỳ thành công, tổng {totalCount} buổi học.";
+            if (failed.Count > 0)
+            {
+                message += " Lỗi: " + string.Join(" | ", failed.Select(s => $"[{s.TermId}/{s.YearStudy}] {s.Message}"));
+            }
+
             return new CourseScheduleUehSyncResultDto
             {
                 Success = overallSuccess,
-                Message = $"Đồng bộ {successCount}/{semesterResults.Count} học kỳ thành công, tổng {totalCount} buổi học.",
+                Message = message,
                 Count = totalCount,
                 Semesters = semesterResults
             };
