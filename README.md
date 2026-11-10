@@ -88,8 +88,9 @@ npm ci && npx expo start
 ConnectionStrings__DefaultConnection
 Jwt__SecretKey
 Auth__PasswordHash          Auth__AdminEmail
-UehLogin__TaiKhoan          UehLogin__MatKhau
 ```
+
+`UehLogin__TaiKhoan` / `UehLogin__MatKhau` are **no longer read by any code** (11/2026): UEH added reCAPTCHA, so the backend no longer logs in with a password. UEH sync uses a session cookie sent by the Chrome extension in `Extension_Raspberry/` — see `Information_AI/26_feature-ueh-session-extension.md`.
 
 ---
 
@@ -99,6 +100,7 @@ UehLogin__TaiKhoan          UehLogin__MatKhau
 API_Raspberry/API_Raspberry/   ASP.NET Core API (Controllers, Service, Repository, Mapper, Model, Dto, Migrations)
 Front_End_Raspberry/           Angular 18 SPA
 Mobile_Raspberry/              Expo / React Native client
+Extension_Raspberry/           Chrome extension (MV3) that sends the UEH portal session cookie to the API
 Information_AI/                per-feature technical documentation (24 documents)
 ```
 

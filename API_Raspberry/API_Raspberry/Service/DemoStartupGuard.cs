@@ -19,8 +19,9 @@ namespace API_Raspberry.Service
         private static readonly string[] ForbiddenEnvPrefixes = { "EMAIL_", "UEH_LOGIN_", "AZURE_" };
 
         // Khóa cấu hình (appsettings hoặc biến môi trường dạng A__B) phải rỗng trên demo.
-        // UehLogin:* có mặt ở đây vì UehStudentScheduleService lấy nó làm giá trị dự phòng khi
-        // không có UEH_LOGIN_* - bản deploy demo cũ từng mang tài khoản UEH thật theo đường này.
+        // UehLogin:* và UEH_LOGIN_*: từ 11/2026 không code nào đọc nữa (UEH bắt reCAPTCHA, đồng bộ
+        // chuyển sang cookie từ extension), nhưng bản thật vẫn còn đặt UehLogin__* - chặn cho chắc,
+        // vì bản deploy demo cũ từng mang tài khoản UEH thật theo đường này.
         private static readonly string[] MustBeEmptyKeys =
         {
             "Gemini:ApiKey",

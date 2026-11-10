@@ -129,6 +129,7 @@ builder.Services.AddScoped<ISystemInfoMapper, SystemInfoMapper>();
 builder.Services.AddScoped<IVisitEventMapper, VisitEventMapper>();
 builder.Services.AddScoped<IJobRunMapper, JobRunMapper>();
 builder.Services.AddScoped<IVisitorKnownIpMapper, VisitorKnownIpMapper>();
+builder.Services.AddScoped<IUehPortalSessionMapper, UehPortalSessionMapper>();
 
 // ----------------------------
 // 4️⃣ Dependency Injection - Repositories
@@ -144,6 +145,7 @@ builder.Services.AddScoped<INotificationFilterRepository, NotificationFilterRepo
 builder.Services.AddScoped<IVisitEventRepository, VisitEventRepository>();
 builder.Services.AddScoped<IVisitorKnownIpRepository, VisitorKnownIpRepository>();
 builder.Services.AddScoped<IVisitorDailyStatRepository, VisitorDailyStatRepository>();
+builder.Services.AddScoped<IUehPortalSessionRepository, UehPortalSessionRepository>();
 
 // ----------------------------
 // 5️⃣ Dependency Injection - Services
@@ -161,6 +163,7 @@ builder.Services.AddScoped<INotificationFilterService, NotificationFilterService
 builder.Services.AddScoped<ICurrentInfoService, CurrentInfoService>();
 builder.Services.AddScoped<ISpeechToTextService, SpeechToTextService>();
 builder.Services.AddScoped<IUehStudentScheduleService, UehStudentScheduleService>();
+builder.Services.AddScoped<IUehPortalSessionService, UehPortalSessionService>();
 builder.Services.AddScoped<IThemeSettingService, ThemeSettingService>();
 builder.Services.AddScoped<IRequestEnrichmentService, RequestEnrichmentService>();
 builder.Services.AddScoped<IVisitorLogSettingsService, VisitorLogSettingsService>();
@@ -171,6 +174,7 @@ builder.Services.AddScoped<IVisitorAnalyticsService, VisitorAnalyticsService>();
 builder.Services.AddScoped<IScheduleImportJob, ScheduleImportJob>();
 builder.Services.AddScoped<IVisitorLogMaintenanceJob, VisitorLogMaintenanceJob>();
 builder.Services.AddScoped<IDemoReseedJob, DemoReseedJob>();
+builder.Services.AddScoped<IUehKeepAliveJob, UehKeepAliveJob>();
 builder.Services.AddScoped<IJobsService, JobsService>();
 
 builder.Services.AddSingleton<IDemoModeService, DemoModeService>();
@@ -296,51 +300,49 @@ try
     var recurringJobManager = jobScope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
     // Sync UEH thật và dọn visitor log thật: không đăng ký trên instance demo, vì nó dùng
-    // UehLogin thật (kéo lịch học thật vào raspberry_demo) và không có gì để dọn cả.
+    // phiên UEH thật (kéo lịch học thật vào raspberry_demo) và không có gì để dọn cả.
     if (!isDemo)
     {
-        var scheduleImportCron = builder.Configuration["HangfireJobs:ScheduleImportCron"] ?? Cron.Hourly();
-
-        // Cho phép override qua System Configuration (key "ScheduleImportCron") mà không cần sửa
-        // appsettings/redeploy - chỉ áp dụng lúc khởi động app, không reload runtime.
         var dbContext = jobScope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var scheduleImportCronOverride = dbContext.SystemConfigurations
-            .FirstOrDefault(c => c.KeyConfig == "ScheduleImportCron")?.ValueConfig;
-
         var startupLogger = jobScope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-        if (!string.IsNullOrWhiteSpace(scheduleImportCronOverride))
+        // Đăng ký recurring job với cron theo thứ tự ưu tiên: System Configuration (key overrideKey,
+        // nếu hợp lệ) → appsettings (HangfireJobs:{overrideKey}) → mặc định. Override qua System
+        // Configuration không cần sửa appsettings/redeploy, nhưng chỉ áp dụng lúc khởi động app.
+        void AddOrUpdateWithCronOverride<TJob>(string recurringId, string overrideKey, string defaultCron,
+            System.Linq.Expressions.Expression<Func<TJob, Task>> methodCall)
         {
-            // Cronos (bundled trong Hangfire.Core) là internal nên không gọi thẳng để validate được -
-            // validate bằng cách thử AddOrUpdate với giá trị override trước; nếu cú pháp sai, Hangfire
-            // tự ném exception ở đây và ta fallback về appsettings/mặc định thay vì để sập cả app.
-            try
-            {
-                recurringJobManager.AddOrUpdate<IScheduleImportJob>(
-                    JobDefinitions.ScheduleImportRecurringId,
-                    job => job.RunAsync(),
-                    scheduleImportCronOverride);
-                scheduleImportCron = scheduleImportCronOverride;
-            }
-            catch (Exception ex)
-            {
-                startupLogger.LogWarning(ex,
-                    "ScheduleImportCron trong System Configuration không hợp lệ ('{Value}'), dùng lại giá trị appsettings/mặc định.",
-                    scheduleImportCronOverride);
+            var cron = builder.Configuration[$"HangfireJobs:{overrideKey}"] ?? defaultCron;
+            var cronOverride = dbContext.SystemConfigurations
+                .FirstOrDefault(c => c.KeyConfig == overrideKey)?.ValueConfig;
 
-                recurringJobManager.AddOrUpdate<IScheduleImportJob>(
-                    JobDefinitions.ScheduleImportRecurringId,
-                    job => job.RunAsync(),
-                    scheduleImportCron);
+            if (!string.IsNullOrWhiteSpace(cronOverride))
+            {
+                // Cronos (bundled trong Hangfire.Core) là internal nên không gọi thẳng để validate được -
+                // validate bằng cách thử AddOrUpdate với giá trị override trước; nếu cú pháp sai, Hangfire
+                // tự ném exception ở đây và ta fallback về appsettings/mặc định thay vì để sập cả app.
+                try
+                {
+                    recurringJobManager.AddOrUpdate(recurringId, methodCall, cronOverride);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    startupLogger.LogWarning(ex,
+                        "{Key} trong System Configuration không hợp lệ ('{Value}'), dùng lại giá trị appsettings/mặc định.",
+                        overrideKey, cronOverride);
+                }
             }
+
+            recurringJobManager.AddOrUpdate(recurringId, methodCall, cron);
         }
-        else
-        {
-            recurringJobManager.AddOrUpdate<IScheduleImportJob>(
-                JobDefinitions.ScheduleImportRecurringId,
-                job => job.RunAsync(),
-                scheduleImportCron);
-        }
+
+        AddOrUpdateWithCronOverride<IScheduleImportJob>(
+            JobDefinitions.ScheduleImportRecurringId, "ScheduleImportCron", Cron.Hourly(), job => job.RunScheduledAsync());
+
+        // Giữ phiên UEH (cookie từ extension) sống giữa các lượt đồng bộ mỗi giờ.
+        AddOrUpdateWithCronOverride<IUehKeepAliveJob>(
+            JobDefinitions.UehKeepAliveRecurringId, "UehKeepAliveCron", "*/15 * * * *", job => job.RunAsync());
 
         var visitorLogMaintenanceCron = builder.Configuration["HangfireJobs:VisitorLogMaintenanceCron"] ?? "0 */6 * * *";
         recurringJobManager.AddOrUpdate<IVisitorLogMaintenanceJob>(
@@ -357,6 +359,7 @@ try
         // thật khỏi kho demo, phòng khi chúng từng được đăng ký ở đây (sync UEH thật, dọn log thật).
         recurringJobManager.RemoveIfExists(JobDefinitions.ScheduleImportRecurringId);
         recurringJobManager.RemoveIfExists(JobDefinitions.VisitorLogMaintenanceRecurringId);
+        recurringJobManager.RemoveIfExists(JobDefinitions.UehKeepAliveRecurringId);
 
         var demoReseedCron = builder.Configuration["HangfireJobs:DemoReseedCron"] ?? "0 3 * * *";
         recurringJobManager.AddOrUpdate<IDemoReseedJob>(

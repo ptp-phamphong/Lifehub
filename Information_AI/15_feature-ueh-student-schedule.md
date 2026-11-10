@@ -1,8 +1,18 @@
-# Feature: UEH Student Schedule (SSO Login + Schedule Fetch)
+# Feature: UEH Student Schedule (portal fetch + week HTML parsing)
 
-Logs in to UEH's student portal via SSO and fetches the student timetable. The **per-week** fetch is the
-one that matters — it feeds the course schedule import. See `07_feature-course-schedule-crud.md` for how
-the data is stored and shown.
+Đọc thời khóa biểu từ cổng sinh viên UEH. Việc đọc **theo tuần** là phần quan trọng — nó nuôi việc import
+lịch học. Xem `07_feature-course-schedule-crud.md` để biết dữ liệu được lưu và hiển thị thế nào.
+
+> **Cập nhật 11/2026 — đọc trước.** Từ 04/11/2026 trang đăng nhập UEH có reCAPTCHA, nên backend **không còn
+> tự đăng nhập bằng mật khẩu**. Service giờ chỉ gọi UEH bằng **cookie phiên do extension Chrome gửi về**.
+> Cách hoạt động của phiên, extension, job giữ phiên và xử lý hết hạn nằm ở
+> **`26_feature-ueh-session-extension.md`**.
+>
+> Đã **xóa** khỏi code: `POST /FetchUehStudentSchedule` (cùng `UehStudentScheduleController`), `LoginAsync`,
+> `FetchScheduleAsync`, `FetchWeekListAsync`, `FetchWeekScheduleAsync`, `FetchAllWeeksAsync`,
+> `GetCurrentSemesterAsync`, và 4 DTO `UehStudentScheduleRequestDto` / `UehStudentScheduleResponseDto` /
+> `UehWeekListResponseDto` / `UehWeekScheduleResponseDto`. Các mục bên dưới đã được sửa theo code mới. Chỗ nào
+> còn nhắc tới đăng nhập bằng mật khẩu đều được ghi rõ là lịch sử.
 
 > **Read §"Three traps" below before touching the parser.** All three are silent-failure bugs; two of
 > them already shipped once during development and produced *zero* parse errors while losing data.
@@ -13,49 +23,40 @@ the data is stored and shown.
 
 ### Endpoint
 
-| Method | Route | Body | Returns |
-|---|---|---|---|
-| POST | `/FetchUehStudentSchedule` | `{ saveLogin?: bool }` (optional) | `UehStudentScheduleResponseDto` |
-
-This endpoint still uses the legacy whole-semester view. The per-week fetch has no endpoint of its own —
-it is driven by `ICourseScheduleUehSyncService` (see doc 07).
+Không còn endpoint riêng cho việc đọc UEH. `POST /FetchUehStudentSchedule` đã bị xóa (11/2026). Việc đọc theo
+tuần chạy qua `ICourseScheduleUehSyncService` (xem doc 07), được gọi bởi `POST /ResetImportCourseScheduleFromUeh`
+và `ScheduleImportJob`. Hai endpoint của phiên (`POST /UehSession/Submit`, `GET /UehSession/Status`) nằm ở doc 26.
 
 ### Service surface (`IUehStudentScheduleService`)
 
+`Service/UehStudentScheduleService.cs`. Chỉ còn 3 hàm, tất cả dùng cookie:
+
 | Method | Portal call |
 |---|---|
-| `FetchScheduleAsync` | `DrawingStudentSchedule_Perior` — whole semester, legacy |
-| `FetchWeekListAsync` | `GetWeek` — list of weeks |
-| `FetchWeekScheduleAsync` | `DrawingSchedules` — one week |
-| `FetchAllWeeksAsync` | login once → `GetWeek` → loop `DrawingSchedules` over **distinct** weeks, for **one** semester |
-| `GetSemestersToSyncAsync` | no portal call — reads `SemesterMetadatas` where `IsCurrentSemester = true`, **multiple rows allowed** |
-| `FetchAllWeeksForSemestersAsync` | login once → loop `GetWeek`+`DrawingSchedules` over **every semester passed in** |
+| `GetSemestersToSyncAsync` | no portal call — reads `SemesterMetadatas` where `IsCurrentSemester = true`, **multiple rows allowed** (`:68-75`) |
+| `FetchAllWeeksForSemestersAsync(semesters, cookieHeader)` | one cookie session → loop `GetWeek` + `DrawingSchedules` (over **distinct** weeks) for **every semester passed in** (`:116-144`) |
+| `ValidateAsync(cookieHeader, semester)` | exactly one `GetWeek` request, to tell whether the cookie is still logged in; never throws on network errors (`:94-114`) |
 
-`LoginAsync` is private and returns a `UehSession` (an `HttpClient` carrying the auth cookie) so a
-single login serves all requests across **all** selected semesters, not just one. A failing week logs
-a warning and is skipped rather than failing the whole run; a failing semester behaves the same way one
-level up (see "Multi-semester sync" below).
-
-`FetchAllWeeksAsync(request)` keeps its old signature and behavior for backward compatibility: it
-internally calls the private `GetCurrentSemesterAsync()` (`FirstOrDefault` ordered by `Id` descending),
-which — now that multiple rows can have `IsCurrentSemester = true` — picks **an arbitrary one** of them.
-It is only used by the legacy debug endpoints (`FetchScheduleAsync`, `FetchWeekListAsync`,
-`FetchWeekScheduleAsync`, and `FetchAllWeeksAsync` itself, `API_Raspberry/Service/UehStudentScheduleService.cs:67-73,290-318`).
-**None of these are used by the main sync flow anymore** — that flow always calls
-`FetchAllWeeksForSemestersAsync` with the full list from `GetSemestersToSyncAsync()`.
+`CreateSession(cookieHeader)` (private static, `:80-92`) tạo `HttpClient` với `UseCookies = false`,
+`AllowAutoRedirect = false`, header `Cookie` đặt nguyên văn, timeout 30 giây mỗi request. Một session dùng cho
+**mọi** học kỳ được chọn. A failing week logs a warning and is skipped rather than failing the whole run; a
+failing semester behaves the same way one level up (see "Multi-semester sync" below). **Trang đăng nhập
+(phiên chết) là ngoại lệ**: dừng cả lượt, vì mọi tuần sau đều hỏng và dữ liệu lấy được chỉ là một phần học kỳ.
+Cách nhận diện phiên chết (`UehPortalResponse.IsLoginResponse`): doc 26 §6.
 
 ### Multi-semester sync
 
-`GetSemestersToSyncAsync()` (`UehStudentScheduleService.cs:75-82`) returns every `SemesterMetadata` row
+`GetSemestersToSyncAsync()` (`UehStudentScheduleService.cs:68-75`) returns every `SemesterMetadata` row
 with `IsCurrentSemester = true` — the flag is no longer "the one current semester" but "sync this
 semester from UEH", and several rows can be true at once (see `13_feature-semester-metadata-crud.md`).
 
-`FetchAllWeeksForSemestersAsync(semesters, request)` (`UehStudentScheduleService.cs:320-348`) logs in
-**once**, then loops the semester list calling the same per-semester fetch
-(`FetchAllWeeksForSemesterAsync`) used by the legacy single-semester path. One semester failing (portal
-has no data for it, session drops mid-run, etc.) does not abort the batch — its error is recorded in that
+`FetchAllWeeksForSemestersAsync(semesters, cookieHeader)` (`UehStudentScheduleService.cs:116-144`) opens
+**one** cookie session, then loops the semester list calling the per-semester fetch
+(`FetchAllWeeksForSemesterAsync`, `:146-237`). One semester failing with a plain portal error (portal
+has no data for it, etc.) does not abort the batch — its error is recorded in that
 semester's result and the loop continues to the next semester, mirroring the existing "one bad week
-doesn't fail the whole run" rule, applied one level up.
+doesn't fail the whole run" rule, applied one level up. A **session-expired** result is different: it stops
+the whole batch (`ErrorKind = SessionExpired`), see doc 26 §7–8.
 
 ⚠ **Request volume multiplies by the number of semesters selected.** Each semester still costs up to
 ~52 portal requests (one `GetWeek` + one `DrawingSchedules` per distinct week); marking 3 semesters
@@ -67,13 +68,14 @@ before the first request of the next) — both configurable in the same `UehSche
 ### Flow
 
 ```
-1. Read credentials: env vars (UEH_LOGIN_TAIKHOAN, UEH_LOGIN_MATKHAU) → fallback appsettings (UehLogin:*)
-2. Read current semester from DB (IsCurrentSemester = true) → YearStudy + TermID (= CodeSemester)
-3. GET  https://loginst.ueh.edu.vn/signin → extract __RequestVerificationToken
-4. POST https://loginst.ueh.edu.vn/signin with credentials + token
-5. GET  https://student.ueh.edu.vn/Home/GetWeek/{YearStudy}${TermID}          → JSON week list
-6. GET  https://student.ueh.edu.vn/Home/DrawingSchedules?YearStudy=&TermID=&Week=   → HTML per week
+1. Đọc cookie phiên đã lưu (bảng uehPortalSession, do extension gửi — xem doc 26). Không có / hết hạn → dừng, không gọi UEH
+2. Read semesters from DB (IsCurrentSemester = true, có thể nhiều dòng) → YearStudy + TermID (= CodeSemester)
+3. GET  https://student.ueh.edu.vn/Home/GetWeek/{YearStudy}${TermID}          → JSON week list      (Cookie: <phiên đã lưu>)
+4. GET  https://student.ueh.edu.vn/Home/DrawingSchedules?YearStudy=&TermID=&Week=   → HTML per week
 ```
+
+> Lịch sử: trước 11/2026, bước 1 là đăng nhập SSO — đọc `UEH_LOGIN_TAIKHOAN` / `UEH_LOGIN_MATKHAU` (hoặc
+> `UehLogin:*`), `GET` rồi `POST https://loginst.ueh.edu.vn/signin` kèm `__RequestVerificationToken`. Đã xóa.
 
 ### Portal endpoints
 
@@ -127,11 +129,13 @@ Richer than the Perior view: it has periods, lecturer, email, learning mode, and
 
 ### Key files
 
-- Controller: `API_Raspberry/Controllers/UehStudentScheduleController.cs`
 - Service: `API_Raspberry/Service/UehStudentScheduleService.cs`
+- Phát hiện phiên chết: `API_Raspberry/Service/UehPortalResponse.cs`
+- Phiên UEH (cookie, trạng thái, `Submit`): `API_Raspberry/Service/UehPortalSessionService.cs`, `Controllers/UehSessionController.cs` — xem doc 26
 - Sync orchestration: `API_Raspberry/Service/CourseScheduleUehSyncService.cs`
 - Week parsing: `API_Raspberry/Service/CourseScheduleImportService.cs` → `ParseWeekHtml`
-- DTOs: `API_Raspberry/Dto/UehStudentScheduleDto.cs`
+- DTOs: `API_Raspberry/Dto/UehStudentScheduleDto.cs` (chỉ còn `UehWeekDto`, `UehWeekHtmlDto`, `UehAllWeeksResponseDto`)
+- ~~`Controllers/UehStudentScheduleController.cs`~~ — đã xóa 11/2026
 
 ### Configuration
 
@@ -146,9 +150,9 @@ full run (52 requests at 400ms) has been verified against the live portal with n
 run; defaults to 2000ms if absent. Not strictly required for rate-limiting (the sync runs in the
 background, rarely triggered manually), but cheap enough to keep as a safety margin.
 
-⚠ `appsettings.Development.json` carries its own `UehLogin` block. An empty one there **overrides**
-`appsettings.json` when running Development, producing "Thiếu thông tin đăng nhập UEH" even though
-`appsettings.json` looks correct. Env vars take precedence over both.
+> Lịch sử: `appsettings.Development.json` từng có khối `UehLogin` riêng, rỗng, ghi đè `appsettings.json` và
+> gây lỗi "Thiếu thông tin đăng nhập UEH". Lỗi này **không còn** vì không code nào đọc `UehLogin` nữa (xem
+> §"Credentials (không còn dùng)" bên dưới).
 
 ---
 
@@ -246,58 +250,40 @@ Shared with the Excel/Perior flows. Parentheses were made optional so it handles
 `8->11 (12g45->16g15)` (Perior) and bare `07g10->10g40` (week view). It still requires the `HgMM->HgMM`
 shape, so the leading `8->11` period range cannot match by accident.
 
-### Configuration
+### Credentials (không còn dùng)
 
-Preferred on Raspberry Pi (systemd service or shell):
+**`UEH_LOGIN_TAIKHOAN` / `UEH_LOGIN_MATKHAU` và `UehLogin:TaiKhoan` / `UehLogin:MatKhau` không còn được code
+đọc** (từ 11/2026). Khối `UehLogin` trong `appsettings.json` và `appsettings.Development.json` chỉ còn là
+placeholder rỗng. `DemoStartupGuard` vẫn chặn chúng trên demo (`Service/DemoStartupGuard.cs:19-30`). Có thể
+xóa khỏi `/etc/lifehub/real.env` khi tiện. Phiên UEH giờ đến từ extension, xem doc 26.
 
-```bash
-UEH_LOGIN_TAIKHOAN=your_student_id
-UEH_LOGIN_MATKHAU=your_password
-```
-
-Fallback (if env vars are missing) in `appsettings.json` / `appsettings.Development.json`:
-
-```json
-"UehLogin": {
-  "TaiKhoan": "",
-  "MatKhau": ""
-}
-```
-
-- **Do not commit real credentials.** Keep secrets in environment variables on the deployed Raspberry Pi.
-- `SaveLogin` defaults to `true` if not provided in request body.
-
-### Response DTO
-
-```csharp
-public class UehStudentScheduleResponseDto
-{
-    public bool Success { get; set; }
-    public string Message { get; set; }
-    public int? YearStudy { get; set; }       // from SemesterMetadata.Year
-    public string TermId { get; set; }         // from SemesterMetadata.CodeSemester
-    public string LoginPageToken { get; set; } // __RequestVerificationToken extracted
-    public string ScheduleHtml { get; set; }   // full HTML content from UEH
-}
-```
+- **Do not commit real credentials**, và cũng **không ghi giá trị cookie** vào tài liệu hay log.
 
 ### Error cases
 
-| Condition | Message |
-|---|---|
-| Missing credentials in env + appsettings | `Thiếu thông tin đăng nhập UEH. Hãy set UEH_LOGIN_TAIKHOAN/UEH_LOGIN_MATKHAU hoặc cấu hình UehLogin trong appsettings.` |
-| No current semester in DB | `Không tìm thấy SemesterMetadata có IsCurrentSemester = true.` |
-| Login page unreachable | `Không tải được trang login. Status: NNN` |
-| Token not found in login page HTML | `Không lấy được __RequestVerificationToken từ trang login.` |
-| Login POST fails | `Login thất bại. Status: NNN` |
-| Schedule fetch fails | `Gọi API lịch học thất bại. Status: NNN` |
+Thông báo hiện trên trang Tác vụ nền và trong `lastSyncMessage`. Mã loại lỗi là `UehFetchErrorKind`
+(`Ok` | `SessionExpired` | `PortalError`, `Service/UehPortalResponse.cs:4-13`).
+
+| Condition | Kind | Message |
+|---|---|---|
+| Chưa có phiên (bảng `uehPortalSession` rỗng) | `SessionExpired` | `Chưa có phiên UEH — mở trang UEH để extension gửi phiên.` |
+| Phiên đã đánh dấu hết hạn | `SessionExpired` | `Phiên UEH đã hết hạn từ HH:mm dd/MM — mở trang UEH để extension gửi phiên mới.` |
+| UEH trả trang đăng nhập khi đang lấy `GetWeek` | `SessionExpired` | `Phiên UEH đã hết hạn (cổng UEH trả về trang đăng nhập).` |
+| UEH trả trang đăng nhập khi đang lấy một tuần | `SessionExpired` | `Phiên UEH đã hết hạn khi đang lấy tuần N (cổng UEH trả về trang đăng nhập).` |
+| No semester flagged for sync | `PortalError` | `Không có học kỳ nào được đánh dấu đồng bộ (IsCurrentSemester = true).` |
+| `GetWeek` HTTP lỗi | `PortalError` | `Gọi API danh sách tuần thất bại. Status: NNN` |
+| Danh sách tuần rỗng | `PortalError` | `Danh sách tuần rỗng cho học kỳ {termId} năm {yearStudy}.` |
+| Một tuần HTTP lỗi | `PortalError` (tuần đó bị bỏ qua) | `Gọi API lịch học tuần N thất bại. Status: NNN` |
+| Không lấy được tuần nào của học kỳ | `PortalError` | `Không lấy được tuần nào trong N tuần của học kỳ …` |
 
 ---
 
 ## Legacy: Perior view HTML parsing (`ImportFromHtml`)
 
-> Used only by `FetchScheduleAsync` / `/FetchUehStudentSchedule`. **The course schedule import no longer
-> goes through here** — it uses `ParseWeekHtml` above. Kept because the endpoint still exists.
+> **Không còn caller.** Chỉ `FetchScheduleAsync` (view cả học kỳ `DrawingStudentSchedule_Perior`) từng đưa HTML
+> vào đây, và hàm đó đã bị xóa (11/2026). `ImportFromHtml` vẫn nằm trong `CourseScheduleImportService`
+> (`:84`) nhưng không ai gọi. The course schedule import goes through `ParseWeekHtml` above. Mục này giữ lại
+> làm tài liệu cho parser cũ.
 >
 > Not checked: whether the Perior view also serves decomposed Unicode (trap 3). It plausibly does, in
 > which case this parser has been silently losing accented fields all along. `GetNodeText` now normalizes,
@@ -349,18 +335,22 @@ The HTML returned by the Perior view contains a `<table>` with the following col
 Change the sync flow there, not in either caller. Full description and the two safety guards:
 `07_feature-course-schedule-crud.md`.
 
-**It now syncs every semester with `IsCurrentSemester = true`, not just one.** `ResetImportByWeekAsync`
-(`API_Raspberry/Service/CourseScheduleUehSyncService.cs:34-73`):
+**It now syncs every semester with `IsCurrentSemester = true`, not just one.** `ResetImportByWeekAsync()`
+(**không còn tham số**; `API_Raspberry/Service/CourseScheduleUehSyncService.cs:39-57`, thân hàm ở `RunAsync` `:59-158`):
 
+0. Đọc phiên UEH đã lưu. **Chưa có phiên** hoặc phiên **`!IsValid`** → trả `ErrorKind = SessionExpired` cùng câu
+   hướng dẫn, **không gọi UEH** (xem bảng "Error cases" ở trên và doc 26 §8).
 1. `GetSemestersToSyncAsync()` → if empty, returns a failure with message
    `"Không có học kỳ nào được đánh dấu đồng bộ (IsCurrentSemester = true)."` (no portal call made).
-2. `FetchAllWeeksForSemestersAsync(semesters, request)` — logs in once, fetches all weeks for every
-   semester in the list.
+2. `FetchAllWeeksForSemestersAsync(semesters, cookieHeader)` — dùng cookie đã lưu, fetches all weeks for
+   every semester in the list.
 3. Each semester's fetched weeks are parsed, deduped, and imported independently via `ImportOneSemester`
-   (`CourseScheduleUehSyncService.cs:77-153`) — the two existing safety guards still apply **per
+   (`CourseScheduleUehSyncService.cs:171-247`) — the two existing safety guards still apply **per
    semester**: no delete when zero sessions parse, and delete only happens after that semester's weeks are
    fully fetched and parsed. `DeleteBySemesterMetadataId` only removes rows for that one
    `SemesterMetadataId`, so looping semesters never touches another semester's already-imported data.
+4. Phiên chết giữa chừng: học kỳ đã lấy xong **vẫn được ghi**, rồi `MarkExpired()`. Chạy hết không gặp trang
+   đăng nhập thì `MarkValidated()`. Cuối lượt luôn `RecordSync(...)`.
 
 ### Response shape (`CourseScheduleUehSyncResultDto`)
 
@@ -368,6 +358,7 @@ Change the sync flow there, not in either caller. Full description and the two s
 public class CourseScheduleUehSyncResultDto
 {
     public bool Success { get; set; }      // true if AT LEAST ONE semester synced successfully
+    public UehFetchErrorKind ErrorKind { get; set; } // Ok | SessionExpired | PortalError (thêm 11/2026)
     public string Message { get; set; }    // aggregate, e.g. "Đồng bộ 3/4 học kỳ thành công, tổng 210 buổi học."
     public int Count { get; set; }         // total sessions imported across ALL semesters
     public List<CourseScheduleUehSyncSemesterResultDto> Semesters { get; set; }
@@ -386,26 +377,35 @@ public class CourseScheduleUehSyncSemesterResultDto
 }
 ```
 
-(`API_Raspberry/Dto/CourseScheduleDto.cs:6-31`.) The old top-level `Success`/`Message`/`Count` fields are
-kept as-is so the frontend (`course-schedule-list.component.ts:164`, which only reads `count`/`message`)
+(`API_Raspberry/Dto/CourseScheduleDto.cs:6-35`.) The old top-level `Success`/`Message`/`Count` fields are
+kept as-is so the frontend (`course-schedule-list.component.ts:166`, which only reads `count`/`message`)
 doesn't break; `Semesters` is new, and the raw parsed list (`Data`) was **deliberately not added** to the
 response — it isn't consumed anywhere and would bloat the payload once multiplied by N semesters.
 
-`Success` at the top level is `true` if **at least one** semester succeeded, not all of them — a single
-semester failing (temporary portal hiccup, expired session mid-run) would otherwise cause Hangfire's
-`[AutomaticRetry]` to re-run the whole batch, including semesters that already succeeded, wasting portal
-requests for no gain.
+Endpoint `POST /ResetImportCourseScheduleFromUeh` **không còn nhận body** và không trả nguyên DTO này
+(`Controllers/CourseScheduleController.cs:115-135`): thành công → `200 { message, count, semesters }`;
+`!Success` → `400 { message, semesters }`.
 
-Runtime configuration (runs on Hangfire — see `23_feature-hangfire-jobs.md`):
+`Success` at the top level is `true` if **at least one** semester succeeded, not all of them — a single
+semester failing (temporary portal hiccup) would otherwise cause Hangfire's
+`[AutomaticRetry]` to re-run the whole batch, including semesters that already succeeded, wasting portal
+requests for no gain. **Phiên hết hạn là trường hợp riêng**: `ErrorKind = SessionExpired`, `ScheduleImportJob`
+ném `UehSessionExpiredException` và `IScheduleImportJob` loại lỗi này khỏi việc thử lại (`ExceptOn`), nên job ra
+**Thất bại đúng 1 lần** — xem doc 26 §8 và `22_feature-hangfire-jobs.md`.
+
+Runtime configuration (runs on Hangfire — see `22_feature-hangfire-jobs.md`):
 
 ```json
 "HangfireJobs": {
-  "ScheduleImportCron": "0 * * * *"
+  "ScheduleImportCron": "0 * * * *",
+  "UehKeepAliveCron": "*/15 * * * *"
 }
 ```
 
 - `ScheduleImportCron`: cron for the automatic refresh (replaced the old `Enabled`/`IntervalMinutes`).
   This appsettings value is now only the **fallback** — see below for the System Configuration override.
+- `UehKeepAliveCron`: cron của job `ueh-keep-alive-job` giữ phiên UEH sống (mặc định mỗi 15 phút), cùng cơ
+  chế ghi đè qua System Configuration. Xem doc 26 §9.
 - On-demand trigger: `POST /Jobs/Trigger/schedule-import`, or "Chạy ngay" on `/app/settings/jobs-settings`
 - ⚠ Each run is now **~52 portal requests per selected semester**, not ~52 total. Verified fine at 400ms
   (week) / 2000ms (semester) spacing, but consider a longer cron interval than the old default the more
@@ -417,7 +417,8 @@ Runtime configuration (runs on Hangfire — see `23_feature-hangfire-jobs.md`):
 `Program.cs` reads the cron expression for `ScheduleImportRecurringId` in this priority order at
 **app startup only**: **System Configuration row (`KeyConfig = "ScheduleImportCron"`) → appsettings
 `HangfireJobs:ScheduleImportCron` → hardcoded `Cron.Hourly()`**. Add/edit the row through the existing
-Settings UI at `/settings/system-configuration-settings` — no new UI needed.
+Settings UI at `/settings/system-configuration-settings` — no new UI needed. Cùng logic (hàm cục bộ
+`AddOrUpdateWithCronOverride`, `Program.cs:312-338`) áp dụng cho khóa `UehKeepAliveCron`.
 
 - The override is validated by attempting `recurringJobManager.AddOrUpdate` with it before committing to
   it; if Hangfire throws (bad cron syntax), the app logs a warning and falls back to the
@@ -435,6 +436,7 @@ See `07_feature-course-schedule-crud.md` for the full course schedule feature do
 
 ## Keywords
 
-ueh, login, sso, schedule, lịch học, student portal, html import, fetch, timetable, scraping, week,
+ueh, login, sso (đã bỏ, xem doc 26), schedule, lịch học, student portal, html import, fetch, timetable, scraping, week,
 tuần, GetWeek, DrawingSchedules, unicode, NFC, decomposed, NGHỈ, learning mode, multi-semester sync,
-đồng bộ nhiều học kỳ, IsCurrentSemester, ScheduleImportCron, System Configuration override
+đồng bộ nhiều học kỳ, IsCurrentSemester, ScheduleImportCron, UehKeepAliveCron, System Configuration override,
+ueh session, cookie, extension, phiên hết hạn

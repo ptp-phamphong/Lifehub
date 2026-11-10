@@ -1,0 +1,80 @@
+/* Tiền tố lh-sync- để không đụng CSS của cổng UEH. Giá trị đặt tường minh (font, line-height...)
+   vì CSS của trang (Bootstrap) có thể ghi đè kiểu mặc định của <button>. */
+
+.lh-sync-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid #c8ced6;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1f2937;
+  font: 500 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  vertical-align: middle;
+}
+
+.lh-sync-btn:hover {
+  background: #f3f4f6;
+}
+
+.lh-sync-btn:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+/* Hàng riêng ngay dưới header chứa logo: nút căn giữa, dưới logo. */
+.lh-sync-row {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0 8px;
+}
+
+.lh-sync-btn--floating {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 2147483000;
+}
+
+.lh-sync-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.lh-sync-dot--green { background: #16a34a; }
+.lh-sync-dot--red   { background: #dc2626; }
+.lh-sync-dot--gray  { background: #9ca3af; }
+
+.lh-sync-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2147483001;
+  max-width: 360px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #1f2937;
+  color: #ffffff;
+  font: 400 13px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.lh-sync-toast--show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.lh-sync-toast--error {
+  background: #991b1b;
+}

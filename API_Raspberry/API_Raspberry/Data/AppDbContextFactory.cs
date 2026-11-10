@@ -11,6 +11,10 @@ namespace API_Raspberry.Data
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile("appsettings.Development.json", optional: true)
+                // appsettings chỉ có placeholder rỗng. Để `dotnet ef migrations add` chạy được trên máy dev
+                // mà không cần DB thật: ConnectionStrings__DefaultConnection="Server=localhost;Database=x;User=x;Password=x"
+                // (Pomelo đã ghim MySqlServerVersion nên không mở kết nối khi chỉ sinh migration).
+                .AddEnvironmentVariables()
                 .Build();
 
             var connectionString = configuration.GetConnectionString("DefaultConnection");

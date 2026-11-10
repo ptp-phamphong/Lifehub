@@ -13,9 +13,23 @@ namespace API_Raspberry.Service.Jobs
     // Mặc định 10 lần với backoff tăng dần nghĩa là lỗi phải mất nhiều giờ mới hiện trạng thái
     // "Thất bại". Giới hạn 2 để lỗi nổi lên sớm, và vì job này chạy lại mỗi giờ nên hỏng một lần
     // cũng không mất mát gì.
-    [AutomaticRetry(Attempts = 2)]
+    // ExceptOn: phiên UEH hết hạn thì thử lại chắc chắn hỏng tiếp (và gọi UEH vô ích), nên ra
+    // "Thất bại" ngay một lần. Lỗi mạng tạm thời vẫn được thử lại 2 lần như cũ.
+    // UehSyncSkippedException: lượt theo lịch bị bỏ qua, SkippedJobToDeleted chuyển nó sang Deleted.
+    [AutomaticRetry(Attempts = 2, ExceptOn = new[] { typeof(UehSessionExpiredException), typeof(UehSyncSkippedException) })]
+    [SkippedJobToDeleted]
     public interface IScheduleImportJob
     {
+        /// <summary>
+        /// Đồng bộ ngay. Dùng cho "Chạy ngay" và khi extension gửi phiên mới. Phiên hết hạn thì ghi
+        /// "Thất bại" để người bấm thấy lý do.
+        /// </summary>
         Task RunAsync();
+
+        /// <summary>
+        /// Lượt chạy theo cron. Chưa có phiên hoặc phiên đã hết hạn thì bỏ qua im lặng (không gọi UEH,
+        /// không ghi "Thất bại"). Lượt kế tiếp sẽ do extension kích hoạt khi người dùng đăng nhập lại.
+        /// </summary>
+        Task RunScheduledAsync();
     }
 }

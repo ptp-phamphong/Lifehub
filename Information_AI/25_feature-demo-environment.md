@@ -86,7 +86,7 @@ nhanh sau mỗi lần deploy.
 | `UserController` | `GetAll` (email đã che, xem §6) |
 
 **Chặn hoàn toàn** (không method nào được mở): `AiExpense`, `Jobs`, `NotificationEmail`,
-`NotificationFilter`, `PhoneNotification`, `UehStudentSchedule`, `Visit`, `VisitorLog`, `Zalo`.
+`NotificationFilter`, `PhoneNotification`, `UehSession`, `Visit`, `VisitorLog`, `Zalo`.
 
 Cũng bị chặn dù cùng controller với endpoint được mở: `ForgotPassword`, `ResetPassword`,
 `ImportFromExcel`, `ResetImportFromUeh`, và các action `SemesterMetadata`/`User` còn lại (`Add`,
@@ -113,8 +113,10 @@ thể dùng nó, kể cả khi lớp khác hỏng.
 | `Jwt:Issuer` khác `LifeHubDemo` | Hằng số trong code, không so với cấu hình bản thật |
 | `Jwt:Audience` khác `LifeHubDemoClients` | Như trên |
 
-`UehLogin:*` có trong danh sách vì `UehStudentScheduleService` dùng nó làm giá trị dự phòng khi thiếu
-`UEH_LOGIN_*`. Một bản deploy demo cũ từng mang tài khoản UEH thật theo đường này.
+`UehLogin:*` và `UEH_LOGIN_*` có trong danh sách vì trước 11/2026 `UehStudentScheduleService` dùng chúng để
+đăng nhập UEH. Một bản deploy demo cũ từng mang tài khoản UEH thật theo đường này. **Từ 11/2026 không code nào
+đọc các khóa này nữa** (đồng bộ UEH dùng cookie phiên từ extension, xem `26_feature-ueh-session-extension.md`),
+nhưng guard vẫn chặn cho chắc. `UehSessionController` (nhận cookie phiên) cũng bị chặn hoàn toàn trên demo.
 
 `appsettings.Demo.json` (placeholder, không có secret): `Jwt.Issuer=LifeHubDemo`,
 `Jwt.Audience=LifeHubDemoClients`, `Jwt.ExpireMinutes=120`, `Auth.AdminEmail=demo@example.invalid`,
@@ -175,9 +177,9 @@ Chi tiết Hangfire: `22_feature-hangfire-jobs.md`.
 
 ### Recurring job của bản thật bị gỡ trên demo
 
-Khi khởi động demo, `Program.cs` gọi `RemoveIfExists` cho `schedule-import-job` và
-`visitor-log-maintenance-job`. Hangfire không tự xóa job đã đăng ký từ trước, và hai job này (sync UEH
-thật, dọn log) không được phép chạy trên demo. Chỉ `demo-reseed-job` được đăng ký.
+Khi khởi động demo, `Program.cs` gọi `RemoveIfExists` cho `schedule-import-job`,
+`visitor-log-maintenance-job` và `ueh-keep-alive-job`. Hangfire không tự xóa job đã đăng ký từ trước, và ba job
+này (sync UEH thật, giữ phiên UEH thật, dọn log) không được phép chạy trên demo. Chỉ `demo-reseed-job` được đăng ký.
 
 ---
 

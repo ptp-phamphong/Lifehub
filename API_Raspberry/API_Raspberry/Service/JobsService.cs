@@ -22,6 +22,8 @@ namespace API_Raspberry.Service
         /// <summary>Cả hai job đều chạy trên queue mặc định của Hangfire.</summary>
         private const string DefaultQueue = "default";
 
+        private const int SucceededOverfetch = 200;
+
         private readonly IJobRunMapper _jobRunMapper;
         private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly JobStorage _jobStorage;
@@ -61,7 +63,10 @@ namespace API_Raspberry.Service
             }
 
             // Mỗi trạng thái là một danh sách riêng nên phải trộn lại rồi mới xếp theo thời gian.
+            // Ẩn các lần "Giữ phiên UEH" thành công: 96 dòng/ngày sẽ đẩy hết các dòng đồng bộ ra khỏi
+            // danh sách. Lần thất bại của nó vẫn hiện - đó mới là thứ cần thấy.
             return rows
+                .Where(r => !(r.Status == "Succeeded" && r.JobName == JobDefinitions.UehKeepAliveName))
                 .OrderByDescending(r => r.FinishedAt ?? r.StartedAt ?? DateTime.MinValue)
                 .Take(take)
                 .ToList();
@@ -71,7 +76,10 @@ namespace API_Raspberry.Service
         {
             var api = storage.GetMonitoringApi();
             return _jobRunMapper.ToDto(
-                api.SucceededJobs(0, take),
+                // Lấy dư danh sách thành công vì các dòng "Giữ phiên UEH" bị lọc bỏ sau đó; không lấy dư
+                // thì 50 dòng mới nhất toàn là job giữ phiên và các lần đồng bộ thành công biến mất.
+                // Hangfire tự xóa job thành công sau 1 ngày (~130 dòng) nên +200 là đủ.
+                api.SucceededJobs(0, take + SucceededOverfetch),
                 api.FailedJobs(0, take),
                 api.ProcessingJobs(0, take),
                 api.ScheduledJobs(0, take),

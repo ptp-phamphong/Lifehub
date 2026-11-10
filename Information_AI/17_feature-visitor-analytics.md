@@ -170,7 +170,7 @@ Dùng **DB-IP City Lite** (`.mmdb`, miễn phí, **không cần tạo tài kho�
 | DTO | `Dto/VisitEventDto.cs`, `Dto/VisitorKnownIpDto.cs` |
 | Mapper | `Mapper/VisitEventMapper.cs`, `Mapper/VisitorKnownIpMapper.cs` |
 | Repository | `Repository/VisitEventRepository.cs`, `Repository/VisitorKnownIpRepository.cs`, `Repository/VisitorDailyStatRepository.cs` |
-| Service | `Service/VisitEventService.cs` (ghi nhận), `Service/VisitorAnalyticsService.cs` (truy vấn), `Service/RequestEnrichmentService.cs` (IP/UA/bot/UTM), `Service/GeoIpService.cs`, `Service/VisitorLogSettingsService.cs`, `Service/Jobs/VisitorLogMaintenanceJob.cs` (chạy nền qua Hangfire — xem `23_feature-hangfire-jobs.md`) |
+| Service | `Service/VisitEventService.cs` (ghi nhận), `Service/VisitorAnalyticsService.cs` (truy vấn), `Service/RequestEnrichmentService.cs` (IP/UA/bot/UTM), `Service/GeoIpService.cs`, `Service/VisitorLogSettingsService.cs`, `Service/Jobs/VisitorLogMaintenanceJob.cs` (chạy nền qua Hangfire — xem `22_feature-hangfire-jobs.md`) |
 | Controller | `Controllers/VisitController.cs` (**công khai**), `Controllers/VisitorLogController.cs` (admin) |
 | Sửa đổi | `Program.cs` (forwarded headers + DI + Hangfire recurring job + CORS localhost:3000), `Data/AppDbContext.cs`, `Controllers/AuthController.cs` (ghi lần đăng nhập), `appsettings.json` (GeoIp) |
 | Migration | `Migrations/20260714161547_AddVisitorAnalytics.cs` |

@@ -62,7 +62,7 @@ namespace API_Raspberry.Tests
         private static readonly string[] NeverAllowedControllers =
         {
             "AiExpenseController", "JobsController", "NotificationEmailController",
-            "NotificationFilterController", "PhoneNotificationController", "UehStudentScheduleController",
+            "NotificationFilterController", "PhoneNotificationController", "UehSessionController",
             "VisitController", "VisitorLogController", "ZaloController",
         };
 

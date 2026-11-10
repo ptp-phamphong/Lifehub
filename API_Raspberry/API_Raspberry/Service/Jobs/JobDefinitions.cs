@@ -16,6 +16,10 @@ namespace API_Raspberry.Service.Jobs
         public const string ScheduleImportRecurringId = "schedule-import-job";
         public const string VisitorLogMaintenanceRecurringId = "visitor-log-maintenance-job";
         public const string DemoReseedRecurringId = "demo-reseed-job";
+        public const string UehKeepAliveRecurringId = "ueh-keep-alive-job";
+
+        /// <summary>Tên hiển thị của job giữ phiên UEH - JobsService dùng để ẩn các lần chạy thành công.</summary>
+        public const string UehKeepAliveName = "Giữ phiên UEH";
 
         /// <summary>
         /// Tên hiển thị suy từ tên type mà Hangfire lưu lại. Vì job được enqueue qua interface nên
@@ -31,6 +35,8 @@ namespace API_Raspberry.Service.Jobs
                     return "Bảo trì nhật ký truy cập";
                 case nameof(IDemoReseedJob):
                     return "Sinh lại dữ liệu demo";
+                case nameof(IUehKeepAliveJob):
+                    return UehKeepAliveName;
                 default:
                     // Job lạ (vd job cũ còn sót trong DB): hiện tên type thô còn hơn hiện rỗng.
                     return string.IsNullOrEmpty(typeName) ? "Không rõ" : typeName;

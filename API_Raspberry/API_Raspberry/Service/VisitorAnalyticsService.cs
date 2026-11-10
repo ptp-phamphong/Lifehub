@@ -176,8 +176,8 @@ namespace API_Raspberry.Service
                     {
                         VisitorId = latest.VisitorId,
                         IpAddress = latest.IpAddress,
-                        FirstSeen = g.Min(e => e.VisitedAt),
-                        LastSeen = g.Max(e => e.VisitedAt),
+                        FirstSeen = DateTime.SpecifyKind(g.Min(e => e.VisitedAt), DateTimeKind.Utc), // UTC, xem VisitEventMapper
+                        LastSeen = DateTime.SpecifyKind(g.Max(e => e.VisitedAt), DateTimeKind.Utc),
                         Views = g.Count(),
                         Sessions = g.Select(e => e.SessionId).Where(s => !string.IsNullOrEmpty(s)).Distinct().Count(),
                         DistinctPages = g.Select(e => e.Path).Distinct().Count(),

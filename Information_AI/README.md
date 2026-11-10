@@ -17,12 +17,13 @@ Files:
 - `12_feature-income-record-crud.md`: Income Record CRUD (web + backend), with tab integration in expense-record-list route.
 - `13_feature-semester-metadata-crud.md`: Semester metadata CRUD (web + backend) with current semester validation on Angular form.
 - `14_feature-system-configuration-crud.md`: System configuration CRUD (web + backend) for special key-value settings.
-- `15_feature-ueh-student-schedule.md`: UEH student portal SSO login + timetable HTML import.
+- `15_feature-ueh-student-schedule.md`: UEH student portal timetable fetch (by session cookie) + week HTML parsing and its silent-failure traps.
 - `16_feature-theme-settings.md`: Dark mode / theme settings for web and mobile.
 - `17_feature-visitor-analytics.md`: Visitor analytics for the public portfolio + login-attempt audit (admin tab).
 - `18_feature-password-reset-otp.md`: Forgot/reset password via emailed OTP (generic response, per-account + per-IP limits, blocked on demo).
 - `22_feature-hangfire-jobs.md`: Hangfire background jobs + "Tác vụ nền" monitoring page (incl. the demo-only `demo-reseed` job).
 - `25_feature-demo-environment.md`: Demo instance from the app's side: `IDemoModeService`, `[AllowInDemo]` allowlist gate (deny by default), startup guard, rate limits, reseed, frontend hiding, tests.
+- `26_feature-ueh-session-extension.md`: UEH sync by browser session — Chrome extension sends the portal cookie, `uehPortalSession` table, `UehSession/Submit|Status`, keep-alive job, expiry handling (replaces password login, which UEH's reCAPTCHA broke on 04/11/2026).
 
 Scope covered:
 - Database: MySQL

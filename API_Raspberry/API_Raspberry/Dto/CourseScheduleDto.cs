@@ -8,6 +8,10 @@ namespace API_Raspberry.Dto
         // true nếu ÍT NHẤT 1 học kỳ sync thành công - tránh Hangfire retry cả batch (kể cả phần đã
         // xong) chỉ vì 1 học kỳ lỗi tạm thời.
         public bool Success { get; set; }
+
+        // SessionExpired: chưa có phiên / phiên hết hạn -> job ném UehSessionExpiredException, không thử lại.
+        public API_Raspberry.Service.UehFetchErrorKind ErrorKind { get; set; }
+
         public string Message { get; set; }
         public int Count { get; set; }
 

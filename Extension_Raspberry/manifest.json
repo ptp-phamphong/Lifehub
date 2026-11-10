@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
+  "version": "1.0.0",
+  "default_locale": "vi",
+  "permissions": ["cookies", "storage"],
+  "host_permissions": [
+    "https://student.ueh.edu.vn/*",
+    "https://app.ptp-phamphong.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://app.ptp-phamphong.com/*"],
+      "js": ["content-lifehub.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://student.ueh.edu.vn/*"],
+      "exclude_matches": ["https://student.ueh.edu.vn/Login*"],
+      "js": ["content-ueh.js"],
+      "css": ["content-ueh.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

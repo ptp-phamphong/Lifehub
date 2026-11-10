@@ -24,7 +24,9 @@ namespace API_Raspberry.Mapper
                 VisitorId = entity.VisitorId,
                 Label = entity.Label,
                 IsSelf = entity.IsSelf,
-                CreatedDate = entity.CreatedDate
+                CreatedDate = entity.CreatedDate.HasValue
+                    ? DateTime.SpecifyKind(entity.CreatedDate.Value, DateTimeKind.Utc) // ghi bằng UtcNow; xem VisitEventMapper
+                    : null
             };
         }
 

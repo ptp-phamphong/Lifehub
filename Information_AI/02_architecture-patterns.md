@@ -91,7 +91,7 @@ Purpose:
 
 **Recurring / scheduled work does not use `AddHostedService`** — it runs on **Hangfire**
 (`Service/Jobs/*`, registered via `IRecurringJobManager`), which also records each run's history. See
-`23_feature-hangfire-jobs.md`.
+`22_feature-hangfire-jobs.md`.
 
 ## 2. Web Frontend Architecture
 

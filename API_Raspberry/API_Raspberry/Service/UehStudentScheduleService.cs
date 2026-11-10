@@ -1,37 +1,50 @@
-using System.Net;
-using System.Text;
 using System.Text.Json;
 using API_Raspberry.Data;
 using API_Raspberry.Dto;
 using API_Raspberry.Model;
-using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
 
 namespace API_Raspberry.Service
 {
     public interface IUehStudentScheduleService
     {
-        Task<UehStudentScheduleResponseDto> FetchScheduleAsync(UehStudentScheduleRequestDto request);
-        Task<UehWeekListResponseDto> FetchWeekListAsync(UehStudentScheduleRequestDto request);
-        Task<UehWeekScheduleResponseDto> FetchWeekScheduleAsync(UehStudentScheduleRequestDto request, int week);
-        Task<UehAllWeeksResponseDto> FetchAllWeeksAsync(UehStudentScheduleRequestDto request);
-
         // Học kỳ nào có IsCurrentSemester = true thì được đồng bộ - cho phép nhiều dòng cùng true.
         Task<List<SemesterMetadata>> GetSemestersToSyncAsync();
 
-        // Login một lần, dùng chung session cho toàn bộ semesters truyền vào.
-        Task<(List<UehAllWeeksResponseDto> results, string loginError)> FetchAllWeeksForSemestersAsync(
-            List<SemesterMetadata> semesters, UehStudentScheduleRequestDto request);
+        // Dùng một phiên (cookie từ extension) cho toàn bộ semesters truyền vào.
+        // Gặp SessionExpired thì dừng cả lượt, ErrorKind = SessionExpired.
+        Task<UehFetchSemestersResult> FetchAllWeeksForSemestersAsync(List<SemesterMetadata> semesters, string cookieHeader);
+
+        // Gọi đúng 1 request GetWeek để biết cookie còn đăng nhập không. Không ném lỗi mạng ra ngoài.
+        Task<UehValidateResult> ValidateAsync(string cookieHeader, SemesterMetadata semester);
     }
 
+    public class UehFetchSemestersResult
+    {
+        public List<UehAllWeeksResponseDto> Results { get; set; } = new List<UehAllWeeksResponseDto>();
+        public UehFetchErrorKind ErrorKind { get; set; }
+        public string Error { get; set; }
+    }
+
+    public class UehValidateResult
+    {
+        public UehFetchErrorKind ErrorKind { get; set; }
+        public string Message { get; set; }
+    }
+
+    /// <summary>
+    /// Đọc TKB từ cổng sinh viên UEH bằng cookie phiên do extension Chrome gửi về.
+    /// Từ 04/11/2026 trang đăng nhập UEH có reCAPTCHA nên backend không tự đăng nhập bằng mật khẩu
+    /// nữa (xem document/plans/plan_sync_UEH_time_table_by_extension.md trong repo pi-infra).
+    /// Cookie KHÔNG bao giờ được ghi ra log.
+    /// </summary>
     public class UehStudentScheduleService : IUehStudentScheduleService
     {
-        private const string LoginUrl = "https://loginst.ueh.edu.vn/signin";
-        private const string PeriodScheduleUrlFormat = "https://student.ueh.edu.vn/Home/DrawingStudentSchedule_Perior?YearStudy={0}&TermID={1}";
         private const string WeekListUrlFormat = "https://student.ueh.edu.vn/Home/GetWeek/{0}${1}";
         private const string WeekScheduleUrlFormat = "https://student.ueh.edu.vn/Home/DrawingSchedules?YearStudy={0}&TermID={1}&Week={2}";
         private const int DefaultWeekRequestDelayMs = 400;
         private const int DefaultSemesterRequestDelayMs = 2000;
+        private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
 
         private static readonly JsonSerializerOptions WeekListJsonOptions = new JsonSerializerOptions
         {
@@ -52,26 +65,6 @@ namespace API_Raspberry.Service
             _logger = logger;
         }
 
-        // Session đã đăng nhập UEH; dùng chung cho nhiều request để chỉ login một lần.
-        private class UehSession : IDisposable
-        {
-            public HttpClient Client { get; set; }
-            public string Token { get; set; }
-
-            public void Dispose()
-            {
-                Client?.Dispose();
-            }
-        }
-
-        private async Task<SemesterMetadata> GetCurrentSemesterAsync()
-        {
-            return await _context.SemesterMetadatas
-                .AsNoTracking()
-                .OrderByDescending(x => x.Id)
-                .FirstOrDefaultAsync(x => x.IsCurrentSemester);
-        }
-
         public async Task<List<SemesterMetadata>> GetSemestersToSyncAsync()
         {
             return await _context.SemesterMetadatas
@@ -81,301 +74,87 @@ namespace API_Raspberry.Service
                 .ToListAsync();
         }
 
-        // Trả về (session, error). Đúng một trong hai khác null.
-        private async Task<(UehSession session, string error)> LoginAsync(bool saveLogin)
+        // UseCookies = false để header Cookie gửi đúng nguyên văn chuỗi từ trình duyệt.
+        // AllowAutoRedirect = false để thấy được 302 về trang đăng nhập khi phiên chết, thay vì
+        // lặng lẽ đi theo redirect rồi nhận về HTML trang login với mã 200.
+        private static HttpClient CreateSession(string cookieHeader)
         {
-            var taiKhoan = Environment.GetEnvironmentVariable("UEH_LOGIN_TAIKHOAN")
-                ?? _configuration.GetValue<string>("UehLogin:TaiKhoan");
-            var matKhau = Environment.GetEnvironmentVariable("UEH_LOGIN_MATKHAU")
-                ?? _configuration.GetValue<string>("UehLogin:MatKhau");
-
-            if (string.IsNullOrWhiteSpace(taiKhoan) || string.IsNullOrWhiteSpace(matKhau))
-            {
-                return (null, "Thiếu thông tin đăng nhập UEH. Hãy set UEH_LOGIN_TAIKHOAN/UEH_LOGIN_MATKHAU hoặc cấu hình UehLogin trong appsettings.");
-            }
-
-            var cookieContainer = new CookieContainer();
             var handler = new HttpClientHandler
             {
-                CookieContainer = cookieContainer,
-                UseCookies = true,
-                AllowAutoRedirect = true
+                UseCookies = false,
+                AllowAutoRedirect = false
             };
 
-            var client = new HttpClient(handler);
+            var client = new HttpClient(handler) { Timeout = RequestTimeout };
             client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
+            client.DefaultRequestHeaders.TryAddWithoutValidation("Cookie", cookieHeader);
+            return client;
+        }
 
+        public async Task<UehValidateResult> ValidateAsync(string cookieHeader, SemesterMetadata semester)
+        {
+            using var client = CreateSession(cookieHeader);
             try
             {
-                var loginPage = await client.GetAsync(LoginUrl);
-                if (!loginPage.IsSuccessStatusCode)
+                var (_, kind, error) = await GetWeekListAsync(client, semester.Year, semester.CodeSemester);
+                return new UehValidateResult
                 {
-                    client.Dispose();
-                    return (null, $"Không tải được trang login. Status: {(int)loginPage.StatusCode}");
-                }
-
-                var html = await loginPage.Content.ReadAsStringAsync();
-                var doc = new HtmlDocument();
-                doc.LoadHtml(html);
-
-                var tokenNode = doc.DocumentNode.SelectSingleNode("//input[@name='__RequestVerificationToken']");
-                var token = tokenNode?.GetAttributeValue("value", string.Empty) ?? string.Empty;
-
-                if (string.IsNullOrWhiteSpace(token))
-                {
-                    client.Dispose();
-                    return (null, "Không lấy được __RequestVerificationToken từ trang login.");
-                }
-
-                var formData = new FormUrlEncodedContent(new[]
-                {
-                    new KeyValuePair<string, string>("__RequestVerificationToken", token),
-                    new KeyValuePair<string, string>("TaiKhoan", taiKhoan),
-                    new KeyValuePair<string, string>("MatKhau", matKhau),
-                    new KeyValuePair<string, string>("SaveLogin", saveLogin ? "checked" : "false")
-                });
-
-                var loginResponse = await client.PostAsync(LoginUrl, formData);
-                if (!loginResponse.IsSuccessStatusCode)
-                {
-                    client.Dispose();
-                    return (null, $"Login thất bại. Status: {(int)loginResponse.StatusCode}");
-                }
-
-                // Portal trả 200 kèm lại trang login khi đăng nhập không qua (sai mật khẩu, hoặc từ 04/11/2026
-                // UEH bắt reCAPTCHA). Không kiểm tra ở đây thì lỗi chỉ lộ ra muộn, thành "không parse được JSON".
-                var loginHtml = await loginResponse.Content.ReadAsStringAsync();
-                if (loginHtml.Contains("name=\"MatKhau\"", StringComparison.OrdinalIgnoreCase))
-                {
-                    var loginDoc = new HtmlDocument();
-                    loginDoc.LoadHtml(loginHtml);
-                    var statusText = HtmlEntity.DeEntitize(
-                        loginDoc.DocumentNode.SelectSingleNode("//form//*[@role='status']")?.InnerText ?? string.Empty).Trim();
-                    var needsCaptcha = loginHtml.Contains("grecaptchaToken", StringComparison.OrdinalIgnoreCase);
-
-                    client.Dispose();
-                    var reason = needsCaptcha
-                        ? "Portal UEH yêu cầu xác nhận reCAPTCHA nên không đăng nhập tự động được"
-                        : "Portal UEH trả lại trang đăng nhập (sai tài khoản/mật khẩu?)";
-                    return (null, string.IsNullOrEmpty(statusText) ? $"{reason}." : $"{reason}. Portal báo: \"{statusText}\"");
-                }
-
-                return (new UehSession { Client = client, Token = token }, null);
-            }
-            catch
-            {
-                client.Dispose();
-                throw;
-            }
-        }
-
-        public async Task<UehStudentScheduleResponseDto> FetchScheduleAsync(UehStudentScheduleRequestDto request)
-        {
-            var currentSemester = await GetCurrentSemesterAsync();
-            if (currentSemester == null)
-            {
-                return new UehStudentScheduleResponseDto
-                {
-                    Success = false,
-                    Message = "Không tìm thấy SemesterMetadata có IsCurrentSemester = true."
+                    ErrorKind = kind,
+                    Message = kind == UehFetchErrorKind.Ok ? "Phiên UEH còn hiệu lực." : error
                 };
             }
-
-            var yearStudy = currentSemester.Year;
-            var termId = currentSemester.CodeSemester;
-
-            var (session, error) = await LoginAsync(request?.SaveLogin ?? true);
-            if (session == null)
+            catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
             {
-                return new UehStudentScheduleResponseDto
+                return new UehValidateResult
                 {
-                    Success = false,
-                    Message = error,
-                    YearStudy = yearStudy,
-                    TermId = termId
-                };
-            }
-
-            using (session)
-            {
-                var scheduleUrl = string.Format(PeriodScheduleUrlFormat, yearStudy, Uri.EscapeDataString(termId));
-                var scheduleResponse = await session.Client.GetAsync(scheduleUrl);
-
-                if (!scheduleResponse.IsSuccessStatusCode)
-                {
-                    return new UehStudentScheduleResponseDto
-                    {
-                        Success = false,
-                        Message = $"Gọi API lịch học thất bại. Status: {(int)scheduleResponse.StatusCode}",
-                        YearStudy = yearStudy,
-                        TermId = termId,
-                        LoginPageToken = session.Token
-                    };
-                }
-
-                var content = await scheduleResponse.Content.ReadAsStringAsync();
-                return new UehStudentScheduleResponseDto
-                {
-                    Success = true,
-                    Message = "Đăng nhập và lấy lịch học thành công.",
-                    YearStudy = yearStudy,
-                    TermId = termId,
-                    LoginPageToken = session.Token,
-                    ScheduleHtml = content
+                    ErrorKind = UehFetchErrorKind.PortalError,
+                    Message = $"Không kết nối được cổng UEH: {ex.Message}"
                 };
             }
         }
 
-        public async Task<UehWeekListResponseDto> FetchWeekListAsync(UehStudentScheduleRequestDto request)
+        public async Task<UehFetchSemestersResult> FetchAllWeeksForSemestersAsync(List<SemesterMetadata> semesters, string cookieHeader)
         {
-            var currentSemester = await GetCurrentSemesterAsync();
-            if (currentSemester == null)
-            {
-                return new UehWeekListResponseDto
-                {
-                    Success = false,
-                    Message = "Không tìm thấy SemesterMetadata có IsCurrentSemester = true."
-                };
-            }
-
-            var (session, error) = await LoginAsync(request?.SaveLogin ?? true);
-            if (session == null)
-            {
-                return new UehWeekListResponseDto
-                {
-                    Success = false,
-                    Message = error,
-                    YearStudy = currentSemester.Year,
-                    TermId = currentSemester.CodeSemester
-                };
-            }
-
-            using (session)
-            {
-                var (weeks, weekError) = await GetWeekListAsync(session, currentSemester.Year, currentSemester.CodeSemester);
-                return new UehWeekListResponseDto
-                {
-                    Success = weeks != null,
-                    Message = weeks != null ? "Lấy danh sách tuần thành công." : weekError,
-                    YearStudy = currentSemester.Year,
-                    TermId = currentSemester.CodeSemester,
-                    Weeks = weeks
-                };
-            }
-        }
-
-        public async Task<UehWeekScheduleResponseDto> FetchWeekScheduleAsync(UehStudentScheduleRequestDto request, int week)
-        {
-            var currentSemester = await GetCurrentSemesterAsync();
-            if (currentSemester == null)
-            {
-                return new UehWeekScheduleResponseDto
-                {
-                    Success = false,
-                    Message = "Không tìm thấy SemesterMetadata có IsCurrentSemester = true.",
-                    Week = week
-                };
-            }
-
-            var (session, error) = await LoginAsync(request?.SaveLogin ?? true);
-            if (session == null)
-            {
-                return new UehWeekScheduleResponseDto
-                {
-                    Success = false,
-                    Message = error,
-                    YearStudy = currentSemester.Year,
-                    TermId = currentSemester.CodeSemester,
-                    Week = week
-                };
-            }
-
-            using (session)
-            {
-                var (html, htmlError) = await GetWeekHtmlAsync(session, currentSemester.Year, currentSemester.CodeSemester, week);
-                return new UehWeekScheduleResponseDto
-                {
-                    Success = html != null,
-                    Message = html != null ? "Lấy lịch học theo tuần thành công." : htmlError,
-                    YearStudy = currentSemester.Year,
-                    TermId = currentSemester.CodeSemester,
-                    Week = week,
-                    ScheduleHtml = html
-                };
-            }
-        }
-
-        public async Task<UehAllWeeksResponseDto> FetchAllWeeksAsync(UehStudentScheduleRequestDto request)
-        {
-            var currentSemester = await GetCurrentSemesterAsync();
-            if (currentSemester == null)
-            {
-                return new UehAllWeeksResponseDto
-                {
-                    Success = false,
-                    Message = "Không tìm thấy SemesterMetadata có IsCurrentSemester = true."
-                };
-            }
-
-            var (session, error) = await LoginAsync(request?.SaveLogin ?? true);
-            if (session == null)
-            {
-                return new UehAllWeeksResponseDto
-                {
-                    Success = false,
-                    Message = error,
-                    YearStudy = currentSemester.Year,
-                    TermId = currentSemester.CodeSemester
-                };
-            }
-
-            using (session)
-            {
-                return await FetchAllWeeksForSemesterAsync(session, currentSemester);
-            }
-        }
-
-        public async Task<(List<UehAllWeeksResponseDto> results, string loginError)> FetchAllWeeksForSemestersAsync(
-            List<SemesterMetadata> semesters, UehStudentScheduleRequestDto request)
-        {
-            var (session, error) = await LoginAsync(request?.SaveLogin ?? true);
-            if (session == null)
-            {
-                return (new List<UehAllWeeksResponseDto>(), error);
-            }
-
             var semesterDelayMs = _configuration.GetValue<int?>("UehSchedule:SemesterRequestDelayMs") ?? DefaultSemesterRequestDelayMs;
-            var results = new List<UehAllWeeksResponseDto>();
+            var output = new UehFetchSemestersResult { ErrorKind = UehFetchErrorKind.Ok };
 
-            using (session)
+            // Lỗi mạng (HttpRequestException/timeout) cố ý để lọt ra ngoài: job Hangfire sẽ thử lại.
+            using var client = CreateSession(cookieHeader);
+
+            for (var i = 0; i < semesters.Count; i++)
             {
-                for (var i = 0; i < semesters.Count; i++)
-                {
-                    var semester = semesters[i];
-                    var result = await FetchAllWeeksForSemesterAsync(session, semester);
-                    results.Add(result);
+                var result = await FetchAllWeeksForSemesterAsync(client, semesters[i]);
+                output.Results.Add(result);
 
-                    if (semesterDelayMs > 0 && i < semesters.Count - 1)
-                    {
-                        await Task.Delay(semesterDelayMs);
-                    }
+                if (result.ErrorKind == UehFetchErrorKind.SessionExpired)
+                {
+                    // Phiên đã chết thì các học kỳ sau cũng chết theo: dừng luôn, không gọi UEH thêm.
+                    output.ErrorKind = UehFetchErrorKind.SessionExpired;
+                    output.Error = result.Message;
+                    return output;
+                }
+
+                if (semesterDelayMs > 0 && i < semesters.Count - 1)
+                {
+                    await Task.Delay(semesterDelayMs);
                 }
             }
 
-            return (results, null);
+            return output;
         }
 
-        private async Task<UehAllWeeksResponseDto> FetchAllWeeksForSemesterAsync(UehSession session, SemesterMetadata semester)
+        private async Task<UehAllWeeksResponseDto> FetchAllWeeksForSemesterAsync(HttpClient client, SemesterMetadata semester)
         {
             var yearStudy = semester.Year;
             var termId = semester.CodeSemester;
 
-            var (weekList, weekError) = await GetWeekListAsync(session, yearStudy, termId);
-            if (weekList == null)
+            var (weekList, weekKind, weekError) = await GetWeekListAsync(client, yearStudy, termId);
+            if (weekKind != UehFetchErrorKind.Ok)
             {
                 return new UehAllWeeksResponseDto
                 {
                     Success = false,
+                    ErrorKind = weekKind,
                     Message = weekError,
                     YearStudy = yearStudy,
                     TermId = termId,
@@ -396,9 +175,25 @@ namespace API_Raspberry.Service
             for (var i = 0; i < distinctWeeks.Count; i++)
             {
                 var week = distinctWeeks[i];
-                var (html, htmlError) = await GetWeekHtmlAsync(session, yearStudy, termId, week);
+                var (html, htmlKind, htmlError) = await GetWeekHtmlAsync(client, yearStudy, termId, week);
 
-                if (html == null)
+                if (htmlKind == UehFetchErrorKind.SessionExpired)
+                {
+                    // Khác lỗi lẻ một tuần: phiên chết giữa chừng thì mọi tuần sau đều hỏng, và dữ liệu
+                    // đã lấy được chỉ là một phần học kỳ. Dừng hẳn để không ghi đè TKB bằng dữ liệu thiếu.
+                    return new UehAllWeeksResponseDto
+                    {
+                        Success = false,
+                        ErrorKind = UehFetchErrorKind.SessionExpired,
+                        Message = htmlError,
+                        YearStudy = yearStudy,
+                        TermId = termId,
+                        SemesterMetadataId = semester.Id,
+                        WeeksScanned = distinctWeeks.Count
+                    };
+                }
+
+                if (htmlKind != UehFetchErrorKind.Ok)
                 {
                     // Một tuần lỗi không nên làm hỏng cả lần import; các tuần còn lại vẫn có giá trị.
                     _logger.LogWarning("Bỏ qua tuần {Week} của {Year}/{Term}: {Error}", week, yearStudy, termId, htmlError);
@@ -418,6 +213,7 @@ namespace API_Raspberry.Service
                 return new UehAllWeeksResponseDto
                 {
                     Success = false,
+                    ErrorKind = UehFetchErrorKind.PortalError,
                     Message = $"Không lấy được tuần nào trong {distinctWeeks.Count} tuần của học kỳ {termId} năm {yearStudy}.",
                     YearStudy = yearStudy,
                     TermId = termId,
@@ -430,6 +226,7 @@ namespace API_Raspberry.Service
             return new UehAllWeeksResponseDto
             {
                 Success = true,
+                ErrorKind = UehFetchErrorKind.Ok,
                 Message = $"Lấy thành công {results.Count}/{distinctWeeks.Count} tuần.",
                 YearStudy = yearStudy,
                 TermId = termId,
@@ -439,53 +236,62 @@ namespace API_Raspberry.Service
             };
         }
 
-        private async Task<(List<UehWeekDto> weeks, string error)> GetWeekListAsync(UehSession session, int yearStudy, string termId)
+        private static async Task<(List<UehWeekDto> weeks, UehFetchErrorKind kind, string error)> GetWeekListAsync(
+            HttpClient client, int yearStudy, string termId)
         {
             // '$' là ký tự phân cách thật trong route của portal, không phải escape.
             var url = string.Format(WeekListUrlFormat, yearStudy, Uri.EscapeDataString(termId));
-            var response = await session.Client.GetAsync(url);
+            using var response = await client.GetAsync(url);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (UehPortalResponse.IsLoginResponse((int)response.StatusCode, body, expectJson: true))
+            {
+                return (null, UehFetchErrorKind.SessionExpired, "Phiên UEH đã hết hạn (cổng UEH trả về trang đăng nhập).");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
-                return (null, $"Gọi API danh sách tuần thất bại. Status: {(int)response.StatusCode}");
+                return (null, UehFetchErrorKind.PortalError, $"Gọi API danh sách tuần thất bại. Status: {(int)response.StatusCode}");
             }
-
-            var json = await response.Content.ReadAsStringAsync();
 
             try
             {
-                var weeks = JsonSerializer.Deserialize<List<UehWeekDto>>(json, WeekListJsonOptions);
+                var weeks = JsonSerializer.Deserialize<List<UehWeekDto>>(body, WeekListJsonOptions);
                 if (weeks == null || weeks.Count == 0)
                 {
-                    return (null, $"Danh sách tuần rỗng cho học kỳ {termId} năm {yearStudy}.");
+                    return (null, UehFetchErrorKind.PortalError, $"Danh sách tuần rỗng cho học kỳ {termId} năm {yearStudy}.");
                 }
 
-                return (weeks, null);
+                return (weeks, UehFetchErrorKind.Ok, null);
             }
             catch (JsonException ex)
             {
-                // Portal trả HTML trang login thay vì JSON khi session hết hạn.
-                return (null, $"Không parse được danh sách tuần (session UEH có thể đã hết hạn): {ex.Message}");
+                return (null, UehFetchErrorKind.PortalError, $"Không đọc được danh sách tuần: {ex.Message}");
             }
         }
 
-        private async Task<(string html, string error)> GetWeekHtmlAsync(UehSession session, int yearStudy, string termId, int week)
+        private static async Task<(string html, UehFetchErrorKind kind, string error)> GetWeekHtmlAsync(
+            HttpClient client, int yearStudy, string termId, int week)
         {
             var url = string.Format(WeekScheduleUrlFormat, yearStudy, Uri.EscapeDataString(termId), week);
-            var response = await session.Client.GetAsync(url);
+            using var response = await client.GetAsync(url);
+            var html = await response.Content.ReadAsStringAsync();
+
+            if (UehPortalResponse.IsLoginResponse((int)response.StatusCode, html, expectJson: false))
+            {
+                return (null, UehFetchErrorKind.SessionExpired, $"Phiên UEH đã hết hạn khi đang lấy tuần {week} (cổng UEH trả về trang đăng nhập).");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
-                return (null, $"Gọi API lịch học tuần {week} thất bại. Status: {(int)response.StatusCode}");
+                return (null, UehFetchErrorKind.PortalError, $"Gọi API lịch học tuần {week} thất bại. Status: {(int)response.StatusCode}");
             }
-
-            var html = await response.Content.ReadAsStringAsync();
 
             // Cố ý KHÔNG chuẩn hoá Unicode ở đây. Portal mã hoá một phần dấu tiếng Việt bằng HTML entity,
             // nên lúc này chúng vẫn là chuỗi ASCII "&#...;" — Normalize không nhìn xuyên qua được, và
             // DeEntitize ở lớp parse sẽ giải mã ra dạng tổ hợp trở lại. Việc chuẩn hoá vì vậy phải nằm
             // ở nơi biến markup thành text (CourseScheduleImportService.GetNodeText / ParseWeekHtml).
-            return (html, null);
+            return (html, UehFetchErrorKind.Ok, null);
         }
     }
 }

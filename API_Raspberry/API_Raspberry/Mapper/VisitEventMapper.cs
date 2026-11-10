@@ -11,6 +11,8 @@ namespace API_Raspberry.Mapper
 
     public class VisitEventMapper : IVisitEventMapper
     {
+        // VisitedAt được ghi bằng DateTime.UtcNow, nhưng MySQL không lưu DateTimeKind nên đọc lên là
+        // Unspecified -> JSON thiếu "Z" -> trình duyệt hiểu là giờ máy và hiển thị giờ UTC (lệch 7 tiếng).
         public VisitEventDto ToDto(VisitEvent entity)
         {
             if (entity == null) return null;
@@ -20,7 +22,7 @@ namespace API_Raspberry.Mapper
                 Id = entity.Id,
                 EventType = entity.EventType,
                 Area = entity.Area,
-                VisitedAt = entity.VisitedAt,
+                VisitedAt = DateTime.SpecifyKind(entity.VisitedAt, DateTimeKind.Utc),
                 VisitorId = entity.VisitorId,
                 SessionId = entity.SessionId,
                 IpAddress = entity.IpAddress,

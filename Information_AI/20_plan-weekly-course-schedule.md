@@ -2,6 +2,12 @@
 
 Viết ngày 17/07/2026.
 
+> **Ghi chú 11/2026 (plan lịch sử, nội dung bên dưới giữ nguyên):** `FetchScheduleAsync`, `FetchWeekListAsync`,
+> `FetchWeekScheduleAsync`, `FetchAllWeeksAsync`, `LoginAsync` và endpoint `/FetchUehStudentSchedule` nhắc tới
+> trong plan này **đã bị xóa** (08/11/2026). Từ 04/11/2026 UEH bắt reCAPTCHA nên backend không đăng nhập bằng
+> mật khẩu nữa; việc đọc lịch dùng cookie phiên do extension Chrome gửi về. Xem
+> `26_feature-ueh-session-extension.md` và `15_feature-ueh-student-schedule.md`.
+
 ## Tiến độ
 
 | Bước | Trạng thái |

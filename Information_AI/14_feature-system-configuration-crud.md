@@ -81,6 +81,10 @@ the backend at specific points and change real behavior. Known so far:
 | `KeyConfig` | `ValueConfig` example | Read by | Effect |
 |---|---|---|---|
 | `ScheduleImportCron` | `0 */4 * * *` (cron expression) | `Program.cs`, once at app startup | Overrides the UEH course-schedule sync job's recurring cron schedule |
+| `UehKeepAliveCron` | `*/10 * * * *` (cron expression) | `Program.cs`, once at app startup | Ghi đè lịch của job **giữ phiên UEH** (`ueh-keep-alive-job`, mặc định `*/15 * * * *`). Chỉ bản thật |
+
+Cả hai khóa đi qua cùng một hàm cục bộ `AddOrUpdateWithCronOverride` (`Program.cs:312-338`), nên cùng quy tắc
+ưu tiên, cùng cách kiểm tra cú pháp và cùng điều kiện phải khởi động lại backend.
 
 ### `ScheduleImportCron`
 
@@ -100,3 +104,19 @@ priority: **this System Configuration row (if present and valid) > `appsettings.
   `AddOrUpdate` attempt is the mechanism used instead.)
 
 Full sync-flow context: `15_feature-ueh-student-schedule.md`.
+
+### `UehKeepAliveCron`
+
+Cùng cơ chế với `ScheduleImportCron`, áp dụng cho job `ueh-keep-alive-job` (`UehKeepAliveRecurringId`).
+Thứ tự ưu tiên: **row này (nếu có và hợp lệ) > `appsettings.json` `HangfireJobs:UehKeepAliveCron` (`*/15 * * * *`)
+> mặc định trong code (`*/15 * * * *`)**.
+
+- Thêm row `KeyConfig = "UehKeepAliveCron"`, `ValueConfig` là cron, ví dụ `*/10 * * * *`.
+- ⚠ Chỉ có hiệu lực sau khi **khởi động lại backend**. Cú pháp sai thì ghi warning và dùng lại giá trị
+  appsettings/mặc định, không làm sập app.
+- Job này **không đăng ký trên demo**, nên row này vô nghĩa ở đó.
+- Job làm gì và vì sao cần: `26_feature-ueh-session-extension.md` §9, `22_feature-hangfire-jobs.md`.
+
+> Ghi chú vận hành (08/11/2026): trong lúc chuyển sang đồng bộ bằng extension, job đồng bộ được tạm dừng bằng
+> `ScheduleImportCron = 0 0 31 2 *` (31/02, không bao giờ tới). Khi chạy ổn thì xóa row này rồi khởi động lại
+> backend để quay về mỗi giờ.

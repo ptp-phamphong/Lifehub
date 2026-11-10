@@ -1,20 +1,7 @@
+using API_Raspberry.Service;
+
 namespace API_Raspberry.Dto
 {
-    public class UehStudentScheduleRequestDto
-    {
-        public bool SaveLogin { get; set; } = true;
-    }
-
-    public class UehStudentScheduleResponseDto
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public int? YearStudy { get; set; }
-        public string TermId { get; set; }
-        public string LoginPageToken { get; set; }
-        public string ScheduleHtml { get; set; }
-    }
-
     // Một phần tử trong danh sách tuần trả về từ /Home/GetWeek/{year}${term}.
     public class UehWeekDto
     {
@@ -29,25 +16,6 @@ namespace API_Raspberry.Dto
         public int WeekOfYear { get; set; }
     }
 
-    public class UehWeekListResponseDto
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public int? YearStudy { get; set; }
-        public string TermId { get; set; }
-        public List<UehWeekDto> Weeks { get; set; }
-    }
-
-    public class UehWeekScheduleResponseDto
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public int? YearStudy { get; set; }
-        public string TermId { get; set; }
-        public int Week { get; set; }
-        public string ScheduleHtml { get; set; }
-    }
-
     public class UehWeekHtmlDto
     {
         public int Week { get; set; }
@@ -57,6 +25,7 @@ namespace API_Raspberry.Dto
     public class UehAllWeeksResponseDto
     {
         public bool Success { get; set; }
+        public UehFetchErrorKind ErrorKind { get; set; }
         public string Message { get; set; }
         public int? YearStudy { get; set; }
         public string TermId { get; set; }

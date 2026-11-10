@@ -113,9 +113,9 @@ namespace API_Raspberry.Controllers
 
         [HttpPost]
         [Route("ResetImportCourseScheduleFromUeh")]
-        public async Task<IActionResult> ResetImportFromUeh([FromBody] UehStudentScheduleRequestDto request = null)
+        public async Task<IActionResult> ResetImportFromUeh()
         {
-            var result = await _courseScheduleUehSyncService.ResetImportByWeekAsync(request);
+            var result = await _courseScheduleUehSyncService.ResetImportByWeekAsync();
 
             if (!result.Success)
             {

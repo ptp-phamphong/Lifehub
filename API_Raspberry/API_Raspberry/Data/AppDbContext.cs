@@ -21,6 +21,7 @@ namespace API_Raspberry.Data
         public DbSet<VisitEvent> VisitEvents { get; set; }
         public DbSet<VisitorKnownIp> VisitorKnownIps { get; set; }
         public DbSet<VisitorDailyStat> VisitorDailyStats { get; set; }
+        public DbSet<UehPortalSession> UehPortalSessions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

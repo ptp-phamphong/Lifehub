@@ -1,0 +1,37 @@
+{
+  "extName": { "message": "LifeHub – Đồng bộ lịch UEH" },
+  "extDescription": { "message": "Gửi phiên đăng nhập cổng sinh viên UEH về LifeHub để tự đồng bộ thời khóa biểu." },
+  "buttonLabel": { "message": "Đồng bộ LifeHub" },
+  "statusLoading": { "message": "Đang kiểm tra phiên UEH…" },
+  "sessionValid": { "message": "Phiên UEH: còn hiệu lực" },
+  "sessionExpired": { "message": "Phiên UEH: đã hết hạn" },
+  "sessionNone": { "message": "Phiên UEH: chưa gửi về LifeHub" },
+  "lastSync": {
+    "message": "Đồng bộ cuối: $TIME$ — $COUNT$ buổi học",
+    "placeholders": {
+      "time": { "content": "$1" },
+      "count": { "content": "$2" }
+    }
+  },
+  "lastSyncNever": { "message": "Chưa đồng bộ lần nào" },
+  "lastError": {
+    "message": "Lỗi: $TEXT$",
+    "placeholders": { "text": { "content": "$1" } }
+  },
+  "needLogin": { "message": "Mở LifeHub (app.ptp-phamphong.com) để đăng nhập lại" },
+  "networkError": {
+    "message": "Không kết nối được LifeHub: $TEXT$",
+    "placeholders": { "text": { "content": "$1" } }
+  },
+  "syncing": { "message": "Đang đồng bộ lịch học…" },
+  "syncDone": {
+    "message": "Đồng bộ xong: $COUNT$ buổi học",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "syncFailed": {
+    "message": "Đồng bộ thất bại: $TEXT$",
+    "placeholders": { "text": { "content": "$1" } }
+  },
+  "syncTimeout": { "message": "Chờ đồng bộ quá 3 phút. Xem trang Tác vụ nền trên LifeHub." },
+  "clickToSync": { "message": "Bấm để đồng bộ ngay" }
+}

@@ -1,0 +1,37 @@
+{
+  "extName": { "message": "LifeHub – UEH schedule sync" },
+  "extDescription": { "message": "Sends your UEH student portal session to LifeHub so the timetable syncs automatically." },
+  "buttonLabel": { "message": "Sync LifeHub" },
+  "statusLoading": { "message": "Checking UEH session…" },
+  "sessionValid": { "message": "UEH session: active" },
+  "sessionExpired": { "message": "UEH session: expired" },
+  "sessionNone": { "message": "UEH session: not sent to LifeHub yet" },
+  "lastSync": {
+    "message": "Last sync: $TIME$ — $COUNT$ sessions",
+    "placeholders": {
+      "time": { "content": "$1" },
+      "count": { "content": "$2" }
+    }
+  },
+  "lastSyncNever": { "message": "Never synced" },
+  "lastError": {
+    "message": "Error: $TEXT$",
+    "placeholders": { "text": { "content": "$1" } }
+  },
+  "needLogin": { "message": "Open LifeHub (app.ptp-phamphong.com) to sign in again" },
+  "networkError": {
+    "message": "Cannot reach LifeHub: $TEXT$",
+    "placeholders": { "text": { "content": "$1" } }
+  },
+  "syncing": { "message": "Syncing timetable…" },
+  "syncDone": {
+    "message": "Sync finished: $COUNT$ sessions",
+    "placeholders": { "count": { "content": "$1" } }
+  },
+  "syncFailed": {
+    "message": "Sync failed: $TEXT$",
+    "placeholders": { "text": { "content": "$1" } }
+  },
+  "syncTimeout": { "message": "Sync took longer than 3 minutes. Check the Background jobs page in LifeHub." },
+  "clickToSync": { "message": "Click to sync now" }
+}

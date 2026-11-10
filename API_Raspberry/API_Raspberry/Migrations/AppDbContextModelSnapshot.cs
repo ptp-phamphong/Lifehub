@@ -306,6 +306,44 @@ namespace API_Raspberry.Migrations
                     b.ToTable("systemConfiguration");
                 });
 
+            modelBuilder.Entity("API_Raspberry.Model.UehPortalSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CookieHeader")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ExpiredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsValid")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastSyncAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("LastSyncCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LastSyncMessage")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool?>("LastSyncSuccess")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("LastValidatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("SavedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("uehPortalSession");
+                });
+
             modelBuilder.Entity("API_Raspberry.Model.User", b =>
                 {
                     b.Property<int>("Id")

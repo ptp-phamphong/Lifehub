@@ -35,7 +35,12 @@ patterns. Both shapes coexist — any query or UI filter must handle both. See
 | GET | `/GetCourseScheduleByMonth/{month}/{year}` | — | `List<CourseScheduleDto>` |
 | GET | `/GetCourseScheduleByWeek/{date}` | `date` = any date in the week, `yyyy-MM-dd` | `List<CourseScheduleDto>` |
 | POST | `/ImportCourseSchedule` | `IFormFile file`, `int? semesterMetadataId` (multipart/form-data) | `{ count, data }` |
-| POST | `/ResetImportCourseScheduleFromUeh` | `{ saveLogin?: bool }` (optional JSON body) | `{ message, count, weeksScanned, weeksWithData, semesterMetadataId, yearStudy, termId, data }` |
+| POST | `/ResetImportCourseScheduleFromUeh` | — (**không còn body**; Angular vẫn gửi `{}`, bị bỏ qua) | `200 { message, count, semesters }`; `400 { message, semesters }` khi `!Success` (không học kỳ nào thành công, chưa có phiên, phiên hết hạn…) |
+
+(`Controllers/CourseScheduleController.cs:115-135`. `semesters` là danh sách kết quả từng học kỳ:
+`success`, `message`, `count`, `semesterMetadataId`, `yearStudy`, `termId`, `weeksScanned`, `weeksWithData`.
+Trước đây tài liệu ghi sai một dạng trả về phẳng `{ weeksScanned, weeksWithData, semesterMetadataId, … , data }`
+— đó là dạng một học kỳ từ trước khi có đồng bộ nhiều học kỳ.)
 
 ### Flow
 
@@ -43,7 +48,8 @@ patterns. Both shapes coexist — any query or UI filter must handle both. See
 CourseScheduleController → ICourseScheduleService → ICourseScheduleRepository → AppDbContext
                          → ICourseScheduleImportService (Excel import / HTML import / week parse)
                          → ICourseScheduleUehSyncService (orchestrates the per-week UEH sync)
-                              → IUehStudentScheduleService (UEH SSO login + fetch)
+                              → IUehPortalSessionService (cookie phiên UEH do extension gửi về — doc 26)
+                              → IUehStudentScheduleService (fetch bằng cookie, không còn đăng nhập mật khẩu)
                               → ICourseScheduleImportService.ParseWeekHtml
                               → ICourseScheduleService (delete + AddRange)
                          → ICourseScheduleMapper (DTO ↔ Entity)
@@ -58,7 +64,9 @@ controller — the two used to duplicate this logic. Put changes to the sync flo
 - Service: `API_Raspberry/Service/CourseScheduleService.cs`
 - **UEH sync orchestration**: `API_Raspberry/Service/CourseScheduleUehSyncService.cs`
 - Import service: `API_Raspberry/Service/CourseScheduleImportService.cs` — Excel, UEH HTML, and per-week parsing
-- UEH fetch service: `API_Raspberry/Service/UehStudentScheduleService.cs`
+- UEH fetch service: `API_Raspberry/Service/UehStudentScheduleService.cs` (chỉ còn đường đi bằng cookie)
+- UEH session (cookie, trạng thái, `Submit`): `API_Raspberry/Service/UehPortalSessionService.cs`,
+  `API_Raspberry/Controllers/UehSessionController.cs` — xem `26_feature-ueh-session-extension.md`
 - Repository: `API_Raspberry/Repository/CourseScheduleRepository.cs`
 - Mapper: `API_Raspberry/Mapper/CourseScheduleMapper.cs`
 - DTOs: `API_Raspberry/Dto/CourseScheduleDto.cs`
@@ -122,6 +130,9 @@ Returns courses where the course's `[StartDate, EndDate]` range overlaps with th
 
 ### HTML import from UEH
 
+> **Không còn caller (11/2026).** Hàm fetch whole-semester duy nhất đưa HTML vào đây (`FetchScheduleAsync`) đã
+> bị xóa. `ImportFromHtml` còn trong code nhưng không ai gọi; đồng bộ UEH dùng `ParseWeekHtml`.
+
 - Method: `CourseScheduleImportService.ImportFromHtml(scheduleHtml, semesterMetadataId)`.
 - Uses `HtmlAgilityPack` to parse the UEH schedule table.
 - Handles `rowspan`: when a course has multiple time slots, continuation rows (6 cells) inherit the previous row's course info.
@@ -135,13 +146,17 @@ Returns courses where the course's `[StartDate, EndDate]` range overlaps with th
 
 ### Reset import from UEH (`/ResetImportCourseScheduleFromUeh`)
 
-Delegates entirely to `ICourseScheduleUehSyncService.ResetImportByWeekAsync()`:
+Delegates entirely to `ICourseScheduleUehSyncService.ResetImportByWeekAsync()` (không tham số):
 
-1. `IUehStudentScheduleService.FetchAllWeeksAsync()` — one SSO login, fetch the week list, then fetch
-   each distinct week (~52 requests, ~400ms apart).
+0. Đọc phiên UEH đã lưu. Chưa có phiên hoặc phiên hết hạn → trả lỗi kèm câu hướng dẫn ("mở trang UEH để
+   extension gửi phiên"), **không gọi UEH**. Xem `26_feature-ueh-session-extension.md`.
+1. `IUehStudentScheduleService.FetchAllWeeksForSemestersAsync(semesters, cookieHeader)` — dùng cookie đã lưu
+   cho mọi học kỳ có `IsCurrentSemester = true`: fetch the week list (`GetWeek`), then fetch each distinct
+   week (~52 requests per semester, ~400ms apart). *(Câu cũ ghi `FetchAllWeeksAsync()` + "one SSO login" là
+   sai: hàm đó và việc đăng nhập mật khẩu đã bị xóa.)*
 2. `ParseWeekHtml()` each week's HTML; empty weeks are normal and skipped.
-3. Only **after** everything is parsed: `DeleteBySemesterMetadataId` then `AddRange`.
-4. Returns `{ message, count, weeksScanned, weeksWithData, semesterMetadataId, yearStudy, termId, data }`.
+3. Only **after** everything is parsed: `DeleteBySemesterMetadataId` then `AddRange` (per semester).
+4. Returns `{ message, count, semesters }` (see endpoint table above).
 
 **Two safety guards — do not remove them:**
 
@@ -156,7 +171,7 @@ Typical real run: `75 sessions from 26/52 weeks`.
 
 ### Background refresh job
 
-Runs on **Hangfire** now (was a `BackgroundService`). See `23_feature-hangfire-jobs.md` for the full jobs
+Runs on **Hangfire** now (was a `BackgroundService`). See `22_feature-hangfire-jobs.md` for the full jobs
 feature — this is just the course-schedule side.
 
 - Job class: `Service/Jobs/ScheduleImportJob.cs` (recurring job `schedule-import-job`)
@@ -168,30 +183,21 @@ feature — this is just the course-schedule side.
 
 ```json
 "HangfireJobs": {
-  "ScheduleImportCron": "0 * * * *"
+  "ScheduleImportCron": "0 * * * *",
+  "UehKeepAliveCron": "*/15 * * * *"
 }
 ```
 
-- Behavior:
-  - waits briefly after app startup
-  - finds `SemesterMetadata` where `IsCurrentSemester = true`
-  - fetches fresh UEH HTML via `IUehStudentScheduleService`
-  - clears current semester courses
-  - re-imports them via `ImportFromHtml()`
+- Behavior (`ScheduleImportJob` → `ICourseScheduleUehSyncService.ResetImportByWeekAsync()`, xem mục "Reset import from UEH" ở trên):
+  - đọc phiên UEH đã lưu; chưa có hoặc hết hạn thì **Thất bại 1 lần, không thử lại** (`UehSessionExpiredException`, `ExceptOn`)
+  - finds every `SemesterMetadata` where `IsCurrentSemester = true`
+  - fetches fresh UEH week HTML via `IUehStudentScheduleService` bằng cookie đã lưu
+  - parses with `ParseWeekHtml()`, then clears and re-imports each semester's courses (delete last, never when 0 parsed)
+- `ueh-keep-alive-job` (mỗi 15 phút, `UehKeepAliveCron`) giữ phiên UEH sống giữa các lượt đồng bộ — xem doc 26 §9.
 - If migrating from the old Raspberry Pi cron script, remove the old `crontab` entry so the job does not run twice.
 
-Credentials for UEH login are read in this order:
-
-1. Environment variables `UEH_LOGIN_TAIKHOAN`, `UEH_LOGIN_MATKHAU` (recommended for Raspberry Pi)
-2. Fallback to `appsettings.json` / `appsettings.Development.json`
-
-Fallback appsettings shape:
-```json
-"UehLogin": {
-  "TaiKhoan": "",
-  "MatKhau": ""
-}
-```
+**Phiên UEH** không còn lấy từ tài khoản/mật khẩu: nó do extension Chrome (`Extension_Raspberry/`) gửi về.
+`UEH_LOGIN_*` và `UehLogin:*` **không còn được code đọc** (11/2026). Xem `26_feature-ueh-session-extension.md`.
 
 ### Bulk delete
 

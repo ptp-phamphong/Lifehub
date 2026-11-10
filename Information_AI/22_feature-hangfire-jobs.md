@@ -1,9 +1,10 @@
 # Feature: Background Jobs (Hangfire) + trang giám sát "Tác vụ nền"
 
-> **Instance demo** chỉ đăng ký job `demo-reseed`; hai job của bản thật bị gỡ khỏi kho Hangfire của demo
-> (xem §Job `demo-reseed` bên dưới và `25_feature-demo-environment.md`).
+> **Instance demo** chỉ đăng ký job `demo-reseed`; ba job của bản thật (đồng bộ UEH, giữ phiên UEH, bảo trì
+> nhật ký) bị gỡ khỏi kho Hangfire của demo (xem §Job `demo-reseed` bên dưới và `25_feature-demo-environment.md`).
 
-Hai tác vụ chạy nền — **đồng bộ lịch học UEH** và **bảo trì nhật ký truy cập** — chạy trên **Hangfire**
+Các tác vụ chạy nền của bản thật — **đồng bộ lịch học UEH**, **giữ phiên UEH** (thêm 11/2026) và
+**bảo trì nhật ký truy cập** — chạy trên **Hangfire**
 thay cho `BackgroundService` cũ. Hangfire tự lưu lịch sử mỗi lần chạy (thành công / thất bại / exception)
 vào chính MariaDB đang dùng, nên có thể:
 
@@ -38,7 +39,8 @@ là các dependency giờ nhận qua constructor (Hangfire tự tạo DI scope m
 
 | File | Cron mặc định | AutomaticRetry | Việc làm |
 |---|---|---|---|
-| `IScheduleImportJob` + `ScheduleImportJob` | `0 * * * *` (mỗi giờ) | `Attempts = 2` | Gọi `ICourseScheduleUehSyncService.ResetImportByWeekAsync(null)` — đồng bộ lịch học UEH theo tuần |
+| `IScheduleImportJob` + `ScheduleImportJob` | `0 * * * *` (mỗi giờ) | `Attempts = 2`, `ExceptOn = UehSessionExpiredException, UehSyncSkippedException` | Cron gọi `RunScheduledAsync()`: phiên chưa có/đã hết hạn thì **bỏ qua im lặng**, ngược lại gọi `RunAsync()` → `ICourseScheduleUehSyncService.ResetImportByWeekAsync()` — đồng bộ lịch học UEH theo tuần, bằng cookie phiên đã lưu |
+| `IUehKeepAliveJob` + `UehKeepAliveJob` | `*/15 * * * *` (mỗi 15 phút) | `Attempts = 0` | **Giữ phiên UEH** (`ueh-keep-alive-job`): gọi 1 request `GetWeek` để phiên không bị hủy vì rảnh, và phát hiện sớm khi phiên chết. Chỉ bản thật |
 | `IVisitorLogMaintenanceJob` + `VisitorLogMaintenanceJob` | `0 */6 * * *` (mỗi 6 giờ) | `Attempts = 1` | Dồn số liệu `visitorDailyStat` theo ngày + dọn dữ liệu thô quá hạn |
 
 > **`[AutomaticRetry]` phải đặt trên INTERFACE, không phải class.** Job được enqueue qua interface
@@ -49,6 +51,55 @@ là các dependency giờ nhận qua constructor (Hangfire tự tạo DI scope m
 > **`ScheduleImportJob` ném exception khi `!result.Success`.** `BackgroundService` cũ chỉ log warning rồi
 > `return` khi UEH sync thất bại → Hangfire sẽ tưởng job Succeeded và **giấu mất đúng thứ cần xem lại**.
 > `VisitorLogMaintenanceJob` không cần sửa gì — cứ lỗi là ném, Hangfire tự bắt.
+
+### Phiên UEH hết hạn: lượt theo lịch bị bỏ qua, "Chạy ngay" thì Thất bại đúng 1 lần
+
+`IScheduleImportJob` khai báo `[AutomaticRetry(Attempts = 2, ExceptOn = new[] { typeof(UehSessionExpiredException), typeof(UehSyncSkippedException) })]`
+và `[SkippedJobToDeleted]` (`Service/Jobs/IScheduleImportJob.cs`). Hangfire 1.8.21 có `ExceptOn`.
+
+Có hai lối vào:
+
+- **`RunScheduledAsync()`** — chỉ cron gọi. Đọc phiên trước; chưa có phiên hoặc `IsValid = false` thì ném
+  `UehSyncSkippedException` mà **không gọi UEH**. `SkippedJobToDeletedAttribute` (một `IElectStateFilter`) đổi
+  trạng thái Failed của lỗi này thành **Deleted**. `JobsService` không đọc danh sách Deleted, nên lượt bị bỏ
+  qua **không hiện** trên trang Tác vụ nền. Lý do: phiên chết thì chỉ người dùng đăng nhập lại mới cứu được, và
+  lúc đó extension tự đẩy một lượt đồng bộ. Trước đây mỗi giờ ra một dòng Thất bại cho tới khi đăng nhập lại.
+  Phải ném exception vì Hangfire không có trạng thái "bỏ qua" — `return` sẽ thành Thành công.
+- **`RunAsync()`** — "Chạy ngay" và `UehSession/Submit` gọi. Không có bước bỏ qua: phiên hết hạn thì ra
+  Thất bại để người bấm thấy lý do.
+
+| Lỗi `ScheduleImportJob` ném | Thử lại? |
+|---|---|
+| `UehSyncSkippedException` (chỉ từ `RunScheduledAsync`) | **Không.** Chuyển sang Deleted, không hiện trên trang |
+| `UehSessionExpiredException` (`result.ErrorKind == SessionExpired`: chưa có phiên hoặc phiên hết hạn — hoặc phiên chết giữa lượt đồng bộ) | **Không.** Ra **Thất bại** ngay, 1 lần. Thử lại chắc chắn hỏng tiếp và chỉ tốn request tới UEH |
+| `InvalidOperationException` (`!result.Success` do lỗi portal khác) | Có, 2 lần |
+| `HttpRequestException` / timeout (lỗi mạng tạm thời) | Có, 2 lần |
+
+`errorMessage` của dòng Thất bại là câu hướng dẫn, ví dụ "Phiên UEH đã hết hạn từ HH:mm dd/MM — mở trang UEH
+để extension gửi phiên mới." (`ScheduleImportJob.cs:26-30`). Toàn bộ cơ chế phiên: `26_feature-ueh-session-extension.md`.
+
+### Job `ueh-keep-alive` (giữ phiên UEH)
+
+`Service/Jobs/UehKeepAliveJob.cs`, interface `Service/Jobs/IUehKeepAliveJob.cs`. Chỉ đăng ký trên **bản thật**.
+
+| Mục | Giá trị |
+|---|---|
+| Id recurring | `ueh-keep-alive-job` (`JobDefinitions.UehKeepAliveRecurringId`, `JobDefinitions.cs:19`) |
+| Tên hiển thị | `Giữ phiên UEH` (`JobDefinitions.UehKeepAliveName`, `:22`) |
+| Cron | `HangfireJobs:UehKeepAliveCron`, mặc định `*/15 * * * *`; ghi đè bằng System Configuration key `UehKeepAliveCron` (sau khi khởi động lại) |
+| Thử lại | `Attempts = 0` — lượt sau chỉ cách 15 phút |
+| Khóa API / "Chạy ngay" | **Không có.** Không nằm trong `JobsService.Trigger` |
+| Demo | `Program.cs` gọi `RemoveIfExists("ueh-keep-alive-job")` (`:362`) |
+
+Mỗi lượt: không có phiên hoặc phiên đã hết hạn → `return` (không gọi UEH). Phiên còn sống → `MarkValidated()`.
+Phiên vừa chết → `MarkExpired()` + `LogWarning` kèm thời gian sống. Lỗi mạng/5xx → ném `InvalidOperationException`
+(ra Thất bại) nhưng **không** đánh dấu hết hạn. Chi tiết: doc 26 §9.
+
+**Trang Tác vụ nền ẩn các lần Thành công của job này.** `JobsService.GetHistory` lọc bỏ dòng có
+`Status == "Succeeded"` và `JobName == "Giữ phiên UEH"` (`Service/JobsService.cs:68-70`), vì 96 dòng mỗi ngày
+sẽ đẩy hết các dòng đồng bộ ra khỏi danh sách 50 dòng. Lần Thất bại của nó vẫn hiện. Để lọc không làm mất các
+lần đồng bộ Thành công, `ReadRows` lấy dư danh sách Thành công thêm 200 dòng (`SucceededOverfetch`, `:25`, `:82`).
+Angular không cần sửa.
 
 ### Job `demo-reseed` (chỉ instance demo)
 
@@ -65,9 +116,9 @@ là các dependency giờ nhận qua constructor (Hangfire tự tạo DI scope m
 | Bảng bị xóa | `ExpenseRecords`, `IncomeRecords`, `CourseSchedules`, `SemesterMetadatas`, `ReasonTypes`, `SystemConfigurations`, `PhoneNotifications`, `NotificationFilters`, `VisitEvents`, `VisitorKnownIps`, `VisitorDailyStats` |
 | Seed lại | `NotificationFilterService.SeedDefaults`, `VisitorLogSettingsService.SeedDefaults`, `ReasonTypes` (luôn seed), học kỳ, lịch học, chi tiêu, thu nhập giả |
 
-`Program.cs` trên demo còn gọi `RemoveIfExists` cho `schedule-import-job` và `visitor-log-maintenance-job`:
-Hangfire không tự xóa recurring job đã đăng ký từ trước, và hai job đó (sync UEH thật, dọn log) không được
-chạy trên demo. Chi tiết: `25_feature-demo-environment.md`.
+`Program.cs` trên demo còn gọi `RemoveIfExists` cho `schedule-import-job`, `visitor-log-maintenance-job` và
+`ueh-keep-alive-job`: Hangfire không tự xóa recurring job đã đăng ký từ trước, và ba job đó (sync UEH thật, giữ
+phiên UEH thật, dọn log) không được chạy trên demo. Chi tiết: `25_feature-demo-environment.md`.
 
 ### Đăng ký job định kỳ (`Program.cs`)
 
@@ -76,9 +127,15 @@ Phải lấy `IRecurringJobManager` **từ DI scope**, không dùng API tĩnh `R
 cấu hình sẽ ném `Current JobStorage instance has not been initialized yet`. Cùng nguyên tắc: `JobsService`
 dùng `IBackgroundJobClient` inject qua DI, không dùng `BackgroundJob.Enqueue` tĩnh.
 
-Id recurring job (`schedule-import-job`, `visitor-log-maintenance-job`) và khóa API (`schedule-import`,
-`visitor-log-maintenance`) khai báo tập trung ở **`Service/Jobs/JobDefinitions.cs`** — nguồn duy nhất, cả
-`Program.cs`, `JobsService`, `JobRunMapper` và Angular đều lấy từ đây.
+Id recurring job (`schedule-import-job`, `ueh-keep-alive-job`, `visitor-log-maintenance-job`) và khóa API
+(`schedule-import`, `visitor-log-maintenance`) khai báo tập trung ở **`Service/Jobs/JobDefinitions.cs`** — nguồn
+duy nhất, cả `Program.cs`, `JobsService`, `JobRunMapper` và Angular đều lấy từ đây. Job giữ phiên có id và tên
+hiển thị nhưng **không có khóa API** (không chạy tay được).
+
+Hai job có cron ghi đè được (`schedule-import-job`, `ueh-keep-alive-job`) đăng ký qua hàm cục bộ
+`AddOrUpdateWithCronOverride<TJob>(recurringId, overrideKey, defaultCron, call)` (`Program.cs:312-338`). Thứ tự
+đọc cron: **System Configuration (`overrideKey`) → `HangfireJobs:{overrideKey}` → mặc định**. Khóa ghi đè:
+`ScheduleImportCron` và `UehKeepAliveCron`. Cả hai chỉ có hiệu lực sau khi khởi động lại backend.
 
 ### Endpoint (`Controllers/JobsController.cs`)
 
@@ -124,6 +181,7 @@ Trang Angular **phải hiển thị đủ cả 5**, nếu không job sẽ "biế
 },
 "HangfireJobs": {
   "ScheduleImportCron": "0 * * * *",
+  "UehKeepAliveCron": "*/15 * * * *",
   "VisitorLogMaintenanceCron": "0 */6 * * *"
 }
 ```
@@ -210,10 +268,13 @@ Cổng gác: `MapHangfireDashboard("/hangfire", …).AllowAnonymous()` + `LocalR
 - `TimeZoneId` của recurring job đang là **UTC**. Cron "mỗi giờ" / "mỗi 6 giờ" thì không lệch, nhưng nếu
   sau này đổi sang cron kiểu "3h sáng mỗi ngày" thì phải set `RecurringJobOptions.TimeZone` sang giờ VN,
   không thì lệch 7 tiếng.
-- **Test đường lỗi**: đặt sai biến môi trường `UEH_LOGIN_TAIKHOAN` / `UEH_LOGIN_MATKHAU` rồi trigger
-  `schedule-import`; job sẽ tới trạng thái Thất bại sau ~60s với `errorMessage` rõ ràng.
+- **Test đường lỗi**: bấm **Đăng xuất** trên UEH (hoặc để job giữ phiên đánh dấu phiên hết hạn), rồi "Chạy
+  ngay" `schedule-import`; job ra **Thất bại ngay 1 lần, không có lượt thử lại**, với `errorMessage` là câu
+  hướng dẫn "Phiên UEH đã hết hạn từ HH:mm dd/MM — mở trang UEH …". (Cách cũ — đặt sai `UEH_LOGIN_*` — không còn
+  tác dụng vì code không đọc các biến đó nữa.)
 
 ## Keywords
 
 background job, cron, recurring, scheduled task, Hangfire, chạy ngay, tác vụ nền, lịch sử chạy, job
-history, trigger, retry, dashboard, SSH tunnel, đồng bộ lịch học UEH, bảo trì nhật ký truy cập
+history, trigger, retry, dashboard, SSH tunnel, đồng bộ lịch học UEH, bảo trì nhật ký truy cập,
+giữ phiên UEH, ueh-keep-alive-job, IUehKeepAliveJob, UehKeepAliveCron, ExceptOn, UehSessionExpiredException
