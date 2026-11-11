@@ -327,6 +327,31 @@ export type Dictionary = {
     /** {{count}} — như trên, thêm vế "xếp theo tổng tiền". */
     subtitleRangeByTotal: string;
     subtitleRangeAllByTotal: string;
+    /** Nút bật khoảng tự chọn (cạnh 6/12/24/Tất cả). */
+    rangeCustom: string;
+    rangeFrom: string;
+    rangeTo: string;
+    /** {{from}}, {{to}} — nhãn tháng ngắn của khoảng tự chọn. */
+    subtitleRangeCustom: string;
+    subtitleRangeByTotalCustom: string;
+    /** {{from}}, {{to}} — tháng dạng giữa câu. */
+    rangeSummaryTitle: string;
+    /** {{month}} — khi khoảng chỉ có một tháng. */
+    rangeSummaryTitleOne: string;
+    rangeSummarySub: string;
+    rangeTotal: string;
+    /** {{count}} — số khoản chi trong khoảng. */
+    rangeTotalHint: string;
+    rangeAvgMonth: string;
+    /** {{months}} — số tháng trọn vẹn. */
+    rangeAvgMonthHint: string;
+    /** {{months}}, {{month}} — tháng đang dở bị loại khỏi trung bình. */
+    rangeAvgMonthHintPartial: string;
+    rangeAvgMonthNone: string;
+    rangeAvgDay: string;
+    /** {{days}} — số ngày làm mẫu số. */
+    rangeAvgDayHint: string;
+    rangeAvgDayHintToday: string;
     incomeExpenseNote: string;
     legendExpense: string;
     legendIncome: string;

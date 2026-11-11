@@ -58,6 +58,37 @@ export interface AnalyticsFilter {
   reasonTypeIdsOut: number[];
   /** 'YYYY-MM' - tháng neo cho KPI, heatmap và biểu đồ lũy kế. */
   anchorMonth: string;
+  /**
+   * Khoảng tự chọn 'YYYY-MM'..'YYYY-MM' (gồm cả hai đầu). Khác null thì THAY
+   * `monthsBack` cho mọi biểu đồ theo khoảng (#2..#5 + khối tổng quan khoảng).
+   * KPI, heatmap và lũy kế vẫn đi theo `anchorMonth` - chúng nói về MỘT tháng.
+   */
+  customRange: { from: string; to: string } | null;
+}
+
+/**
+ * Tổng quan của khoảng đang xem: đã chi bao nhiêu, trung bình tháng/ngày.
+ *
+ * Hai mẫu số khác nhau có chủ đích, vì "tháng đang diễn ra" chưa trọn:
+ * - TB/ngày chia cho số ngày ĐÃ QUA (tháng hiện tại tính tới hôm nay). Chia cho
+ *   cả tháng sẽ kéo con số xuống thấp hơn thực tế.
+ * - TB/tháng chỉ tính các tháng TRỌN VẸN. Tháng mới đi được 1/3 mà đem chia
+ *   ngang hàng sẽ làm trung bình tụt; nên bỏ cả tử lẫn mẫu của tháng đó.
+ */
+export interface RangeSummary {
+  fromMonth: string;
+  toMonth: string;
+  total: number;
+  count: number;
+  /** Số ngày làm mẫu cho TB/ngày (đã cắt ở hôm nay, không tính ngày chưa tới). */
+  days: number;
+  avgPerDay: number;
+  /** Số tháng trọn vẹn trong khoảng - mẫu của TB/tháng. */
+  fullMonths: number;
+  /** null khi khoảng không có tháng trọn nào (vd. chỉ có tháng hiện tại). */
+  avgPerMonth: number | null;
+  /** 'YYYY-MM' của tháng đang dở nếu nó nằm trong khoảng (bị loại khỏi TB/tháng). */
+  partialMonth: string | null;
 }
 
 // ─── #1 KPI ───────────────────────────────────────────────────────────
@@ -197,6 +228,7 @@ export interface CumulativeSeries {
 
 export interface AnalyticsViewModel {
   kpis: KpiTile[];
+  rangeSummary: RangeSummary;
   monthlyPairs: MonthlyPair[];
   categoryRank: RankRow[];
   categoryStack: StackModel;

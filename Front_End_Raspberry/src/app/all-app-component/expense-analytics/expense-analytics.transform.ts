@@ -20,6 +20,7 @@ import {
   HeatmapModel,
   KpiTile,
   MonthlyPair,
+  RangeSummary,
   RankRow,
   StackColumn,
   StackLegendItem,
@@ -189,6 +190,12 @@ export function filterExpenses(rows: DatedRecord[], f: AnalyticsFilter): DatedRe
  * neo chưa có bản ghi nào - nó vẫn phải hiện ra dưới dạng cột 0).
  */
 export function visibleMonths(rows: DatedRecord[], f: AnalyticsFilter): string[] {
+  // Khoảng tự chọn: không phụ thuộc tháng neo. Tự đảo nếu người dùng chọn ngược.
+  if (f.customRange) {
+    const { from, to: end } = f.customRange;
+    return from <= end ? enumerateMonths(from, end) : enumerateMonths(end, from);
+  }
+
   const to = f.anchorMonth;
 
   if (f.monthsBack > 0) {
@@ -201,6 +208,70 @@ export function visibleMonths(rows: DatedRecord[], f: AnalyticsFilter): string[]
     if (r.monthKey < min) min = r.monthKey;
   }
   return enumerateMonths(min, to);
+}
+
+/**
+ * Chỉ giữ bản ghi nằm trong trục tháng đang xem.
+ *
+ * Biểu đồ theo khoảng (#2..#5) phải nhận dữ liệu ĐÃ cắt theo khoảng. Trước đây
+ * #3 và #5 nhận toàn bộ lịch sử trong khi tiêu đề phụ ghi "12 tháng gần nhất",
+ * nên Σ#3 không khớp Σ chú giải #4 như §15.5 của tài liệu yêu cầu.
+ */
+export function filterToMonths(rows: DatedRecord[], months: string[]): DatedRecord[] {
+  if (!months.length) return [];
+  const from = months[0];
+  const to = months[months.length - 1];
+  return rows.filter(r => r.monthKey >= from && r.monthKey <= to);
+}
+
+// ─── Tổng quan khoảng ─────────────────────────────────────────────────
+
+/**
+ * Đã chi bao nhiêu trong khoảng + trung bình tháng/ngày. Lý do hai mẫu số
+ * khác nhau: xem `RangeSummary`.
+ *
+ * `rows` phải là chi ĐÃ lọc loại và đã cắt theo `months` (filterToMonths).
+ * `today` là tham số để test được mà không phụ thuộc đồng hồ máy.
+ */
+export function buildRangeSummary(
+  rows: DatedRecord[],
+  months: string[],
+  today: Date = new Date()
+): RangeSummary {
+  const thangNay = monthKey(today);
+
+  let total = 0;
+  let totalThangDo = 0;
+  for (const r of rows) {
+    total += r.amount;
+    if (r.monthKey === thangNay) totalThangDo += r.amount;
+  }
+
+  let days = 0;
+  let fullMonths = 0;
+  let partialMonth: string | null = null;
+  for (const m of months) {
+    if (m < thangNay) {
+      days += daysInMonth(m);
+      fullMonths++;
+    } else if (m === thangNay) {
+      days += today.getDate();
+      partialMonth = m;
+    }
+    // m > thangNay: tháng chưa tới -> không phải "0 đồng", mà là chưa xảy ra.
+  }
+
+  return {
+    fromMonth: months[0] || thangNay,
+    toMonth: months[months.length - 1] || thangNay,
+    total,
+    count: rows.length,
+    days,
+    avgPerDay: Math.round(total / Math.max(days, 1)),
+    fullMonths,
+    avgPerMonth: fullMonths > 0 ? Math.round((total - totalThangDo) / fullMonths) : null,
+    partialMonth
+  };
 }
 
 // ─── #1 KPI ───────────────────────────────────────────────────────────

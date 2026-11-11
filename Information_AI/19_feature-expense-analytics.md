@@ -246,6 +246,29 @@ Những lựa chọn dễ bị làm sai:
 
 **Quy cách mark:** cột **≤24px**, `rx="4"`; đường 2px **kèm `vector-effect="non-scaling-stroke"`** (mẫu cũ toàn `<rect>` nên chưa gặp; polyline trong `viewBox` co giãn sẽ **không** ra 2px thật nếu thiếu), thêm `stroke-linecap/linejoin="round" fill="none"`; lưới **hairline liền nét** (không nét đứt); khe **2px màu nền** giữa các đoạn cột chồng; nhãn **chọn lọc** (không ghi số lên mọi điểm); **chữ không bao giờ mang màu series**.
 
+## 7b. Khoảng tự chọn + khối "Tổng quan khoảng" (11/2026)
+
+**Khoảng tự chọn.** Cạnh nút 6/12/24/Tất cả có nút **Tùy chọn**. Bấm vào thì hiện hai ô **Từ tháng / Đến tháng** (`AnalyticsFilter.customRange`). Lúc mới bật, hai ô lấy đúng khoảng đang hiển thị, nên biểu đồ không nhảy. Chọn ngược (Từ sau Đến) thì tự đảo lại. Danh sách tháng là **liên tục**, từ tháng có dữ liệu sớm nhất tới tháng hiện tại, vì tháng trống vẫn có thể là đầu/cuối khoảng hợp lệ.
+
+**Biểu đồ nào đổi theo khoảng:**
+
+| Theo khoảng (nút 6/12/24/Tất cả hoặc Tùy chọn) | Theo "Tháng phân tích" |
+|---|---|
+| Tổng quan khoảng, #2 Thu vs Chi, #3 Chi theo loại, #4 Cơ cấu loại, #5 Chi theo thứ | #1 KPI, #6 Heatmap, #7 Lũy kế |
+
+Cột phải nói về **một** tháng (và tháng trước nó), nên không đổi theo khoảng. Ở chế độ nút có sẵn, khoảng kết thúc ở tháng phân tích như cũ; ở chế độ Tùy chọn thì hai thứ độc lập.
+
+**Sửa lỗi kèm theo:** trước đây #3 và #5 nhận **toàn bộ lịch sử** chi, dù tiêu đề phụ ghi "12 tháng gần nhất"; top 6 loại của #4 cũng xếp hạng trên toàn lịch sử. Nay page cắt chi theo khoảng một lần (`filterToMonths`) rồi mới truyền cho #2–#5 và khối tổng quan. Bất biến ở §15.5 (`Σ #3 == Σ chú giải #4 == Σ #5`) nay mới đúng thật.
+
+**Khối "Tổng quan khoảng"** (ngay dưới hàng KPI, `buildRangeSummary` → `RangeSummary`): Đã chi · Trung bình mỗi tháng · Trung bình mỗi ngày. Tính trên chi **đã lọc loại** (IN và OUT) và đã cắt theo khoảng. Hai mẫu số khác nhau có chủ đích:
+
+- **TB/ngày** = tổng ÷ số ngày **đã qua**. Tháng hiện tại chỉ tính tới hôm nay; tháng chưa tới không tính.
+- **TB/tháng** = (tổng − phần của tháng đang dở) ÷ số tháng **trọn vẹn**. Bỏ cả tử lẫn mẫu của tháng đang dở, vì tháng mới đi 1/3 mà chia ngang hàng sẽ kéo trung bình xuống. Nếu khoảng không có tháng trọn nào (vd. chỉ có tháng này) thì hiện `—` kèm giải thích.
+- Chú thích dưới mỗi số ghi rõ mẫu số (`chia cho 2 tháng trọn, không tính tháng 11 năm 2026 vì chưa hết tháng`).
+- "Tất cả" bắt đầu từ tháng có khoản chi (đã lọc) đầu tiên; tháng trống ở giữa vẫn được tính, với giá trị 0.
+
+Kiểm nhanh: "Đã chi" phải bằng tổng cột Chi của #2 trong cùng khoảng.
+
 ## 8. Token thêm vào `src/styles.scss`
 
 Đặt ở cuối khối `:root` và cuối khối `body.dark-theme`.

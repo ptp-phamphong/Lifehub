@@ -15,10 +15,32 @@
           type="button"
           *ngFor="let o of rangeOptions"
           class="range-btn"
-          [class.active]="filter.monthsBack === o.value"
+          [class.active]="!filter.customRange && filter.monthsBack === o.value"
           (click)="onRangeChange(o.value)">{{ o.labelKey | translate }}</button>
+        <button
+          type="button"
+          class="range-btn"
+          [class.active]="!!filter.customRange"
+          (click)="onCustomRangeSelect()">{{ 'analytics.rangeCustom' | translate }}</button>
       </div>
     </div>
+
+    <!-- Khoang tu chon: thay cho nut 6/12/24 o cac bieu do theo khoang.
+         Thang phan tich (KPI, heatmap, luy ke) khong bi anh huong. -->
+    <ng-container *ngIf="filter.customRange">
+      <div class="filter-group">
+        <label for="tuThang">{{ 'analytics.rangeFrom' | translate }}</label>
+        <select id="tuThang" [(ngModel)]="filter.customRange.from" (change)="onCustomRangeChange()">
+          <option *ngFor="let m of rangeMonthOptions" [value]="m">{{ monthTitle(m) }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="denThang">{{ 'analytics.rangeTo' | translate }}</label>
+        <select id="denThang" [(ngModel)]="filter.customRange.to" (change)="onCustomRangeChange()">
+          <option *ngFor="let m of rangeMonthOptions" [value]="m">{{ monthTitle(m) }}</option>
+        </select>
+      </div>
+    </ng-container>
 
     <!-- Ca IN va OUT, giong het trang Chi tieu: thieu mot trong hai thi tong cua
          hai trang se khong bao gio khop nhau. -->
@@ -92,6 +114,34 @@
 
     <!-- 1. KPI -->
     <app-analytics-kpi-row [tiles]="vm.kpis"></app-analytics-kpi-row>
+
+    <!-- Tong quan khoang dang xem: cung khoang voi cac bieu do #2..#5 ben duoi,
+         nen "Da chi" o day bang dung tong cot Chi cua bieu do Thu vs Chi. -->
+    <section class="range-summary" [attr.aria-label]="rangeSummaryTitle">
+      <div class="range-summary-head">
+        <span class="range-summary-title">{{ rangeSummaryTitle }}</span>
+        <span class="range-summary-sub">{{ 'analytics.rangeSummarySub' | translate }}</span>
+      </div>
+      <div class="range-summary-stats">
+        <div class="range-stat">
+          <div class="range-stat-label">{{ 'analytics.rangeTotal' | translate }}</div>
+          <div class="range-stat-value">{{ format(vm.rangeSummary.total) }}</div>
+          <div class="range-stat-hint">
+            {{ 'analytics.rangeTotalHint' | translate: { count: vm.rangeSummary.count } }}
+          </div>
+        </div>
+        <div class="range-stat">
+          <div class="range-stat-label">{{ 'analytics.rangeAvgMonth' | translate }}</div>
+          <div class="range-stat-value">{{ avgPerMonthLabel }}</div>
+          <div class="range-stat-hint">{{ avgPerMonthHint }}</div>
+        </div>
+        <div class="range-stat">
+          <div class="range-stat-label">{{ 'analytics.rangeAvgDay' | translate }}</div>
+          <div class="range-stat-value">{{ format(vm.rangeSummary.avgPerDay) }}</div>
+          <div class="range-stat-hint">{{ avgPerDayHint }}</div>
+        </div>
+      </div>
+    </section>
 
     <!-- 2. Thu vs Chi -->
     <app-chart-panel

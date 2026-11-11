@@ -15,10 +15,13 @@ import {
   buildCategoryStack,
   buildCumulative,
   buildHeatmap,
+  buildRangeSummary,
   buildIncomeExpense,
   buildKpis,
   buildWeekday,
+  enumerateMonths,
   filterExpenses,
+  filterToMonths,
   monthKey,
   shiftMonth,
   visibleMonths
@@ -57,7 +60,8 @@ export class ExpenseAnalyticsPageComponent implements OnInit {
     monthsBack: 12,
     reasonTypeIds: [],
     reasonTypeIdsOut: [],
-    anchorMonth: monthKey(new Date())
+    anchorMonth: monthKey(new Date()),
+    customRange: null
   };
 
   raw: AnalyticsRawData | null = null;
@@ -65,6 +69,12 @@ export class ExpenseAnalyticsPageComponent implements OnInit {
   reasonTypes: ReasonType[] = [];
   /** Chỉ khóa 'YYYY-MM'; nhãn do `monthTitle()` dựng theo ngôn ngữ đang chọn. */
   monthOptions: string[] = [];
+  /**
+   * Tháng cho ô "Từ"/"Đến" của khoảng tự chọn: LIÊN TỤC từ tháng có dữ liệu sớm
+   * nhất tới tháng hiện tại, mới nhất trước. Khác `monthOptions` (chỉ tháng có
+   * dữ liệu): đầu/cuối khoảng là tháng trống vẫn là lựa chọn hợp lệ.
+   */
+  rangeMonthOptions: string[] = [];
 
   /**
    * Bảng số của heatmap: chỉ những ngày thực sự có chi.
@@ -149,6 +159,9 @@ export class ExpenseAnalyticsPageComponent implements OnInit {
     for (const r of this.raw.incomes) keys.add(r.monthKey);
 
     this.monthOptions = Array.from(keys).sort((a, b) => b.localeCompare(a));
+
+    const oldest = this.monthOptions[this.monthOptions.length - 1];
+    this.rangeMonthOptions = enumerateMonths(oldest, now).reverse();
   }
 
   /**
@@ -178,14 +191,18 @@ export class ExpenseAnalyticsPageComponent implements OnInit {
     const chi = filterExpenses(this.raw.expenses, this.filter);
     const thu = this.raw.incomes;   // thu KHÔNG có loại -> không bao giờ áp lọc loại vào đây
     const months = visibleMonths(chi, this.filter);
+    // Biểu đồ theo khoảng nhận chi ĐÃ cắt theo khoảng; KPI/heatmap/lũy kế cần
+    // cả tháng neo lẫn tháng trước nên vẫn nhận `chi` đầy đủ.
+    const chiKhoang = filterToMonths(chi, months);
     const labels = this.transformLabels;
 
     this.vm = {
       kpis: buildKpis(chi, thu, this.filter.anchorMonth),
-      monthlyPairs: buildIncomeExpense(chi, thu, months),
-      categoryRank: buildCategoryRank(chi, labels),
-      categoryStack: buildCategoryStack(chi, months, labels),
-      weekdays: buildWeekday(chi),
+      rangeSummary: buildRangeSummary(chiKhoang, months),
+      monthlyPairs: buildIncomeExpense(chiKhoang, thu, months),
+      categoryRank: buildCategoryRank(chiKhoang, labels),
+      categoryStack: buildCategoryStack(chiKhoang, months, labels),
+      weekdays: buildWeekday(chiKhoang),
       heatmap: buildHeatmap(chi, this.filter.anchorMonth),
       cumulative: buildCumulative(chi, this.filter.anchorMonth),
       hasIncome: thu.length > 0,
@@ -199,6 +216,29 @@ export class ExpenseAnalyticsPageComponent implements OnInit {
 
   onRangeChange(value: number): void {
     this.filter.monthsBack = value;
+    this.filter.customRange = null;
+    this.rebuild();
+  }
+
+  /**
+   * Bật khoảng tự chọn, khởi đầu bằng ĐÚNG khoảng đang hiển thị: bấm "Tùy chọn"
+   * không làm biểu đồ nhảy, người dùng chỉ việc chỉnh một đầu.
+   */
+  onCustomRangeSelect(): void {
+    if (this.filter.customRange || !this.vm) return;
+    this.filter.customRange = {
+      from: this.vm.rangeSummary.fromMonth,
+      to: this.vm.rangeSummary.toMonth
+    };
+    this.rebuild();
+  }
+
+  /** Chọn ngược (Từ sau Đến) thì đảo lại, để hai ô luôn đọc đúng chiều. */
+  onCustomRangeChange(): void {
+    const r = this.filter.customRange;
+    if (r && r.from > r.to) {
+      this.filter.customRange = { from: r.to, to: r.from };
+    }
     this.rebuild();
   }
 
@@ -261,10 +301,63 @@ export class ExpenseAnalyticsPageComponent implements OnInit {
   }
 
   private rangeSubtitleFor(key: string, allKey: string): string {
+    if (this.filter.customRange && this.vm) {
+      return this.translate.instant(key + 'Custom', {
+        from: this.fmt.monthShort(this.vm.rangeSummary.fromMonth),
+        to: this.fmt.monthShort(this.vm.rangeSummary.toMonth)
+      });
+    }
     const n = this.filter.monthsBack;
     return n > 0
       ? this.translate.instant(key, { count: n })
       : this.translate.instant(allKey);
+  }
+
+  // ─── Khối tổng quan khoảng ──────────────────────────────────────────
+
+  /** 'Từ tháng 5 năm 2026 đến tháng 11 năm 2026', hoặc một tháng nếu hai đầu trùng. */
+  get rangeSummaryTitle(): string {
+    if (!this.vm) return '';
+    const s = this.vm.rangeSummary;
+    if (s.fromMonth === s.toMonth) {
+      return this.translate.instant('analytics.rangeSummaryTitleOne', {
+        month: this.fmt.monthInline(s.fromMonth)
+      });
+    }
+    return this.translate.instant('analytics.rangeSummaryTitle', {
+      from: this.fmt.monthInline(s.fromMonth),
+      to: this.fmt.monthInline(s.toMonth)
+    });
+  }
+
+  get avgPerMonthLabel(): string {
+    const v = this.vm?.rangeSummary.avgPerMonth;
+    return v == null ? '—' : this.fmt.full(v);
+  }
+
+  /** Nói rõ mẫu số, nhất là khi tháng đang dở bị loại khỏi trung bình. */
+  get avgPerMonthHint(): string {
+    if (!this.vm) return '';
+    const s = this.vm.rangeSummary;
+    if (s.avgPerMonth == null) {
+      return this.translate.instant('analytics.rangeAvgMonthNone');
+    }
+    if (s.partialMonth) {
+      return this.translate.instant('analytics.rangeAvgMonthHintPartial', {
+        months: s.fullMonths,
+        month: this.fmt.monthInline(s.partialMonth)
+      });
+    }
+    return this.translate.instant('analytics.rangeAvgMonthHint', { months: s.fullMonths });
+  }
+
+  get avgPerDayHint(): string {
+    if (!this.vm) return '';
+    const s = this.vm.rangeSummary;
+    return this.translate.instant(
+      s.partialMonth ? 'analytics.rangeAvgDayHintToday' : 'analytics.rangeAvgDayHint',
+      { days: s.days }
+    );
   }
 
   /** Dạng TIÊU ĐỀ: 'Tháng 7 năm 2026' / 'July 2026'. */
